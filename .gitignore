@@ -10,6 +10,8 @@ TestResults/
 # Secrets / local config
 *.env
 appsettings.local.json
+# DB dumps
+db/*.sql
 # OS
 Thumbs.db
 .DS_Store

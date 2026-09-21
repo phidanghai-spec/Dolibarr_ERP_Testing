@@ -6,7 +6,7 @@ description: Quy tắc viết code Automation C# (Selenium + MSTest + EPPlus, Pa
 
 ## Cấu trúc `automation/DolibarrTests/`
 `Pages/` (Page Object) · `Tests/` (test class) · `Helpers/` (DriverFactory, WaitHelper, ExcelReader, ResultWriter, DbHelper) · `TestData/` (bản sao Excel dữ liệu).
-Stack: .NET 8, Selenium.WebDriver 4.x, MSTest, EPPlus (NonCommercialPersonal), không thêm gói thừa (không EntityFramework, Moq nếu chưa dùng).
+Stack: .NET 9, Selenium.WebDriver 4.x, MSTest, EPPlus (NonCommercialPersonal), không thêm gói thừa (không EntityFramework, Moq nếu chưa dùng).
 
 ## Quy tắc
 1. Locator chỉ nằm trong Page Object; test class chỉ gọi hàm nghiệp vụ và Assert.
