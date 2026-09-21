@@ -1,0 +1,15 @@
+# .NET
+bin/
+obj/
+.vs/
+*.user
+TestResults/
+# Office lock/temp
+~$*
+*.tmp
+# Secrets / local config
+*.env
+appsettings.local.json
+# OS
+Thumbs.db
+.DS_Store
