@@ -55,4 +55,12 @@ public static class TestConfig
 
     public static bool Headless =>
         bool.TryParse(_config["Browser:Headless"], out var h) && h;
+
+    /// <summary>
+    /// Đường dẫn file Excel chứa Test Data và Test Cases.
+    /// Đặt trong appsettings.local.json: { "TestData": { "ExcelPath": "..." } }
+    /// </summary>
+    public static string ExcelPath =>
+        _config["TestData:ExcelPath"]
+        ?? @"D:\Projects\DoAnThucTap_Dolibarr\testcases\Dolibarr_TestCases.xlsx";
 }
