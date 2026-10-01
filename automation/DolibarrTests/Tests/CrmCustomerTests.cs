@@ -1,6 +1,8 @@
 using DolibarrTests.Helpers;
 using DolibarrTests.Pages;
 using OpenQA.Selenium;
+using System.Net;
+using System.Text.RegularExpressions;
 
 namespace DolibarrTests.Tests;
 
@@ -264,6 +266,427 @@ public class CrmCustomerTests : BaseTest
                 $"Lưu thành công. URL: {Driver.Url}");
 
             var screenshotPath = ScreenshotHelper.Capture(Driver, TestContext.TestName ?? "TC_CRM_006");
+            if (screenshotPath != null)
+                TestContext.WriteLine($"[Screenshot] {screenshotPath}");
+        }
+        finally
+        {
+            CleanupCreatedCustomer();
+        }
+    }
+
+    // ════════════════════════════════════════════════════════════════════════════
+    // TC_CRM_007 — Tên rỗng (Negative Testing)
+    // ════════════════════════════════════════════════════════════════════════════
+    /// <summary>
+    /// TC_CRM_007: Tạo khách hàng với tên rỗng.
+    /// Kiểm tra hành vi chặn ở Client-side (HTML5 required attribute) hoặc Server-side (error message).
+    /// Dữ liệu: đọc từ cột "Test data" của dòng TC_CRM_007 trong Excel.
+    /// </summary>
+    [TestMethod]
+    [TestCategory("CRM")]
+    [TestCategory("Negative")]
+    [Description("TC_CRM_007 — Tạo KH với tên rỗng: kiểm tra client-side required hoặc server-side chặn.")]
+    public void TC_CRM_007_CreateCustomer_EmptyName_ShouldBeBlocked()
+    {
+        _createdCustomerUrl = null;
+        try
+        {
+            var row = ExcelDataReader.GetRowByTestId("TC_CRM_007", TestConfig.ExcelPath);
+            string testData = row.TryGetValue("Test data", out var td) ? td : string.Empty;
+
+            Login();
+            var createPage = new CustomerCreatePage(Driver);
+            var detailPage = new CustomerDetailPage(Driver);
+
+            createPage.GoTo();
+            Assert.IsTrue(createPage.IsOnCreatePage(), "Phải điều hướng được đến trang tạo KH mới.");
+
+            // 1. Kiểm tra thuộc tính required trong HTML của ô tên
+            bool hasRequired = createPage.IsNameInputRequired();
+            TestContext.WriteLine($"[TC_CRM_007] Thuộc tính 'required' của ô Tên trong HTML: {hasRequired}");
+
+            createPage.SelectCustomerType();
+            if (!string.IsNullOrEmpty(testData))
+            {
+                createPage.EnterName(testData);
+            }
+
+            createPage.ClickSave();
+
+            if (hasRequired)
+            {
+                // Khi có HTML5 required: browser chặn submit tại client-side
+                string valMsg = createPage.GetNameValidationMessage();
+                TestContext.WriteLine($"[TC_CRM_007 Client-side] Form bị chặn bởi HTML5 required. validationMessage='{valMsg}'");
+
+                Assert.IsTrue(createPage.IsOnCreatePage(),
+                    "[TC_CRM_007] Khi có required attribute, form không được submit/redirect.");
+                Assert.IsTrue(Driver.Url.Contains("action=create", StringComparison.OrdinalIgnoreCase),
+                    $"[TC_CRM_007] URL phải còn 'action=create', thực tế: {Driver.Url}");
+                Assert.IsFalse(string.IsNullOrEmpty(valMsg),
+                    "[TC_CRM_007] validationMessage của input 'name' phải khác rỗng khi browser chặn.");
+            }
+            else
+            {
+                // Khi không có required: server-side chặn và trả về thông báo lỗi
+                bool redirected = detailPage.WaitForRedirectAfterSave(timeoutSeconds: 3);
+                string errMsg = createPage.GetErrorMessage();
+                TestContext.WriteLine($"[TC_CRM_007 Server-side] Redirected={redirected}, ServerErrorMessage='{errMsg}'");
+
+                // Assert chính: không được redirect thành công (URL không có socid/id)
+                Assert.IsFalse(redirected,
+                    $"[TC_CRM_007] Server không được tạo KH rỗng và redirect thành công. URL: {Driver.Url}");
+
+                // Assert phụ: kiểm tra còn ở trang tạo hoặc có thông báo lỗi server (chứa 'required' / 'bắt buộc')
+                Assert.IsTrue(
+                    createPage.IsOnCreatePage() || !string.IsNullOrEmpty(errMsg),
+                    "[TC_CRM_007] Phải còn ở trang tạo hoặc có thông báo lỗi từ server.");
+
+                if (!string.IsNullOrEmpty(errMsg))
+                {
+                    Assert.IsTrue(
+                        errMsg.Contains("required", StringComparison.OrdinalIgnoreCase) ||
+                        errMsg.Contains("bắt buộc", StringComparison.OrdinalIgnoreCase) ||
+                        errMsg.Contains("obligatoire", StringComparison.OrdinalIgnoreCase),
+                        $"[TC_CRM_007 Assert phụ] Thông báo lỗi server phải chứa từ khóa yêu cầu nhập tên. Lỗi: '{errMsg}'");
+                }
+            }
+
+            var screenshotPath = ScreenshotHelper.Capture(Driver, TestContext.TestName ?? "TC_CRM_007");
+            if (screenshotPath != null)
+                TestContext.WriteLine($"[Screenshot] {screenshotPath}");
+        }
+        finally
+        {
+            CleanupCreatedCustomer();
+        }
+    }
+
+    // ════════════════════════════════════════════════════════════════════════════
+    // TC_CRM_008 — Tên 1 ký tự (BVA Biên tối thiểu N=1)
+    // ════════════════════════════════════════════════════════════════════════════
+    /// <summary>
+    /// TC_CRM_008: Tạo khách hàng với tên đúng 1 ký tự ("A" đọc từ Excel).
+    /// Expected: Lưu thành công, redirect về card.php, tên hiển thị khớp "A", không báo lỗi.
+    /// </summary>
+    [TestMethod]
+    [TestCategory("CRM")]
+    [TestCategory("BVA")]
+    [Description("TC_CRM_008 — Tạo KH với tên 1 ký tự ('A' từ Excel): lưu thành công.")]
+    public void TC_CRM_008_CreateCustomer_SingleChar_ShouldSaveSuccessfully()
+    {
+        _createdCustomerUrl = null;
+        try
+        {
+            var row = ExcelDataReader.GetRowByTestId("TC_CRM_008", TestConfig.ExcelPath);
+            string singleCharName = row["Test data"];
+            Assert.AreEqual("A", singleCharName, "[Arrange] Dữ liệu từ Excel phải là 'A'");
+
+            Login();
+            var createPage = new CustomerCreatePage(Driver);
+            var detailPage = new CustomerDetailPage(Driver);
+
+            createPage.GoTo();
+            Assert.IsTrue(createPage.IsOnCreatePage(), "Phải điều hướng được đến trang tạo KH mới.");
+
+            createPage.SelectCustomerType();
+            createPage.EnterName(singleCharName);
+
+            string actualInInput = createPage.GetNameInputValue();
+            Assert.AreEqual("A", actualInInput,
+                $"[TC_CRM_008] Ô nhập phải nhận đúng 'A', thực tế: '{actualInInput}'");
+
+            createPage.ClickSave();
+
+            bool redirected = detailPage.WaitForRedirectAfterSave();
+            _createdCustomerUrl = Driver.Url;
+
+            Assert.IsTrue(redirected,
+                $"[TC_CRM_008] Form phải redirect về trang chi tiết sau khi lưu. URL: {Driver.Url}");
+
+            string errMsg = createPage.GetErrorMessage();
+            Assert.AreEqual(string.Empty, errMsg,
+                $"[TC_CRM_008] Không được có thông báo lỗi. Nhận được: '{errMsg}'");
+
+            string displayedName = detailPage.GetDisplayedName();
+            Assert.AreEqual("A", displayedName,
+                $"[TC_CRM_008] Tên hiển thị trên trang chi tiết phải là 'A', thực tế: '{displayedName}'");
+
+            TestContext.WriteLine(
+                $"[TC_CRM_008 PASS] Lưu thành công KH tên 1 ký tự '{singleCharName}'. URL: {Driver.Url}");
+
+            var screenshotPath = ScreenshotHelper.Capture(Driver, TestContext.TestName ?? "TC_CRM_008");
+            if (screenshotPath != null)
+                TestContext.WriteLine($"[Screenshot] {screenshotPath}");
+        }
+        finally
+        {
+            CleanupCreatedCustomer();
+        }
+    }
+
+    // ════════════════════════════════════════════════════════════════════════════
+    // TC_CRM_009 — Tên chỉ gồm khoảng trắng (Edge Case)
+    // ════════════════════════════════════════════════════════════════════════════
+    /// <summary>
+    /// TC_CRM_009: Nhập tên chỉ gồm 10 khoảng trắng (đọc từ Excel).
+    /// Quan sát và ghi nhận hành vi thực tế: Dolibarr chặn hay tự động trim hay cho lưu.
+    /// Assert: Không gặp lỗi crash / 500 / Fatal error của PHP.
+    /// </summary>
+    [TestMethod]
+    [TestCategory("CRM")]
+    [TestCategory("EdgeCase")]
+    [Description("TC_CRM_009 — Nhập tên chỉ gồm khoảng trắng (10 spaces từ Excel): quan sát hành vi thực tế.")]
+    public void TC_CRM_009_CreateCustomer_WhitespaceOnly_ObserveActualBehavior()
+    {
+        _createdCustomerUrl = null;
+        try
+        {
+            var row = ExcelDataReader.GetRowByTestId("TC_CRM_009", TestConfig.ExcelPath);
+            string whitespaceName = row["Test data"];
+
+            Login();
+            var createPage = new CustomerCreatePage(Driver);
+            var detailPage = new CustomerDetailPage(Driver);
+
+            createPage.GoTo();
+            Assert.IsTrue(createPage.IsOnCreatePage(), "Phải điều hướng được đến trang tạo KH mới.");
+
+            createPage.SelectCustomerType();
+            createPage.EnterName(whitespaceName);
+
+            // a. Ghi lại giá trị actualInInput.Length ngay sau khi nhập (trước submit)
+            string actualInInput = createPage.GetNameInputValue();
+            TestContext.WriteLine(
+                $"[TC_CRM_009] Input length trước khi submit: {actualInInput.Length}, Raw='{actualInInput}'");
+
+            // b. Thử submit
+            createPage.ClickSave();
+
+            bool redirected = detailPage.WaitForRedirectAfterSave(timeoutSeconds: 5);
+            if (redirected)
+            {
+                _createdCustomerUrl = Driver.Url;
+            }
+
+            string savedNameRaw = string.Empty;
+            int savedNameLength = 0;
+            if (redirected)
+            {
+                savedNameRaw = detailPage.GetDisplayedName();
+                savedNameLength = savedNameRaw.Length;
+            }
+            else
+            {
+                string errMsg = createPage.GetErrorMessage();
+                TestContext.WriteLine($"[TC_CRM_009] Form bị chặn submit, thông báo lỗi: '{errMsg}'");
+            }
+
+            // c. Assert không có Exception không mong muốn (không lỗi Fatal error / Warning PHP)
+            string pageSource = Driver.PageSource;
+            Assert.IsFalse(pageSource.Contains("Fatal error:", StringComparison.OrdinalIgnoreCase),
+                "[TC_CRM_009] Trang web không được chứa 'Fatal error:' của PHP.");
+            Assert.IsFalse(pageSource.Contains("Parse error:", StringComparison.OrdinalIgnoreCase),
+                "[TC_CRM_009] Trang web không được chứa 'Parse error:' của PHP.");
+
+            // d. In ra TestContext định dạng yêu cầu để dán vào cột Actual của Excel:
+            TestContext.WriteLine(
+                string.Format("[TC_CRM_009 OBSERVED] Redirected={0}, SavedNameLength={1}, SavedNameRaw='{2}'",
+                    redirected, savedNameLength, savedNameRaw));
+
+            var screenshotPath = ScreenshotHelper.Capture(Driver, TestContext.TestName ?? "TC_CRM_009");
+            if (screenshotPath != null)
+                TestContext.WriteLine($"[Screenshot] {screenshotPath}");
+        }
+        finally
+        {
+            CleanupCreatedCustomer();
+        }
+    }
+
+    /// <summary>
+    /// Mô phỏng cơ chế sanitize input của Dolibarr (strip_tags thẻ HTML, xóa ngoặc kép, gộp khoảng trắng liền kề).
+    /// </summary>
+    private static string SimulateDolibarrSanitize(string input)
+    {
+        if (string.IsNullOrEmpty(input)) return string.Empty;
+
+        // Bước 1: Xóa TOÀN BỘ các khối khớp mẫu thẻ HTML (<[^>]*>) như strip_tags()
+        string step1 = Regex.Replace(input, "<[^>]*>", "");
+
+        // Bước 2: Xóa toàn bộ ký tự dấu ngoặc kép '"'
+        string step2 = step1.Replace("\"", "");
+
+        // Bước 3: Chuẩn hóa khoảng trắng: gộp các khoảng trắng liền kề thành 1 khoảng trắng và trim
+        return Regex.Replace(step2, @"\s+", " ").Trim();
+    }
+
+    // ════════════════════════════════════════════════════════════════════════════
+    // TC_CRM_010 — Ký tự đặc biệt & Kiểm tra XSS
+    // ════════════════════════════════════════════════════════════════════════════
+    /// <summary>
+    /// TC_CRM_010: Tạo KH với chuỗi chứa ký tự đặc biệt (O'Brien &amp; Cong ty &lt;Test&gt; "123").
+    /// Kiểm tra: Lưu thành công, hiển thị đúng, và kiểm tra cơ chế escape chống XSS.
+    /// </summary>
+    [TestMethod]
+    [TestCategory("CRM")]
+    [TestCategory("Security")]
+    [Description("TC_CRM_010 — Tạo KH với ký tự đặc biệt O'Brien & Cong ty <Test> \"123\": kiểm tra an toàn XSS.")]
+    public void TC_CRM_010_CreateCustomer_SpecialChars_ObserveXssHandling()
+    {
+        _createdCustomerUrl = null;
+        try
+        {
+            var row = ExcelDataReader.GetRowByTestId("TC_CRM_010", TestConfig.ExcelPath);
+            string specialName = row["Test data"];
+
+            Login();
+            var createPage = new CustomerCreatePage(Driver);
+            var detailPage = new CustomerDetailPage(Driver);
+
+            createPage.GoTo();
+            Assert.IsTrue(createPage.IsOnCreatePage(), "Phải điều hướng được đến trang tạo KH mới.");
+
+            createPage.SelectCustomerType();
+            createPage.EnterName(specialName);
+
+            createPage.ClickSave();
+
+            bool redirected = detailPage.WaitForRedirectAfterSave();
+            _createdCustomerUrl = Driver.Url;
+
+            Assert.IsTrue(redirected,
+                $"[TC_CRM_010] Form phải lưu được và redirect về trang chi tiết. URL: {Driver.Url}");
+
+            // Lấy PageSource và HTML vùng hiển thị tên khách hàng
+            string containerHtml = detailPage.GetCustomerNameContainerHtml();
+            string pageSource = Driver.PageSource;
+
+            // Kiểm tra an toàn XSS: xác nhận thẻ HTML không bị chèn trực tiếp không escape
+            bool hasUnescapedTag = containerHtml.Contains("<Test>", StringComparison.OrdinalIgnoreCase);
+            if (hasUnescapedTag)
+            {
+                string warnMsg = "CANH BAO: co the co lo hong XSS — the HTML khong duoc escape trong container hiển thị tên!";
+                TestContext.WriteLine(warnMsg);
+                Assert.Fail(warnMsg);
+            }
+
+            TestContext.WriteLine(
+                "[TC_CRM_010] Dolibarr sanitize dau vao bang cach loai bo ky tu <, >, \" truoc khi luu (khong phai escape khi hien thi) — day la co che chong XSS/injection o tang server");
+
+            // Lấy chuỗi tên hiển thị thật trên trang chi tiết (không dính địa chỉ/Vietnam)
+            string actualName = detailPage.GetDisplayedName();
+
+            // Assert 1: Chuỗi đã lưu KHÔNG chứa bất kỳ ký tự nào trong bộ {'<', '>', '"'}
+            Assert.AreEqual(-1, actualName.IndexOfAny(new[] { '<', '>', '"' }),
+                $"[TC_CRM_010] Chuỗi đã lưu không được chứa bất kỳ ký tự nào trong bộ {{'<', '>', '\"'}}. Thực tế: '{actualName}'");
+
+            // Assert 2: Chuỗi đã lưu PHẢI chứa ký tự ''' (dấu nháy đơn) và '&' (xác nhận được giữ nguyên)
+            Assert.IsTrue(actualName.Contains('\''),
+                $"[TC_CRM_010] Tên đã lưu phải giữ nguyên ký tự nháy đơn ('). Thực tế: '{actualName}'");
+            Assert.IsTrue(actualName.Contains('&'),
+                $"[TC_CRM_010] Tên đã lưu phải giữ nguyên ký tự '&'. Thực tế: '{actualName}'");
+
+            // Assert 3: Sau khi simulate sanitize (xóa thẻ HTML, xóa ngoặc kép, chuẩn hóa khoảng trắng), kết quả phải bằng đúng actualName
+            string expectedAfterSanitize = SimulateDolibarrSanitize(specialName);
+
+            // Log debug hiển thị khoảng trắng bằng ký tự '•' (luôn in ra dù pass hay fail)
+            TestContext.WriteLine($"[TC_CRM_010 DEBUG] Input goc (the hien khoang trang bang '•'): '{specialName.Replace(" ", "•")}'");
+            TestContext.WriteLine($"[TC_CRM_010 DEBUG] Ky vong sau simulate (•): '{expectedAfterSanitize.Replace(" ", "•")}'");
+            TestContext.WriteLine($"[TC_CRM_010 DEBUG] Thuc te lay duoc (•): '{actualName.Replace(" ", "•")}'");
+
+            Assert.AreEqual(expectedAfterSanitize, actualName,
+                $"[TC_CRM_010] Tên sau khi Dolibarr sanitize phải khớp chính xác chuỗi gốc sau khi loại bỏ thẻ HTML, ngoặc kép và chuẩn hóa khoảng trắng.\n" +
+                $"Kỳ vọng: '{expectedAfterSanitize}'\n" +
+                $"Thực tế: '{actualName}'");
+
+            TestContext.WriteLine(
+                $"[TC_CRM_010 PASS] Tên sau sanitize lưu và hiển thị đúng: '{actualName}'. URL: {Driver.Url}");
+
+            var screenshotPath = ScreenshotHelper.Capture(Driver, TestContext.TestName ?? "TC_CRM_010");
+            if (screenshotPath != null)
+                TestContext.WriteLine($"[Screenshot] {screenshotPath}");
+        }
+        finally
+        {
+            CleanupCreatedCustomer();
+        }
+    }
+
+    // ════════════════════════════════════════════════════════════════════════════
+    // TC_CRM_011 — Tiếng Việt có dấu 128 ký tự (Unicode BVA)
+    // ════════════════════════════════════════════════════════════════════════════
+    /// <summary>
+    /// TC_CRM_011: Tạo KH với chuỗi 128 ký tự tiếng Việt có dấu (Unicode multi-byte).
+    /// Đọc trực tiếp từ dòng 8 cột Test data của sheet Test Cases.
+    /// Assert: Khớp chính xác từng ký tự (không chỉ độ dài) để phát hiện lỗi mã hóa (mojibake).
+    /// </summary>
+    [TestMethod]
+    [TestCategory("CRM")]
+    [TestCategory("Unicode")]
+    [Description("TC_CRM_011 — Tạo KH với chuỗi 128 ký tự tiếng Việt có dấu: kiểm tra xử lý multi-byte Unicode.")]
+    public void TC_CRM_011_CreateCustomer_VietnameseDiacritics128Chars_ShouldSaveSuccessfully()
+    {
+        _createdCustomerUrl = null;
+        try
+        {
+            var row = ExcelDataReader.GetRowByTestId("TC_CRM_011", TestConfig.ExcelPath, preferredSheet: "Test Cases");
+            string vietnameseName = row["Test data"];
+
+            // 1. Assert chuỗi đọc từ Excel có độ dài 128 và có ít nhất 1 ký tự ord > 127
+            Assert.AreEqual(128, vietnameseName.Length,
+                $"[TC_CRM_011 Arrange] Chuỗi từ Excel phải có đúng 128 ký tự, thực tế: {vietnameseName.Length}");
+            Assert.IsTrue(vietnameseName.Any(c => c > 127),
+                "[TC_CRM_011 Arrange] Chuỗi đọc từ Excel không có ký tự có dấu (>127) — vi phạm mục đích test Unicode!");
+
+            TestContext.WriteLine($"[TC_CRM_011] Đã đọc chuỗi tiếng Việt 128 ký tự từ Excel: '{vietnameseName}'");
+            TestContext.WriteLine($"[TC_CRM_011] Số ký tự non-ASCII (>127): {vietnameseName.Count(c => c > 127)}");
+
+            Login();
+            var createPage = new CustomerCreatePage(Driver);
+            var detailPage = new CustomerDetailPage(Driver);
+
+            createPage.GoTo();
+            Assert.IsTrue(createPage.IsOnCreatePage(), "Phải điều hướng được đến trang tạo KH mới.");
+
+            createPage.SelectCustomerType();
+            createPage.EnterName(vietnameseName);
+
+            // 2. Assert giá trị ô nhập SAU KHI nhập: độ dài == 128 VÀ bằng chính xác chuỗi gốc
+            string actualInInput = createPage.GetNameInputValue();
+            Assert.AreEqual(128, actualInInput.Length,
+                $"[TC_CRM_011] Ô nhập phải chứa đúng 128 ký tự, thực tế: {actualInInput.Length}");
+            Assert.AreEqual(vietnameseName, actualInInput,
+                "[TC_CRM_011] Giá trị ô nhập phải khớp chính xác từng ký tự chuỗi tiếng Việt có dấu gốc.");
+
+            // 3. Submit
+            createPage.ClickSave();
+
+            // 4. Assert redirect về trang chi tiết
+            bool redirected = detailPage.WaitForRedirectAfterSave();
+            _createdCustomerUrl = Driver.Url;
+
+            Assert.IsTrue(redirected,
+                $"[TC_CRM_011] Form phải lưu thành công và redirect về trang chi tiết. URL: {Driver.Url}");
+
+            string errMsg = createPage.GetErrorMessage();
+            Assert.AreEqual(string.Empty, errMsg,
+                $"[TC_CRM_011] Không được có thông báo lỗi. Nhận được: '{errMsg}'");
+
+            // 5. Assert tên hiển thị trên trang chi tiết khớp chính xác chuỗi gốc (dùng HtmlDecode nếu cần)
+            string displayedName = detailPage.GetDisplayedName();
+            string decodedDisplayedName = WebUtility.HtmlDecode(displayedName);
+
+            Assert.AreEqual(vietnameseName, decodedDisplayedName,
+                $"[TC_CRM_011] Tên hiển thị trên trang chi tiết phải khớp chính xác 100% chuỗi tiếng Việt gốc (không bị mojibake/lỗi font).\n" +
+                $"Gốc:     '{vietnameseName}'\n" +
+                $"Hiển thị: '{decodedDisplayedName}'");
+
+            TestContext.WriteLine(
+                $"[TC_CRM_011 PASS] Tên tiếng Việt 128 ký tự lưu và hiển thị hoàn hảo. URL: {Driver.Url}");
+
+            var screenshotPath = ScreenshotHelper.Capture(Driver, TestContext.TestName ?? "TC_CRM_011");
             if (screenshotPath != null)
                 TestContext.WriteLine($"[Screenshot] {screenshotPath}");
         }

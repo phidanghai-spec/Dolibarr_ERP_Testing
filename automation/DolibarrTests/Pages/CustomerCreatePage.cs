@@ -95,6 +95,25 @@ public class CustomerCreatePage
         return el.GetAttribute("maxlength") ?? string.Empty;
     }
 
+    /// <summary>Kiểm tra xem ô Tên có thuộc tính HTML5 'required' hay không.</summary>
+    public bool IsNameInputRequired()
+    {
+        var el = WaitHelper.WaitVisible(_driver, NameInput);
+        var req = el.GetAttribute("required");
+        return req != null && (req.Equals("true", StringComparison.OrdinalIgnoreCase) ||
+                               req.Equals("required", StringComparison.OrdinalIgnoreCase) ||
+                               req == string.Empty);
+    }
+
+    /// <summary>Đọc validationMessage của ô Tên qua JavaScript.</summary>
+    public string GetNameValidationMessage()
+    {
+        var el = WaitHelper.WaitVisible(_driver, NameInput);
+        var js = (IJavaScriptExecutor)_driver;
+        var msg = js.ExecuteScript("return arguments[0].validationMessage;", el);
+        return msg?.ToString() ?? string.Empty;
+    }
+
     // ── Kiểm tra trạng thái ─────────────────────────────────────────────────────
 
     /// <summary>Trả về true nếu ô tên đang visible (đang ở form create).</summary>
@@ -104,14 +123,32 @@ public class CustomerCreatePage
         catch (NoSuchElementException) { return false; }
     }
 
-    /// <summary>Trả về nội dung lỗi jnotify, rỗng nếu không có.</summary>
+    /// <summary>
+    /// Trả về nội dung lỗi hiển thị (jnotify hoặc inline error), rỗng nếu không có.
+    /// </summary>
     public string GetErrorMessage()
     {
-        try
+        var selectors = new[]
         {
-            var el = WaitHelper.WaitVisible(_driver, ErrorMessage, timeoutSeconds: 5);
-            return el.Text.Trim();
+            By.CssSelector("div.jnotify-message"),
+            By.CssSelector("div.error"),
+            By.CssSelector("div.jnotify-container"),
+            By.CssSelector(".fiche .error")
+        };
+
+        foreach (var sel in selectors)
+        {
+            try
+            {
+                var el = WaitHelper.WaitVisible(_driver, sel, timeoutSeconds: 3);
+                var text = el.Text.Trim();
+                if (!string.IsNullOrEmpty(text))
+                    return text;
+            }
+            catch (WebDriverTimeoutException) { }
+            catch (NoSuchElementException) { }
         }
-        catch (WebDriverTimeoutException) { return string.Empty; }
+
+        return string.Empty;
     }
 }
