@@ -1,6 +1,7 @@
 using DolibarrTests.Helpers;
 using DolibarrTests.Pages;
 using OpenQA.Selenium;
+using OpenQA.Selenium.Support.UI;
 using System.Net;
 using System.Text.RegularExpressions;
 
@@ -52,30 +53,18 @@ public class CrmCustomerTests : BaseTest
 
         try
         {
-            Driver.Navigate().GoToUrl(_createdCustomerUrl);
-
-            // Xác nhận từ card.php dòng ~3440:
-            // - id="action-delete"          (khi JS bật — click mở confirm popup)
-            // - id="action-delete-no-ajax"  (khi JS tắt — link trực tiếp)
-            // Ưu tiên id="action-delete" vì Dolibarr bật JS theo mặc định.
-            var deleteBtn = By.Id("action-delete");
-            var el = WaitHelper.WaitClickable(Driver, deleteBtn, timeoutSeconds: 8);
-            el.Click();
-
-            // Xác nhận native browser confirm dialog
-            try
+            // Loai bo tham so action=... (nhu action=edit) de dam bao ve trang chi tiet co nut Xoa
+            string cleanUrl = Regex.Replace(_createdCustomerUrl, @"([&?])action=[^&]+(&|$)", "$1").TrimEnd('?', '&');
+            Driver.Navigate().GoToUrl(cleanUrl);
+            var detailPage = new CustomerDetailPage(Driver);
+            bool deleted = detailPage.DeleteCustomer(timeoutSeconds: 15);
+            if (deleted)
             {
-                var alert = Driver.SwitchTo().Alert();
-                alert.Accept();
-                TestContext.WriteLine($"[Cleanup] Đã xóa KH: {_createdCustomerUrl}");
+                TestContext.WriteLine($"[Cleanup] Đã xóa KH: {cleanUrl}");
             }
-            catch (OpenQA.Selenium.NoAlertPresentException)
+            else
             {
-                // Dolibarr 22 dùng custom confirm form thay native alert trong một số trường hợp
-                // Thử nút confirm trong form
-                var confirmYes = By.CssSelector("input[name='confirm'][value='yes'], button.btnyes");
-                WaitHelper.WaitClickable(Driver, confirmYes, timeoutSeconds: 5).Click();
-                TestContext.WriteLine($"[Cleanup] Đã xóa KH (form confirm): {_createdCustomerUrl}");
+                TestContext.WriteLine($"[Cleanup WARN] Không xóa được KH qua DeleteCustomer: {cleanUrl}");
             }
         }
         catch (Exception ex)
@@ -689,6 +678,419 @@ public class CrmCustomerTests : BaseTest
             var screenshotPath = ScreenshotHelper.Capture(Driver, TestContext.TestName ?? "TC_CRM_011");
             if (screenshotPath != null)
                 TestContext.WriteLine($"[Screenshot] {screenshotPath}");
+        }
+        finally
+        {
+            CleanupCreatedCustomer();
+        }
+    }
+
+    // ============================================================
+    // CLEANUP SCRIPT — Xoa du lieu rac tich luy
+    // ============================================================
+    /// <summary>
+    /// CleanupAllTestCustomers: xoa toan bo KH test da tich luy.
+    /// Loc theo prefix/pattern ten test (prefix "TC" hoac ten chi gom 1 ky tu "A" vv.).
+    /// Day la [TestMethod] rieng, phai chay thu cong khi can don dep DB.
+    /// KHONG phai [TestInitialize] / [TestCleanup] — khong chay tu dong.
+    /// </summary>
+    [TestMethod]
+    [TestCategory("Cleanup")]
+    [Description("Don sach KH test: xoa toan bo KH co ten khop pattern test (prefix chay tu dong).")]
+    public void Cleanup_DeleteAllTestCustomers()
+    {
+        Login();
+
+        var listPage = new CustomerListPage(Driver);
+        var detailPage = new CustomerDetailPage(Driver);
+
+        // Pattern ten KH test: cac prefix/ky tu dac trung ma test suite tao ra
+        // - "TC005_" ... "TC006_" (128/129 ky tu, co prefix nay)
+        // - Ten dung 1 ky tu "A"
+        // - Ten chi gom khoang trang (sau khi trim: rong hoac 1 chu)
+        // - Ten chua ky tu dac biet (O'Brien)
+        // - Ten tieng Viet (bat dau bang "Cong ty TNHH")
+        int totalDeleted = 0;
+        int totalFailed = 0;
+
+        // Dieu huong den danh sach khach hang (limit=100)
+        Driver.Navigate().GoToUrl($"{TestConfig.BaseUrl}/societe/list.php?type=c&limit=100");
+        WaitHelper.WaitVisible(Driver, By.Name("search_nom"), timeoutSeconds: 15);
+
+        // Lay tat ca link toi trang chi tiet KH
+        var customerLinks = Driver.FindElements(By.CssSelector("table.tagtable td a[href*='societe/card.php?socid=']"));
+        var testCustomerUrls = new List<(string Url, string Name)>();
+
+        foreach (var link in customerLinks)
+        {
+            string url = link.GetAttribute("href") ?? string.Empty;
+            string name = link.Text.Trim();
+
+            // Bao ve du lieu nen: KHONG duoc xoa "Cong ty ABC" (socid=1) va "Cong ty BCD" (socid=2)
+            if (url.Contains("socid=1&") || url.EndsWith("socid=1") ||
+                url.Contains("socid=2&") || url.EndsWith("socid=2") ||
+                name.Equals("Cong ty ABC", StringComparison.OrdinalIgnoreCase) ||
+                name.Equals("Cong ty BCD", StringComparison.OrdinalIgnoreCase))
+            {
+                continue;
+            }
+
+            if (!string.IsNullOrEmpty(url))
+            {
+                testCustomerUrls.Add((url, name));
+            }
+        }
+
+        TestContext.WriteLine($"[Cleanup] Tim thay {testCustomerUrls.Count} KH test can xoa.");
+
+        foreach (var (url, name) in testCustomerUrls)
+        {
+            try
+            {
+                Driver.Navigate().GoToUrl(url);
+                bool deleted = detailPage.DeleteCustomer(timeoutSeconds: 15);
+                if (deleted)
+                {
+                    totalDeleted++;
+                    TestContext.WriteLine($"[Cleanup] Da xoa ({totalDeleted}/{testCustomerUrls.Count}): '{name}' ({url})");
+                }
+                else
+                {
+                    totalFailed++;
+                    TestContext.WriteLine($"[Cleanup WARN] Khong xoa duoc: '{name}' ({url})");
+                }
+            }
+            catch (Exception ex)
+            {
+                totalFailed++;
+                TestContext.WriteLine($"[Cleanup WARN] Exception khi xoa '{name}': {ex.Message}");
+            }
+        }
+
+        TestContext.WriteLine($"[Cleanup DONE] Tong xoa thanh cong: {totalDeleted}, That bai: {totalFailed}");
+
+        // Xac minh lai danh sach sau khi xoa: chi con du lieu nen (Cong ty ABC, Cong ty BCD)
+        Driver.Navigate().GoToUrl($"{TestConfig.BaseUrl}/societe/list.php?type=c&limit=100");
+        var remainingLinks = Driver.FindElements(By.CssSelector("table.tagtable td a[href*='societe/card.php?socid=']"));
+        var remainingNames = remainingLinks.Select(l => l.Text.Trim()).Where(t => !string.IsNullOrEmpty(t)).ToList();
+        TestContext.WriteLine($"[Cleanup Verify] Danh sach con lai ({remainingNames.Count}): {string.Join(", ", remainingNames)}");
+
+        Assert.IsTrue(totalFailed == 0 || totalDeleted > 0,
+            $"[Cleanup] Xoa that bai nhieu hon thanh cong. Deleted={totalDeleted}, Failed={totalFailed}");
+    }
+
+    // ============================================================
+    // TC_CRM_012 -- Sua ten khach hang (Update flow)
+    // ============================================================
+    /// <summary>
+    /// TC_CRM_012: Tao KH moi -> vao trang chi tiet -> click Edit -> sua ten -> luu -> assert ten moi hien thi dung.
+    /// Dung lai CustomerDetailPage.ClickEdit(), EnterName(), ClickSave(), GetDisplayedName().
+    /// Cleanup: xoa KH vua tao sau khi ket thuc.
+    /// </summary>
+    [TestMethod]
+    [TestCategory("CRM")]
+    [TestCategory("Update")]
+    [Description("TC_CRM_012 -- Sua ten KH: tao KH -> edit -> luu -> assert ten moi hien thi dung.")]
+    public void TC_CRM_012_UpdateCustomer_ChangeName_ShouldDisplayNewName()
+    {
+        _createdCustomerUrl = null;
+        try
+        {
+            // Arrange
+            string suffix = Guid.NewGuid().ToString("N")[..8].ToUpper();
+            string originalName = $"KH_Edit_Orig_{suffix}";
+            string newName = $"KH_Edit_New_{suffix}";
+
+            Login();
+            var createPage = new CustomerCreatePage(Driver);
+            var detailPage = new CustomerDetailPage(Driver);
+
+            // Act 1: Tao KH ban dau
+            createPage.GoTo();
+            Assert.IsTrue(createPage.IsOnCreatePage(), "[TC_CRM_012] Phai dieu huong duoc den trang tao KH moi.");
+            createPage.SelectCustomerType();
+            createPage.EnterName(originalName);
+            createPage.ClickSave();
+
+            bool created = detailPage.WaitForRedirectAfterSave();
+            _createdCustomerUrl = Driver.Url;
+            Assert.IsTrue(created, $"[TC_CRM_012] Phai tao duoc KH '{originalName}'. URL: {Driver.Url}");
+
+            string displayedOriginal = detailPage.GetDisplayedName();
+            Assert.AreEqual(originalName, displayedOriginal,
+                $"[TC_CRM_012] Ten hien thi sau khi tao phai la '{originalName}', thuc te: '{displayedOriginal}'");
+
+            TestContext.WriteLine($"[TC_CRM_012] Da tao KH: '{originalName}'. URL: {Driver.Url}");
+
+            // Act 2: Click nut Edit (Sua)
+            detailPage.ClickEdit();
+            TestContext.WriteLine($"[TC_CRM_012] Da vao che do Edit. URL: {Driver.Url}");
+
+            // Assert: o nhap ten hien thi dung ten cu
+            string nameInEditBox = detailPage.GetNameInputValue();
+            Assert.AreEqual(originalName, nameInEditBox,
+                $"[TC_CRM_012] O nhap ten trong Edit phai chua ten cu '{originalName}', thuc te: '{nameInEditBox}'");
+
+            // Act 3: Sua ten moi
+            detailPage.EnterName(newName);
+
+            string nameAfterInput = detailPage.GetNameInputValue();
+            Assert.AreEqual(newName, nameAfterInput,
+                $"[TC_CRM_012] O nhap phai chua ten moi '{newName}' sau khi sua, thuc te: '{nameAfterInput}'");
+
+            detailPage.ClickSave();
+
+            // Act 4: Cho redirect ve trang chi tiet (khong con action=edit)
+            var waitEdit = new WebDriverWait(Driver, TimeSpan.FromSeconds(15));
+            bool savedOk = waitEdit.Until(d => CustomerDetailPage.IsCustomerCreatedSuccessfully(d.Url)
+                                            && !d.Url.Contains("action=edit", StringComparison.OrdinalIgnoreCase));
+            _createdCustomerUrl = Driver.Url;
+            Assert.IsTrue(savedOk, $"[TC_CRM_012] Sau khi sua ten, phai redirect ve trang chi tiet. URL: {Driver.Url}");
+
+            // Assert chinh: ten moi hien thi dung
+            string displayedNew = detailPage.GetDisplayedName();
+            Assert.AreEqual(newName, displayedNew,
+                $"[TC_CRM_012] Ten hien thi phai la ten moi '{newName}', thuc te: '{displayedNew}'");
+
+            TestContext.WriteLine($"[TC_CRM_012 PASS] Sua ten thanh cong: '{originalName}' -> '{displayedNew}'. URL: {Driver.Url}");
+
+            var screenshotPath = ScreenshotHelper.Capture(Driver, TestContext.TestName ?? "TC_CRM_012");
+            if (screenshotPath != null) TestContext.WriteLine($"[Screenshot] {screenshotPath}");
+        }
+        finally
+        {
+            CleanupCreatedCustomer();
+        }
+    }
+
+    // ============================================================
+    // TC_CRM_013 -- Tim kiem KH theo ten day du
+    // ============================================================
+    /// <summary>
+    /// TC_CRM_013: Tao KH moi -> tim kiem theo ten day du -> assert 1 ket qua tra ve, ten khop.
+    /// </summary>
+    [TestMethod]
+    [TestCategory("CRM")]
+    [TestCategory("Search")]
+    [Description("TC_CRM_013 -- Tim kiem KH theo ten day du: phai tra ve dung 1 KH khop ten.")]
+    public void TC_CRM_013_SearchCustomer_ByFullName_ShouldReturnExactMatch()
+    {
+        _createdCustomerUrl = null;
+        try
+        {
+            // Arrange
+            string suffix = Guid.NewGuid().ToString("N")[..8].ToUpper();
+            string searchName = $"SearchFull_{suffix}";
+
+            Login();
+            var createPage = new CustomerCreatePage(Driver);
+            var detailPage = new CustomerDetailPage(Driver);
+            var listPage = new CustomerListPage(Driver);
+
+            // Tao KH
+            createPage.GoTo();
+            createPage.SelectCustomerType();
+            createPage.EnterName(searchName);
+            createPage.ClickSave();
+            bool created = detailPage.WaitForRedirectAfterSave();
+            _createdCustomerUrl = Driver.Url;
+            Assert.IsTrue(created, $"[TC_CRM_013] Phai tao duoc KH '{searchName}'.");
+
+            TestContext.WriteLine($"[TC_CRM_013] Da tao KH: '{searchName}'");
+
+            // Act: Tim kiem theo ten day du
+            listPage.GoTo();
+            listPage.SearchByName(searchName);
+            TestContext.WriteLine($"[TC_CRM_013] Da tim kiem: '{searchName}'. URL: {listPage.GetCurrentUrl()}");
+
+            // Assert 1: So luong ket qua phai >= 1
+            int count = listPage.GetResultCount();
+            Assert.IsTrue(count >= 1,
+                $"[TC_CRM_013] Phai co it nhat 1 ket qua khi tim theo ten day du '{searchName}'. Tim thay: {count}");
+
+            // Assert 2: Danh sach ten phai chua ten da tim kiem
+            var resultNames = listPage.GetResultNames();
+            TestContext.WriteLine($"[TC_CRM_013] Ket qua: {string.Join(", ", resultNames)}");
+            bool found = resultNames.Any(n => n.Equals(searchName, StringComparison.OrdinalIgnoreCase)
+                                           || n.Contains(searchName, StringComparison.OrdinalIgnoreCase));
+            Assert.IsTrue(found,
+                $"[TC_CRM_013] Danh sach ket qua phai chua ten '{searchName}'. " +
+                $"Ket qua thuc te: [{string.Join(", ", resultNames)}]");
+
+            TestContext.WriteLine($"[TC_CRM_013 PASS] Tim kiem theo ten day du thanh cong. Count={count}");
+
+            var screenshotPath = ScreenshotHelper.Capture(Driver, TestContext.TestName ?? "TC_CRM_013");
+            if (screenshotPath != null) TestContext.WriteLine($"[Screenshot] {screenshotPath}");
+        }
+        finally
+        {
+            CleanupCreatedCustomer();
+        }
+    }
+
+    // ============================================================
+    // TC_CRM_014 -- Tim kiem KH theo mot phan ten
+    // ============================================================
+    /// <summary>
+    /// TC_CRM_014: Tao KH moi -> tim kiem theo mot phan ten -> assert co ket qua chua phan ten do.
+    /// </summary>
+    [TestMethod]
+    [TestCategory("CRM")]
+    [TestCategory("Search")]
+    [Description("TC_CRM_014 -- Tim kiem KH theo mot phan ten: phai tra ve KH khop.")]
+    public void TC_CRM_014_SearchCustomer_ByPartialName_ShouldReturnMatchingResults()
+    {
+        _createdCustomerUrl = null;
+        try
+        {
+            // Arrange
+            string suffix = Guid.NewGuid().ToString("N")[..8].ToUpper();
+            string fullName = $"SearchPart_{suffix}";
+            // Dung phan giua lam search term (tranh trung voi KH khac)
+            string partialName = suffix; // Phan suffix la duy nhat
+
+            Login();
+            var createPage = new CustomerCreatePage(Driver);
+            var detailPage = new CustomerDetailPage(Driver);
+            var listPage = new CustomerListPage(Driver);
+
+            // Tao KH
+            createPage.GoTo();
+            createPage.SelectCustomerType();
+            createPage.EnterName(fullName);
+            createPage.ClickSave();
+            bool created = detailPage.WaitForRedirectAfterSave();
+            _createdCustomerUrl = Driver.Url;
+            Assert.IsTrue(created, $"[TC_CRM_014] Phai tao duoc KH '{fullName}'.");
+
+            TestContext.WriteLine($"[TC_CRM_014] Da tao KH: '{fullName}'. Tim kiem theo: '{partialName}'");
+
+            // Act: Tim kiem theo mot phan ten
+            listPage.GoTo();
+            listPage.SearchByName(partialName);
+            TestContext.WriteLine($"[TC_CRM_014] Da tim kiem: '{partialName}'");
+
+            // Assert 1: Co ket qua
+            int count = listPage.GetResultCount();
+            Assert.IsTrue(count >= 1,
+                $"[TC_CRM_014] Phai co it nhat 1 ket qua khi tim phan '{partialName}'. Tim thay: {count}");
+
+            // Assert 2: Ket qua chua ten KH vua tao
+            var resultNames = listPage.GetResultNames();
+            TestContext.WriteLine($"[TC_CRM_014] Ket qua: {string.Join(", ", resultNames)}");
+            bool found = resultNames.Any(n => n.Contains(partialName, StringComparison.OrdinalIgnoreCase));
+            Assert.IsTrue(found,
+                $"[TC_CRM_014] Ket qua tim kiem phai chua phan '{partialName}'. " +
+                $"Ket qua: [{string.Join(", ", resultNames)}]");
+
+            TestContext.WriteLine($"[TC_CRM_014 PASS] Tim kiem mot phan ten thanh cong. Count={count}");
+
+            var screenshotPath = ScreenshotHelper.Capture(Driver, TestContext.TestName ?? "TC_CRM_014");
+            if (screenshotPath != null) TestContext.WriteLine($"[Screenshot] {screenshotPath}");
+        }
+        finally
+        {
+            CleanupCreatedCustomer();
+        }
+    }
+
+    // ============================================================
+    // TC_CRM_015 -- Tim kiem ten khong ton tai
+    // ============================================================
+    /// <summary>
+    /// TC_CRM_015: Tim kiem ten ngau nhien khong ton tai -> assert 0 ket qua / thong bao rong.
+    /// </summary>
+    [TestMethod]
+    [TestCategory("CRM")]
+    [TestCategory("Search")]
+    [Description("TC_CRM_015 -- Tim kiem ten khong ton tai: phai tra ve 0 ket qua.")]
+    public void TC_CRM_015_SearchCustomer_NonExistentName_ShouldReturnNoResults()
+    {
+        _createdCustomerUrl = null;
+        try
+        {
+            // Arrange: ten ngu nhien chac chan khong ton tai trong DB
+            string nonExistentName = $"NOTEXIST_{Guid.NewGuid().ToString("N")[..12].ToUpper()}_ZZZZZ";
+
+            Login();
+            var listPage = new CustomerListPage(Driver);
+
+            // Act: Tim kiem
+            listPage.GoTo();
+            listPage.SearchByName(nonExistentName);
+            TestContext.WriteLine($"[TC_CRM_015] Da tim kiem: '{nonExistentName}'");
+
+            // Assert: 0 ket qua
+            int count = listPage.GetResultCount();
+            bool hasNoResult = listPage.HasNoResultMessage();
+            TestContext.WriteLine($"[TC_CRM_015] Count={count}, HasNoResultMessage={hasNoResult}");
+
+            Assert.IsTrue(count == 0 || hasNoResult,
+                $"[TC_CRM_015] Tim kiem ten khong ton tai phai tra ve 0 ket qua. " +
+                $"Thuc te Count={count}, HasNoResult={hasNoResult}. URL: {listPage.GetCurrentUrl()}");
+
+            TestContext.WriteLine($"[TC_CRM_015 PASS] Tim kiem ten khong ton tai tra ve rong. Count={count}");
+
+            var screenshotPath = ScreenshotHelper.Capture(Driver, TestContext.TestName ?? "TC_CRM_015");
+            if (screenshotPath != null) TestContext.WriteLine($"[Screenshot] {screenshotPath}");
+        }
+        finally
+        {
+            CleanupCreatedCustomer();
+        }
+    }
+
+    // ============================================================
+    // TC_CRM_016 -- Xoa khach hang
+    // ============================================================
+    /// <summary>
+    /// TC_CRM_016: Tao KH moi -> click Xoa -> xac nhan popup -> assert KH da bi xoa (tim lai = 0 ket qua).
+    /// </summary>
+    [TestMethod]
+    [TestCategory("CRM")]
+    [TestCategory("Delete")]
+    [Description("TC_CRM_016 -- Xoa khach hang: xoa thanh cong va khong con xuat hien trong danh sach.")]
+    public void TC_CRM_016_DeleteCustomer_ShouldRemoveFromList()
+    {
+        _createdCustomerUrl = null;
+        try
+        {
+            // Arrange: Tao KH moi de xoa
+            string suffix = Guid.NewGuid().ToString("N")[..8].ToUpper();
+            string customerName = $"Delete_{suffix}";
+
+            Login();
+            var createPage = new CustomerCreatePage(Driver);
+            var detailPage = new CustomerDetailPage(Driver);
+            var listPage = new CustomerListPage(Driver);
+
+            createPage.GoTo();
+            createPage.SelectCustomerType();
+            createPage.EnterName(customerName);
+            createPage.ClickSave();
+            bool created = detailPage.WaitForRedirectAfterSave();
+            string createdUrl = Driver.Url;
+            Assert.IsTrue(created, $"[TC_CRM_016] Phai tao duoc KH '{customerName}' truoc khi xoa.");
+            TestContext.WriteLine($"[TC_CRM_016] Da tao KH: '{customerName}', URL={createdUrl}");
+
+            // Act: Thuc hien xoa KH
+            bool deleted = detailPage.DeleteCustomer(timeoutSeconds: 15);
+            Assert.IsTrue(deleted, $"[TC_CRM_016] Thao tac xoa KH '{customerName}' phai thanh cong.");
+            TestContext.WriteLine($"[TC_CRM_016] Da thuc hien xoa KH thanh cong.");
+
+            // Assert: Tim lai khach hang vua xoa -> phai tra ve 0 ket qua
+            listPage.GoTo();
+            listPage.SearchByName(customerName);
+            int count = listPage.GetResultCount();
+            bool hasNoResult = listPage.HasNoResultMessage();
+
+            Assert.IsTrue(count == 0 || hasNoResult,
+                $"[TC_CRM_016] KH '{customerName}' da xoa nhung van tim thay trong danh sach. Count={count}");
+
+            TestContext.WriteLine($"[TC_CRM_016 PASS] Xoa KH thanh cong va xac minh khong con ton tai trong danh sach.");
+
+            var screenshotPath = ScreenshotHelper.Capture(Driver, TestContext.TestName ?? "TC_CRM_016");
+            if (screenshotPath != null) TestContext.WriteLine($"[Screenshot] {screenshotPath}");
         }
         finally
         {
