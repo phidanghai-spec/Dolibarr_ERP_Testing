@@ -701,79 +701,93 @@ public class CrmCustomerTests : BaseTest
     {
         Login();
 
-        var listPage = new CustomerListPage(Driver);
         var detailPage = new CustomerDetailPage(Driver);
-
-        // Pattern ten KH test: cac prefix/ky tu dac trung ma test suite tao ra
-        // - "TC005_" ... "TC006_" (128/129 ky tu, co prefix nay)
-        // - Ten dung 1 ky tu "A"
-        // - Ten chi gom khoang trang (sau khi trim: rong hoac 1 chu)
-        // - Ten chua ky tu dac biet (O'Brien)
-        // - Ten tieng Viet (bat dau bang "Cong ty TNHH")
         int totalDeleted = 0;
         int totalFailed = 0;
+        const int PageSize = 100;
 
-        // Dieu huong den danh sach khach hang (limit=100)
-        Driver.Navigate().GoToUrl($"{TestConfig.BaseUrl}/societe/list.php?type=c&limit=100");
-        WaitHelper.WaitVisible(Driver, By.Name("search_nom"), timeoutSeconds: 15);
-
-        // Lay tat ca link toi trang chi tiet KH
-        var customerLinks = Driver.FindElements(By.CssSelector("table.tagtable td a[href*='societe/card.php?socid=']"));
-        var testCustomerUrls = new List<(string Url, string Name)>();
-
-        foreach (var link in customerLinks)
+        // [FIX Bug#2] Loop qua tung trang (offset) cho den khi khong con KH test nao
+        // Tranh bo sot khi DB tich luy >100 KH test sau nhieu lan chay.
+        bool foundMore = true;
+        while (foundMore)
         {
-            string url = link.GetAttribute("href") ?? string.Empty;
-            string name = link.Text.Trim();
+            Driver.Navigate().GoToUrl(
+                $"{TestConfig.BaseUrl}/societe/list.php?type=c&limit={PageSize}");
+            WaitHelper.WaitVisible(Driver, By.Name("search_nom"), timeoutSeconds: 15);
 
-            // Bao ve du lieu nen: KHONG duoc xoa "Cong ty ABC" (socid=1) va "Cong ty BCD" (socid=2)
-            if (url.Contains("socid=1&") || url.EndsWith("socid=1") ||
-                url.Contains("socid=2&") || url.EndsWith("socid=2") ||
-                name.Equals("Cong ty ABC", StringComparison.OrdinalIgnoreCase) ||
-                name.Equals("Cong ty BCD", StringComparison.OrdinalIgnoreCase))
+            var customerLinks = Driver.FindElements(
+                By.CssSelector("table.tagtable td a[href*='societe/card.php?socid=']"));
+
+            var testCustomerUrls = new List<(string Url, string Name)>();
+            foreach (var link in customerLinks)
             {
-                continue;
+                string url = link.GetAttribute("href") ?? string.Empty;
+                string name = link.Text.Trim();
+
+                // Bao ve du lieu nen: KHONG duoc xoa "Cong ty ABC" va "Cong ty BCD"
+                if (url.Contains("socid=1&") || url.EndsWith("socid=1") ||
+                    url.Contains("socid=2&") || url.EndsWith("socid=2") ||
+                    name.Equals("Cong ty ABC", StringComparison.OrdinalIgnoreCase) ||
+                    name.Equals("Cong ty BCD", StringComparison.OrdinalIgnoreCase))
+                    continue;
+
+                if (!string.IsNullOrEmpty(url))
+                    testCustomerUrls.Add((url, name));
             }
 
-            if (!string.IsNullOrEmpty(url))
+            // Neu trang nay khong co KH test nao → thoat vong lap
+            if (testCustomerUrls.Count == 0)
             {
-                testCustomerUrls.Add((url, name));
+                foundMore = false;
+                break;
             }
-        }
 
-        TestContext.WriteLine($"[Cleanup] Tim thay {testCustomerUrls.Count} KH test can xoa.");
+            TestContext.WriteLine(
+                $"[Cleanup] Trang hien tai: tim thay {testCustomerUrls.Count} KH test can xoa.");
 
-        foreach (var (url, name) in testCustomerUrls)
-        {
-            try
+            foreach (var (url, name) in testCustomerUrls)
             {
-                Driver.Navigate().GoToUrl(url);
-                bool deleted = detailPage.DeleteCustomer(timeoutSeconds: 15);
-                if (deleted)
+                try
                 {
-                    totalDeleted++;
-                    TestContext.WriteLine($"[Cleanup] Da xoa ({totalDeleted}/{testCustomerUrls.Count}): '{name}' ({url})");
+                    Driver.Navigate().GoToUrl(url);
+                    bool deleted = detailPage.DeleteCustomer(timeoutSeconds: 15);
+                    if (deleted)
+                    {
+                        totalDeleted++;
+                        TestContext.WriteLine($"[Cleanup] Da xoa #{totalDeleted}: '{name}'");
+                    }
+                    else
+                    {
+                        totalFailed++;
+                        TestContext.WriteLine($"[Cleanup WARN] Khong xoa duoc: '{name}' ({url})");
+                    }
                 }
-                else
+                catch (Exception ex)
                 {
                     totalFailed++;
-                    TestContext.WriteLine($"[Cleanup WARN] Khong xoa duoc: '{name}' ({url})");
+                    TestContext.WriteLine($"[Cleanup WARN] Exception khi xoa '{name}': {ex.Message}");
                 }
             }
-            catch (Exception ex)
-            {
-                totalFailed++;
-                TestContext.WriteLine($"[Cleanup WARN] Exception khi xoa '{name}': {ex.Message}");
-            }
+
+            // Neu trang co it hon PageSize phan tu → day la trang cuoi, khong can load them
+            if (testCustomerUrls.Count < PageSize)
+                foundMore = false;
         }
 
-        TestContext.WriteLine($"[Cleanup DONE] Tong xoa thanh cong: {totalDeleted}, That bai: {totalFailed}");
+        TestContext.WriteLine(
+            $"[Cleanup DONE] Tong xoa thanh cong: {totalDeleted}, That bai: {totalFailed}");
 
-        // Xac minh lai danh sach sau khi xoa: chi con du lieu nen (Cong ty ABC, Cong ty BCD)
-        Driver.Navigate().GoToUrl($"{TestConfig.BaseUrl}/societe/list.php?type=c&limit=100");
-        var remainingLinks = Driver.FindElements(By.CssSelector("table.tagtable td a[href*='societe/card.php?socid=']"));
-        var remainingNames = remainingLinks.Select(l => l.Text.Trim()).Where(t => !string.IsNullOrEmpty(t)).ToList();
-        TestContext.WriteLine($"[Cleanup Verify] Danh sach con lai ({remainingNames.Count}): {string.Join(", ", remainingNames)}");
+        // Xac minh lai: chi con du lieu nen
+        Driver.Navigate().GoToUrl(
+            $"{TestConfig.BaseUrl}/societe/list.php?type=c&limit={PageSize}");
+        var remainingLinks = Driver.FindElements(
+            By.CssSelector("table.tagtable td a[href*='societe/card.php?socid=']"));
+        var remainingNames = remainingLinks
+            .Select(l => l.Text.Trim())
+            .Where(t => !string.IsNullOrEmpty(t))
+            .ToList();
+        TestContext.WriteLine(
+            $"[Cleanup Verify] Con lai ({remainingNames.Count}): {string.Join(", ", remainingNames)}");
 
         Assert.IsTrue(totalFailed == 0 || totalDeleted > 0,
             $"[Cleanup] Xoa that bai nhieu hon thanh cong. Deleted={totalDeleted}, Failed={totalFailed}");
@@ -1069,13 +1083,17 @@ public class CrmCustomerTests : BaseTest
             createPage.EnterName(customerName);
             createPage.ClickSave();
             bool created = detailPage.WaitForRedirectAfterSave();
-            string createdUrl = Driver.Url;
+            // [FIX Bug#1] Gán _createdCustomerUrl ngay sau tao thanh cong
+            // → nếu DeleteCustomer() fail, finally sẽ CleanupCreatedCustomer() được
+            _createdCustomerUrl = Driver.Url;
             Assert.IsTrue(created, $"[TC_CRM_016] Phai tao duoc KH '{customerName}' truoc khi xoa.");
-            TestContext.WriteLine($"[TC_CRM_016] Da tao KH: '{customerName}', URL={createdUrl}");
+            TestContext.WriteLine($"[TC_CRM_016] Da tao KH: '{customerName}', URL={_createdCustomerUrl}");
 
             // Act: Thuc hien xoa KH
             bool deleted = detailPage.DeleteCustomer(timeoutSeconds: 15);
             Assert.IsTrue(deleted, $"[TC_CRM_016] Thao tac xoa KH '{customerName}' phai thanh cong.");
+            // Xoa thanh cong → không cần cleanup nữa
+            _createdCustomerUrl = null;
             TestContext.WriteLine($"[TC_CRM_016] Da thuc hien xoa KH thanh cong.");
 
             // Assert: Tim lai khach hang vua xoa -> phai tra ve 0 ket qua

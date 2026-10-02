@@ -52,12 +52,24 @@ public class CustomerListPage
             input.SendKeys(Keys.Enter);
         }
 
-        // Cho trang tai lai (URL co the chua search_nom=...)
+        // [FIX Bug#3] Wait cho ket qua hien thi thay vi wait URL thay doi.
+        // Ly do: Dolibarr co the POST form → URL khong thay doi → dieu kien cu luon true ngay lap tuc.
+        // Giai phap: wait cho table co it nhat 1 dong ket qua HOAC xuat hien thong bao "khong co ban ghi".
         var wait = new WebDriverWait(_driver, TimeSpan.FromSeconds(TestConfig.TimeoutSeconds));
         try
         {
-            wait.Until(d => d.Url.Contains("search_nom", StringComparison.OrdinalIgnoreCase)
-                         || d.Url.Contains("societe/list", StringComparison.OrdinalIgnoreCase));
+            wait.Until(d =>
+            {
+                try { d.FindElement(ResultRows); return true; }
+                catch (NoSuchElementException) { }
+                try
+                {
+                    var cells = d.FindElements(NoResultCell);
+                    if (cells.Any(c => c.Displayed && c.Text.Length > 0)) return true;
+                }
+                catch { }
+                return false;
+            });
         }
         catch (WebDriverTimeoutException) { }
     }
