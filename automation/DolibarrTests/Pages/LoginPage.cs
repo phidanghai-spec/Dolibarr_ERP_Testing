@@ -70,10 +70,17 @@ public class LoginPage
     /// <summary>Kiểm tra đang ở trang đăng nhập (form login tồn tại và visible).</summary>
     public bool IsOnLoginPage()
     {
+        // Dùng WaitHelper.WaitVisible (có retry bên trong) thay vì FindElement trực tiep.
+        // Ly do: sau khi submit form login, Dolibarr reload trang → element cu bi stale.
+        // WaitHelper tu tim lai element moi tren DOM sau reload, tranh StaleElementReferenceException.
         try
         {
-            var form = _driver.FindElement(LoginForm);
-            return form.Displayed;
+            WaitHelper.WaitVisible(_driver, LoginForm, timeoutSeconds: 5);
+            return true;
+        }
+        catch (WebDriverTimeoutException)
+        {
+            return false;
         }
         catch (NoSuchElementException)
         {
