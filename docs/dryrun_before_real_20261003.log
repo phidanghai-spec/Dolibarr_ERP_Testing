@@ -1,0 +1,25 @@
+  Determining projects to restore...
+  All projects are up-to-date for restore.
+  DolibarrTests -> D:\Projects\DoAnThucTap_Dolibarr\automation\DolibarrTests\bin\Debug\net9.0\DolibarrTests.dll
+Test run for D:\Projects\DoAnThucTap_Dolibarr\automation\DolibarrTests\bin\Debug\net9.0\DolibarrTests.dll (.NETCoreApp,Version=v9.0)
+VSTest version 17.14.1 (x64)
+
+Starting test execution, please wait...
+A total of 1 test files matched the specified pattern.
+D:\Projects\DoAnThucTap_Dolibarr\automation\DolibarrTests\bin\Debug\net9.0\DolibarrTests.dll
+Test Parallelization enabled for D:\Projects\DoAnThucTap_Dolibarr\automation\DolibarrTests\bin\Debug\net9.0\DolibarrTests.dll (Workers: 4, Scope: MethodLevel)
+  Passed Cleanup_DeleteAllTestCustomers [14 s]
+  Standard Output Messages:
+ 
+ 
+ TestContext Messages:
+ [Cleanup] CHE DO DRY-RUN: chi liet ke, KHONG XOA. De xoa that: dat CLEANUP_DRY_RUN=false.
+ [Cleanup DRY-RUN DONE] Danh sach tren la nhung KH SE BI XOA khi chay voi CLEANUP_DRY_RUN=false.
+ DUNG LAI ΓÇö xac nhan voi nguoi dung truoc khi xoa that.
+
+
+
+Test Run Successful.
+Total tests: 1
+     Passed: 1
+ Total time: 18.2532 Seconds

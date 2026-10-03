@@ -103,7 +103,7 @@
 
 | Hạng mục | Lý do |
 |---|---|
-| Chạy xóa dữ liệu thật (`CLEANUP_DRY_RUN=false`) | Kết quả DRY-RUN cho thấy không có KH rác nào khớp prefix trong trang đầu. Người dùng đã xác nhận bỏ qua bước xóa thật. |
+| Chạy xóa dữ liệu thật (`CLEANUP_DRY_RUN=false`) | Đã chạy cleanup thật ngày 2026-10-03 (xóa 0 KH test do DB đã sạch từ các lần chạy trước, log docs/cleanup_real_20261003.log); sau đó chạy lại DRY-RUN xác nhận 0 KH tồn đọng. |
 | Đặt tiền tố `AUTO_` cho TC_CRM_008 và TC_CRM_011 | Ràng buộc kỹ thuật kiểm thử giá trị biên (BVA 1 ký tự và Unicode 128 ký tự tiếng Việt) không cho phép gắn prefix vào chuỗi test data. Đã có khối finally xóa trực tiếp theo URL; nếu crash sẽ dọn tay. |
 | Merge nhánh `fix/review-20261003` vào `main` | Tuân thủ quy trình kiểm thử và review: chỉ commit trên nhánh tính năng/sửa lỗi, gửi log và Excel để người dùng kiểm chứng trước khi merge. |
 
