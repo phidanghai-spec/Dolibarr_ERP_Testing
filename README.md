@@ -23,11 +23,23 @@ setx DOLIBARR_ADMIN_PASSWORD "<mật khẩu admin của bạn>"
 > ⚠️ Không commit mật khẩu vào repo. Biến chỉ đặt 1 lần, lưu trong Windows Registry.
 
 ### 3. Chạy test
+
+**Lệnh mặc định (bỏ qua script Cleanup dọn dẹp DB):**
 ```powershell
 cd automation\DolibarrTests
-dotnet test
+dotnet test --filter "TestCategory!=Cleanup"
 ```
 Kết quả sẽ hiển thị PASSED/FAILED. Ảnh chụp khi Fail được lưu tại `TestResults/Screenshots/`.
+
+**Chạy riêng script Cleanup (dọn dẹp khách hàng test rác):**
+- Mặc định chạy ở chế độ **DRY-RUN** (chỉ liệt kê KH khớp tiền tố test, an toàn tuyệt đối, KHÔNG xóa thật):
+```powershell
+dotnet test --filter "TestCategory=Cleanup"
+```
+- Khi cần xóa thật (sau khi kiểm tra danh sách DRY-RUN và có sự xác nhận của người phụ trách):
+```powershell
+$env:CLEANUP_DRY_RUN = "false"; dotnet test --filter "TestCategory=Cleanup"
+```
 
 ### 4. Tắt Dolibarr sau khi xong
 ```powershell
