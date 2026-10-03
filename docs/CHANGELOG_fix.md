@@ -106,3 +106,13 @@
 | Chạy xóa dữ liệu thật (`CLEANUP_DRY_RUN=false`) | Kết quả DRY-RUN cho thấy không có KH rác nào khớp prefix trong trang đầu. Người dùng đã xác nhận bỏ qua bước xóa thật. |
 | Đặt tiền tố `AUTO_` cho TC_CRM_008 và TC_CRM_011 | Ràng buộc kỹ thuật kiểm thử giá trị biên (BVA 1 ký tự và Unicode 128 ký tự tiếng Việt) không cho phép gắn prefix vào chuỗi test data. Đã có khối finally xóa trực tiếp theo URL; nếu crash sẽ dọn tay. |
 | Merge nhánh `fix/review-20261003` vào `main` | Tuân thủ quy trình kiểm thử và review: chỉ commit trên nhánh tính năng/sửa lỗi, gửi log và Excel để người dùng kiểm chứng trước khi merge. |
+
+---
+
+## 3. RỦI RO CÒN LẠI
+
+- **Khách hàng rác phát sinh khi test bị crash giữa chừng:**
+  - Khách hàng do `TC_CRM_008` (tên `"A"`), `TC_CRM_010` (tên `O'Brien & Cong ty <Test> "123"`), `TC_CRM_011` (tên tiếng Việt có dấu 128 ký tự Unicode) không có tiền tố trong whitelist của kịch bản Cleanup (`TestNamePrefixes`).
+  - Trong điều kiện chạy bình thường, các khách hàng này luôn được dọn dẹp tức thì qua URL trực tiếp trong khối `finally { CleanupCreatedCustomer(); }`.
+  - Tuy nhiên, nếu lần chạy test bị crash đột ngột giữa chừng (mất điện, kill process WebDriver), các khách hàng này sẽ không được dọn tự động bởi script Cleanup (nhằm tránh nguy cơ xóa nhầm dữ liệu nghiệp vụ khác); khi đó cần can thiệp kiểm tra và dọn dẹp bằng tay.
+- **Lý do chưa sửa:** Tên khách hàng được đọc từ Excel và có ràng buộc độ dài nghiêm ngặt theo kỹ thuật phân tích giá trị biên BVA (biên min length $N=1$ ở `TC_008`, biên Unicode 128 ký tự ở `TC_011`, hoặc chuỗi kiểm thử XSS đặc thù ở `TC_010`) nên không thể gắn thêm tiền tố `AUTO_`.
