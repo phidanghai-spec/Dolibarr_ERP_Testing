@@ -269,21 +269,22 @@ public class CrmCustomerTests : BaseTest
     // ════════════════════════════════════════════════════════════════════════════
     /// <summary>
     /// TC_CRM_007: Tạo khách hàng với tên rỗng.
-    /// Kiểm tra hành vi chặn ở Client-side (HTML5 required attribute) hoặc Server-side (error message).
-    /// Dữ liệu: đọc từ cột "Test data" của dòng TC_CRM_007 trong Excel.
+    /// Hành vi thực tế quan sát từ log chạy 2026-10-03:
+    ///   - Dolibarr KHÔNG có HTML5 required attribute trên ô tên.
+    ///   - Server chặn submit, trả về error: "Field 'Third-party name' is required".
+    ///   - Không redirect thành công (WaitForRedirectAfterSave = false).
+    /// → Chốt 1 hành vi: server-side chặn.
     /// </summary>
     [TestMethod]
     [TestCategory("CRM")]
     [TestCategory("Negative")]
-    [Description("TC_CRM_007 — Tạo KH với tên rỗng: kiểm tra client-side required hoặc server-side chặn.")]
+    [Description("TC_CRM_007 — Tạo KH với tên rỗng: server-side chặn, trả về lỗi 'Third-party name is required'.")]
     public void TC_CRM_007_CreateCustomer_EmptyName_ShouldBeBlocked()
     {
         _createdCustomerUrl = null;
         try
         {
-            var row = ExcelDataReader.GetRowByTestId("TC_CRM_007", TestConfig.ExcelPath);
-            string testData = row.TryGetValue("Test data", out var td) ? td : string.Empty;
-
+            // Test data: tên rỗng (không nhập gì)
             Login();
             var createPage = new CustomerCreatePage(Driver);
             var detailPage = new CustomerDetailPage(Driver);
@@ -291,56 +292,35 @@ public class CrmCustomerTests : BaseTest
             createPage.GoTo();
             Assert.IsTrue(createPage.IsOnCreatePage(), "Phải điều hướng được đến trang tạo KH mới.");
 
-            // 1. Kiểm tra thuộc tính required trong HTML của ô tên
+            // Xac nhan: Dolibarr KHONG co HTML5 required (quan sat 2026-10-03)
             bool hasRequired = createPage.IsNameInputRequired();
-            TestContext.WriteLine($"[TC_CRM_007] Thuộc tính 'required' của ô Tên trong HTML: {hasRequired}");
+            TestContext.WriteLine($"[TC_CRM_007] required attribute: {hasRequired} (expected=False)");
+            Assert.IsFalse(hasRequired,
+                "[TC_CRM_007] Dolibarr 22.0.4 KHONG co HTML5 required tren input name — neu fail, UI da thay doi.");
 
             createPage.SelectCustomerType();
-            if (!string.IsNullOrEmpty(testData))
-            {
-                createPage.EnterName(testData);
-            }
+            // Khong nhap ten (de rong)
 
             createPage.ClickSave();
 
-            if (hasRequired)
-            {
-                // Khi có HTML5 required: browser chặn submit tại client-side
-                string valMsg = createPage.GetNameValidationMessage();
-                TestContext.WriteLine($"[TC_CRM_007 Client-side] Form bị chặn bởi HTML5 required. validationMessage='{valMsg}'");
+            // Assert 1: Server chặn — KHÔNG redirect thành công
+            bool redirected = detailPage.WaitForRedirectAfterSave(timeoutSeconds: 5);
+            TestContext.WriteLine($"[TC_CRM_007] Redirected={redirected} (expected=False)");
+            Assert.IsFalse(redirected,
+                $"[TC_CRM_007] Server phai chan submit ten rong, KHONG duoc redirect ve trang chi tiet. URL: {Driver.Url}");
 
-                Assert.IsTrue(createPage.IsOnCreatePage(),
-                    "[TC_CRM_007] Khi có required attribute, form không được submit/redirect.");
-                Assert.IsTrue(Driver.Url.Contains("action=create", StringComparison.OrdinalIgnoreCase),
-                    $"[TC_CRM_007] URL phải còn 'action=create', thực tế: {Driver.Url}");
-                Assert.IsFalse(string.IsNullOrEmpty(valMsg),
-                    "[TC_CRM_007] validationMessage của input 'name' phải khác rỗng khi browser chặn.");
-            }
-            else
-            {
-                // Khi không có required: server-side chặn và trả về thông báo lỗi
-                bool redirected = detailPage.WaitForRedirectAfterSave(timeoutSeconds: 3);
-                string errMsg = createPage.GetErrorMessage();
-                TestContext.WriteLine($"[TC_CRM_007 Server-side] Redirected={redirected}, ServerErrorMessage='{errMsg}'");
+            // Assert 2: Thông báo lỗi phải chứa "required" (quan sát: "Field 'Third-party name' is required")
+            string errMsg = createPage.GetErrorMessage();
+            TestContext.WriteLine($"[TC_CRM_007] ErrorMessage='{errMsg}'");
+            Assert.IsFalse(string.IsNullOrWhiteSpace(errMsg),
+                "[TC_CRM_007] Server phai hien thi thong bao loi khi ten rong.");
+            Assert.IsTrue(
+                errMsg.Contains("required", StringComparison.OrdinalIgnoreCase) ||
+                errMsg.Contains("bắt buộc", StringComparison.OrdinalIgnoreCase) ||
+                errMsg.Contains("obligatoire", StringComparison.OrdinalIgnoreCase),
+                $"[TC_CRM_007] Thong bao loi phai chua tu khoa yeu cau nhap ten ('required'/'obligatoire'/'bat buoc'). Nhan duoc: '{errMsg}'");
 
-                // Assert chính: không được redirect thành công (URL không có socid/id)
-                Assert.IsFalse(redirected,
-                    $"[TC_CRM_007] Server không được tạo KH rỗng và redirect thành công. URL: {Driver.Url}");
-
-                // Assert phụ: kiểm tra còn ở trang tạo hoặc có thông báo lỗi server (chứa 'required' / 'bắt buộc')
-                Assert.IsTrue(
-                    createPage.IsOnCreatePage() || !string.IsNullOrEmpty(errMsg),
-                    "[TC_CRM_007] Phải còn ở trang tạo hoặc có thông báo lỗi từ server.");
-
-                if (!string.IsNullOrEmpty(errMsg))
-                {
-                    Assert.IsTrue(
-                        errMsg.Contains("required", StringComparison.OrdinalIgnoreCase) ||
-                        errMsg.Contains("bắt buộc", StringComparison.OrdinalIgnoreCase) ||
-                        errMsg.Contains("obligatoire", StringComparison.OrdinalIgnoreCase),
-                        $"[TC_CRM_007 Assert phụ] Thông báo lỗi server phải chứa từ khóa yêu cầu nhập tên. Lỗi: '{errMsg}'");
-                }
-            }
+            TestContext.WriteLine($"[TC_CRM_007 PASS] Server chan dung. ErrorMessage='{errMsg}'");
 
             var screenshotPath = ScreenshotHelper.Capture(Driver, TestContext.TestName ?? "TC_CRM_007");
             if (screenshotPath != null)
@@ -351,6 +331,7 @@ public class CrmCustomerTests : BaseTest
             CleanupCreatedCustomer();
         }
     }
+
 
     // ════════════════════════════════════════════════════════════════════════════
     // TC_CRM_008 — Tên 1 ký tự (BVA Biên tối thiểu N=1)
@@ -419,21 +400,25 @@ public class CrmCustomerTests : BaseTest
     // TC_CRM_009 — Tên chỉ gồm khoảng trắng (Edge Case)
     // ════════════════════════════════════════════════════════════════════════════
     /// <summary>
-    /// TC_CRM_009: Nhập tên chỉ gồm 10 khoảng trắng (đọc từ Excel).
-    /// Quan sát và ghi nhận hành vi thực tế: Dolibarr chặn hay tự động trim hay cho lưu.
-    /// Assert: Không gặp lỗi crash / 500 / Fatal error của PHP.
+    /// TC_CRM_009: Nhập tên chỉ gồm 10 khoảng trắng.
+    /// Hành vi thực tế quan sát 2026-10-03:
+    ///   - Input trước submit: length=10, raw='          '.
+    ///   - Server trim khoảng trắng → xem là tên rỗng → chặn giống TC_CRM_007.
+    ///   - ErrorMessage: "Field 'Third-party name' is required".
+    ///   - Redirected=False, SavedNameLength=0.
+    /// Assert chốt theo hành vi thật này.
     /// </summary>
     [TestMethod]
     [TestCategory("CRM")]
     [TestCategory("EdgeCase")]
-    [Description("TC_CRM_009 — Nhập tên chỉ gồm khoảng trắng (10 spaces từ Excel): quan sát hành vi thực tế.")]
-    public void TC_CRM_009_CreateCustomer_WhitespaceOnly_ObserveActualBehavior()
+    [Description("TC_CRM_009 — Tên chỉ gồm khoảng trắng: Dolibarr trim → server chặn như tên rỗng.")]
+    public void TC_CRM_009_CreateCustomer_WhitespaceOnly_ShouldBeBlocked()
     {
         _createdCustomerUrl = null;
         try
         {
-            var row = ExcelDataReader.GetRowByTestId("TC_CRM_009", TestConfig.ExcelPath);
-            string whitespaceName = row["Test data"];
+            // 10 khoảng trắng — dữ liệu cố định (không cần đọc Excel vì logic đã xác định)
+            string whitespaceName = new string(' ', 10);
 
             Login();
             var createPage = new CustomerCreatePage(Driver);
@@ -445,44 +430,37 @@ public class CrmCustomerTests : BaseTest
             createPage.SelectCustomerType();
             createPage.EnterName(whitespaceName);
 
-            // a. Ghi lại giá trị actualInInput.Length ngay sau khi nhập (trước submit)
+            // Ghi nhận giá trị input trước submit
             string actualInInput = createPage.GetNameInputValue();
-            TestContext.WriteLine(
-                $"[TC_CRM_009] Input length trước khi submit: {actualInInput.Length}, Raw='{actualInInput}'");
+            Assert.AreEqual(10, actualInInput.Length,
+                $"[TC_CRM_009] Ô nhập phải chứa 10 ký tự khoảng trắng, thực tế: {actualInInput.Length}");
+            TestContext.WriteLine($"[TC_CRM_009] Input trước submit: length={actualInInput.Length}");
 
-            // b. Thử submit
             createPage.ClickSave();
 
+            // Assert 1: Server chặn — KHÔNG redirect
             bool redirected = detailPage.WaitForRedirectAfterSave(timeoutSeconds: 5);
-            if (redirected)
-            {
-                _createdCustomerUrl = Driver.Url;
-            }
+            TestContext.WriteLine($"[TC_CRM_009] Redirected={redirected} (expected=False)");
+            Assert.IsFalse(redirected,
+                $"[TC_CRM_009] Server phai chan ten chi gom khoang trang (trim → rong). URL: {Driver.Url}");
 
-            string savedNameRaw = string.Empty;
-            int savedNameLength = 0;
-            if (redirected)
-            {
-                savedNameRaw = detailPage.GetDisplayedName();
-                savedNameLength = savedNameRaw.Length;
-            }
-            else
-            {
-                string errMsg = createPage.GetErrorMessage();
-                TestContext.WriteLine($"[TC_CRM_009] Form bị chặn submit, thông báo lỗi: '{errMsg}'");
-            }
+            // Assert 2: Thông báo lỗi giống tên rỗng
+            string errMsg = createPage.GetErrorMessage();
+            TestContext.WriteLine($"[TC_CRM_009] ErrorMessage='{errMsg}' (expected chua 'required')");
+            Assert.IsFalse(string.IsNullOrWhiteSpace(errMsg),
+                "[TC_CRM_009] Server phai hien thi thong bao loi khi ten chi gom khoang trang.");
+            Assert.IsTrue(
+                errMsg.Contains("required", StringComparison.OrdinalIgnoreCase) ||
+                errMsg.Contains("bắt buộc", StringComparison.OrdinalIgnoreCase) ||
+                errMsg.Contains("obligatoire", StringComparison.OrdinalIgnoreCase),
+                $"[TC_CRM_009] Loi phai chua 'required'/'obligatoire'/'bat buoc'. Nhan duoc: '{errMsg}'");
 
-            // c. Assert không có Exception không mong muốn (không lỗi Fatal error / Warning PHP)
+            // Assert 3: Không có Fatal/Parse error PHP
             string pageSource = Driver.PageSource;
             Assert.IsFalse(pageSource.Contains("Fatal error:", StringComparison.OrdinalIgnoreCase),
-                "[TC_CRM_009] Trang web không được chứa 'Fatal error:' của PHP.");
-            Assert.IsFalse(pageSource.Contains("Parse error:", StringComparison.OrdinalIgnoreCase),
-                "[TC_CRM_009] Trang web không được chứa 'Parse error:' của PHP.");
+                "[TC_CRM_009] Khong duoc co 'Fatal error' cua PHP.");
 
-            // d. In ra TestContext định dạng yêu cầu để dán vào cột Actual của Excel:
-            TestContext.WriteLine(
-                string.Format("[TC_CRM_009 OBSERVED] Redirected={0}, SavedNameLength={1}, SavedNameRaw='{2}'",
-                    redirected, savedNameLength, savedNameRaw));
+            TestContext.WriteLine($"[TC_CRM_009 PASS] Dolibarr chan dung ten chi gom khoang trang. ErrorMessage='{errMsg}'");
 
             var screenshotPath = ScreenshotHelper.Capture(Driver, TestContext.TestName ?? "TC_CRM_009");
             if (screenshotPath != null)
@@ -494,34 +472,21 @@ public class CrmCustomerTests : BaseTest
         }
     }
 
-    /// <summary>
-    /// Mô phỏng cơ chế sanitize input của Dolibarr (strip_tags thẻ HTML, xóa ngoặc kép, gộp khoảng trắng liền kề).
-    /// </summary>
-    private static string SimulateDolibarrSanitize(string input)
-    {
-        if (string.IsNullOrEmpty(input)) return string.Empty;
-
-        // Bước 1: Xóa TOÀN BỘ các khối khớp mẫu thẻ HTML (<[^>]*>) như strip_tags()
-        string step1 = Regex.Replace(input, "<[^>]*>", "");
-
-        // Bước 2: Xóa toàn bộ ký tự dấu ngoặc kép '"'
-        string step2 = step1.Replace("\"", "");
-
-        // Bước 3: Chuẩn hóa khoảng trắng: gộp các khoảng trắng liền kề thành 1 khoảng trắng và trim
-        return Regex.Replace(step2, @"\s+", " ").Trim();
-    }
-
     // ════════════════════════════════════════════════════════════════════════════
     // TC_CRM_010 — Ký tự đặc biệt & Kiểm tra XSS
     // ════════════════════════════════════════════════════════════════════════════
     /// <summary>
-    /// TC_CRM_010: Tạo KH với chuỗi chứa ký tự đặc biệt (O'Brien &amp; Cong ty &lt;Test&gt; "123").
-    /// Kiểm tra: Lưu thành công, hiển thị đúng, và kiểm tra cơ chế escape chống XSS.
+    /// TC_CRM_010: Tạo KH với chuỗi O'Brien &amp; Cong ty &lt;Test&gt; "123".
+    /// Hành vi thực tế quan sát 2026-10-03:
+    ///   - Dolibarr xóa thẻ HTML &lt;Test&gt; và ký tự ngoặc kép "123" → lưu: "O'Brien &amp; Cong ty 123".
+    ///   - Giữ nguyên dấu nháy đơn (') và ký tự &amp;.
+    /// Expected cố định từ log thực tế: "O'Brien &amp; Cong ty 123".
+    /// Không còn phụ thuộc vào SimulateDolibarrSanitize() làm oracle.
     /// </summary>
     [TestMethod]
     [TestCategory("CRM")]
     [TestCategory("Security")]
-    [Description("TC_CRM_010 — Tạo KH với ký tự đặc biệt O'Brien & Cong ty <Test> \"123\": kiểm tra an toàn XSS.")]
+    [Description("TC_CRM_010 — Tạo KH với ký tự đặc biệt: Dolibarr sanitize server-side, lưu 'O'Brien & Cong ty 123'.")]
     public void TC_CRM_010_CreateCustomer_SpecialChars_ObserveXssHandling()
     {
         _createdCustomerUrl = null;
@@ -529,6 +494,10 @@ public class CrmCustomerTests : BaseTest
         {
             var row = ExcelDataReader.GetRowByTestId("TC_CRM_010", TestConfig.ExcelPath);
             string specialName = row["Test data"];
+
+            // Expected cố định từ log thực tế 2026-10-03:
+            // Dolibarr xóa <Test> và "123", giữ ' và & → kết quả "O'Brien & Cong ty 123"
+            const string ExpectedSavedName = "O'Brien & Cong ty 123";
 
             Login();
             var createPage = new CustomerCreatePage(Driver);
@@ -548,50 +517,30 @@ public class CrmCustomerTests : BaseTest
             Assert.IsTrue(redirected,
                 $"[TC_CRM_010] Form phải lưu được và redirect về trang chi tiết. URL: {Driver.Url}");
 
-            // Lấy PageSource và HTML vùng hiển thị tên khách hàng
+            // Assert 1: Kiểm tra XSS — <Test> không được xuất hiện unescaped trong HTML
             string containerHtml = detailPage.GetCustomerNameContainerHtml();
-            string pageSource = Driver.PageSource;
+            Assert.IsFalse(containerHtml.Contains("<Test>", StringComparison.OrdinalIgnoreCase),
+                "[TC_CRM_010] CANH BAO XSS: the <Test> xuat hien khong escape trong HTML container!");
 
-            // Kiểm tra an toàn XSS: xác nhận thẻ HTML không bị chèn trực tiếp không escape
-            bool hasUnescapedTag = containerHtml.Contains("<Test>", StringComparison.OrdinalIgnoreCase);
-            if (hasUnescapedTag)
-            {
-                string warnMsg = "CANH BAO: co the co lo hong XSS — the HTML khong duoc escape trong container hiển thị tên!";
-                TestContext.WriteLine(warnMsg);
-                Assert.Fail(warnMsg);
-            }
-
-            TestContext.WriteLine(
-                "[TC_CRM_010] Dolibarr sanitize dau vao bang cach loai bo ky tu <, >, \" truoc khi luu (khong phai escape khi hien thi) — day la co che chong XSS/injection o tang server");
-
-            // Lấy chuỗi tên hiển thị thật trên trang chi tiết (không dính địa chỉ/Vietnam)
+            // Assert 2 (Rule độc lập): Tên đã lưu KHÔNG chứa < > "
             string actualName = detailPage.GetDisplayedName();
-
-            // Assert 1: Chuỗi đã lưu KHÔNG chứa bất kỳ ký tự nào trong bộ {'<', '>', '"'}
+            TestContext.WriteLine($"[TC_CRM_010] Actual name: '{actualName}' (expected: '{ExpectedSavedName}')");
             Assert.AreEqual(-1, actualName.IndexOfAny(new[] { '<', '>', '"' }),
-                $"[TC_CRM_010] Chuỗi đã lưu không được chứa bất kỳ ký tự nào trong bộ {{'<', '>', '\"'}}. Thực tế: '{actualName}'");
+                $"[TC_CRM_010] Ten da luu KHONG duoc chua ky tu '<', '>', '\"'. Thuc te: '{actualName}'");
 
-            // Assert 2: Chuỗi đã lưu PHẢI chứa ký tự ''' (dấu nháy đơn) và '&' (xác nhận được giữ nguyên)
+            // Assert 3: Tên đã lưu phải giữ dấu nháy đơn và &
             Assert.IsTrue(actualName.Contains('\''),
-                $"[TC_CRM_010] Tên đã lưu phải giữ nguyên ký tự nháy đơn ('). Thực tế: '{actualName}'");
+                $"[TC_CRM_010] Ten phai giu nguyen ky tu nháy đơn ('). Thuc te: '{actualName}'");
             Assert.IsTrue(actualName.Contains('&'),
-                $"[TC_CRM_010] Tên đã lưu phải giữ nguyên ký tự '&'. Thực tế: '{actualName}'");
+                $"[TC_CRM_010] Ten phai giu nguyen ky tu '&'. Thuc te: '{actualName}'");
 
-            // Assert 3: Sau khi simulate sanitize (xóa thẻ HTML, xóa ngoặc kép, chuẩn hóa khoảng trắng), kết quả phải bằng đúng actualName
-            string expectedAfterSanitize = SimulateDolibarrSanitize(specialName);
+            // Assert 4: So khớp với expected cố định từ log thực tế
+            Assert.AreEqual(ExpectedSavedName, actualName,
+                $"[TC_CRM_010] Ten sau sanitize phai khop chinh xac gia tri quan sat tu log 2026-10-03.\n" +
+                $"Expected: '{ExpectedSavedName}'\n" +
+                $"Actual:   '{actualName}'");
 
-            // Log debug hiển thị khoảng trắng bằng ký tự '•' (luôn in ra dù pass hay fail)
-            TestContext.WriteLine($"[TC_CRM_010 DEBUG] Input goc (the hien khoang trang bang '•'): '{specialName.Replace(" ", "•")}'");
-            TestContext.WriteLine($"[TC_CRM_010 DEBUG] Ky vong sau simulate (•): '{expectedAfterSanitize.Replace(" ", "•")}'");
-            TestContext.WriteLine($"[TC_CRM_010 DEBUG] Thuc te lay duoc (•): '{actualName.Replace(" ", "•")}'");
-
-            Assert.AreEqual(expectedAfterSanitize, actualName,
-                $"[TC_CRM_010] Tên sau khi Dolibarr sanitize phải khớp chính xác chuỗi gốc sau khi loại bỏ thẻ HTML, ngoặc kép và chuẩn hóa khoảng trắng.\n" +
-                $"Kỳ vọng: '{expectedAfterSanitize}'\n" +
-                $"Thực tế: '{actualName}'");
-
-            TestContext.WriteLine(
-                $"[TC_CRM_010 PASS] Tên sau sanitize lưu và hiển thị đúng: '{actualName}'. URL: {Driver.Url}");
+            TestContext.WriteLine($"[TC_CRM_010 PASS] Luu va hien thi dung: '{actualName}'. URL: {Driver.Url}");
 
             var screenshotPath = ScreenshotHelper.Capture(Driver, TestContext.TestName ?? "TC_CRM_010");
             if (screenshotPath != null)
@@ -602,6 +551,7 @@ public class CrmCustomerTests : BaseTest
             CleanupCreatedCustomer();
         }
     }
+
 
     // ════════════════════════════════════════════════════════════════════════════
     // TC_CRM_011 — Tiếng Việt có dấu 128 ký tự (Unicode BVA)
@@ -688,29 +638,71 @@ public class CrmCustomerTests : BaseTest
     // ============================================================
     // CLEANUP SCRIPT — Xoa du lieu rac tich luy
     // ============================================================
+
+    // Prefix whitelist: chi xoa KH co ten bat dau bang mot trong cac chuoi nay.
+    // Bao ve du lieu nen: khong xoa KH khong ro nguon goc.
+    private static readonly string[] TestNamePrefixes =
+    [
+        "AUTO_", "KH_Edit_", "SearchFull_", "SearchPart_", "Delete_",
+        "TC005_", "TC006_", "TC_"
+    ];
+
+    // CLEANUP_DRY_RUN: mac dinh TRUE — chi in log, KHONG xoa.
+    // Dat false khi muon xoa that: CLEANUP_DRY_RUN=false dotnet test --filter TestCategory=Cleanup
+    private static readonly bool CleanupDryRun =
+        !string.Equals(Environment.GetEnvironmentVariable("CLEANUP_DRY_RUN"), "false",
+            StringComparison.OrdinalIgnoreCase);
+
+    private static bool IsTestCustomerName(string name) =>
+        TestNamePrefixes.Any(p => name.StartsWith(p, StringComparison.Ordinal));
+
     /// <summary>
-    /// CleanupAllTestCustomers: xoa toan bo KH test da tich luy.
-    /// Loc theo prefix/pattern ten test (prefix "TC" hoac ten chi gom 1 ky tu "A" vv.).
-    /// Day la [TestMethod] rieng, phai chay thu cong khi can don dep DB.
-    /// KHONG phai [TestInitialize] / [TestCleanup] — khong chay tu dong.
+    /// Cleanup_DeleteAllTestCustomers:
+    /// Chi xoa KH co ten khop prefix TEST (AUTO_, KH_Edit_, SearchFull_, ...).
+    /// Mac dinh chay DRY-RUN (chi in danh sach, khong xoa).
+    /// De xoa that: dat bien moi truong CLEANUP_DRY_RUN=false truoc khi chay.
+    /// Guard: thoat neu 3 vong lien tiep khong xoa duoc them KH nao (tranh loop vo han).
     /// </summary>
     [TestMethod]
     [TestCategory("Cleanup")]
-    [Description("Don sach KH test: xoa toan bo KH co ten khop pattern test (prefix chay tu dong).")]
+    [Description("Don sach KH test: chi xoa KH co ten bat dau bang prefix TEST (xem TestNamePrefixes). Mac dinh DRY-RUN.")]
     public void Cleanup_DeleteAllTestCustomers()
     {
         Login();
 
+        if (CleanupDryRun)
+            TestContext.WriteLine("[Cleanup] CHE DO DRY-RUN: chi liet ke, KHONG XOA. De xoa that: dat CLEANUP_DRY_RUN=false.");
+        else
+            TestContext.WriteLine("[Cleanup] CHE DO THAT: se xoa cac KH khop prefix.");
+
         var detailPage = new CustomerDetailPage(Driver);
         int totalDeleted = 0;
         int totalFailed = 0;
+        int staleRounds = 0;      // guard chong loop vo han
+        const int MaxStaleRounds = 3;
         const int PageSize = 100;
+        int prevDeletedBeforeRound = -1;
 
-        // [FIX Bug#2] Loop qua tung trang (offset) cho den khi khong con KH test nao
-        // Tranh bo sot khi DB tich luy >100 KH test sau nhieu lan chay.
         bool foundMore = true;
         while (foundMore)
         {
+            // Guard: neu 3 vong lien tiep khong xoa them duoc KH nao, thoat
+            if (totalDeleted == prevDeletedBeforeRound)
+            {
+                staleRounds++;
+                if (staleRounds >= MaxStaleRounds)
+                {
+                    TestContext.WriteLine(
+                        $"[Cleanup WARN] {MaxStaleRounds} vong lien tiep khong xoa them duoc KH nao. Thoat de tranh loop.");
+                    break;
+                }
+            }
+            else
+            {
+                staleRounds = 0;
+            }
+            prevDeletedBeforeRound = totalDeleted;
+
             Driver.Navigate().GoToUrl(
                 $"{TestConfig.BaseUrl}/societe/list.php?type=c&limit={PageSize}");
             WaitHelper.WaitVisible(Driver, By.Name("search_nom"), timeoutSeconds: 15);
@@ -724,18 +716,24 @@ public class CrmCustomerTests : BaseTest
                 string url = link.GetAttribute("href") ?? string.Empty;
                 string name = link.Text.Trim();
 
-                // Bao ve du lieu nen: KHONG duoc xoa "Cong ty ABC" va "Cong ty BCD"
+                // Whitelist bao ve: KHONG xoa du lieu nen
                 if (url.Contains("socid=1&") || url.EndsWith("socid=1") ||
                     url.Contains("socid=2&") || url.EndsWith("socid=2") ||
                     name.Equals("Cong ty ABC", StringComparison.OrdinalIgnoreCase) ||
                     name.Equals("Cong ty BCD", StringComparison.OrdinalIgnoreCase))
                     continue;
 
+                // Chi them KH co ten khop prefix TEST — an toan hon truoc
+                if (!IsTestCustomerName(name))
+                {
+                    TestContext.WriteLine($"[Cleanup SKIP] Bo qua KH khong ro nguon goc: '{name}' ({url})");
+                    continue;
+                }
+
                 if (!string.IsNullOrEmpty(url))
                     testCustomerUrls.Add((url, name));
             }
 
-            // Neu trang nay khong co KH test nao → thoat vong lap
             if (testCustomerUrls.Count == 0)
             {
                 foundMore = false;
@@ -743,10 +741,16 @@ public class CrmCustomerTests : BaseTest
             }
 
             TestContext.WriteLine(
-                $"[Cleanup] Trang hien tai: tim thay {testCustomerUrls.Count} KH test can xoa.");
+                $"[Cleanup] Tim thay {testCustomerUrls.Count} KH test khop prefix tren trang hien tai.");
 
             foreach (var (url, name) in testCustomerUrls)
             {
+                if (CleanupDryRun)
+                {
+                    TestContext.WriteLine($"[Cleanup DRY-RUN] Se xoa: '{name}' ({url})");
+                    continue; // Khong xoa that
+                }
+
                 try
                 {
                     Driver.Navigate().GoToUrl(url);
@@ -769,9 +773,23 @@ public class CrmCustomerTests : BaseTest
                 }
             }
 
-            // Neu trang co it hon PageSize phan tu → day la trang cuoi, khong can load them
-            if (testCustomerUrls.Count < PageSize)
+            if (CleanupDryRun)
+            {
+                // DRY-RUN: chi quet 1 trang roi thoat (khong can lap)
                 foundMore = false;
+            }
+            else if (testCustomerUrls.Count < PageSize)
+            {
+                foundMore = false;
+            }
+        }
+
+        if (CleanupDryRun)
+        {
+            TestContext.WriteLine("[Cleanup DRY-RUN DONE] Danh sach tren la nhung KH SE BI XOA khi chay voi CLEANUP_DRY_RUN=false.");
+            TestContext.WriteLine("DUNG LAI — xac nhan voi nguoi dung truoc khi xoa that.");
+            // DRY-RUN luon PASS — khong assert gi ca
+            return;
         }
 
         TestContext.WriteLine(
@@ -789,8 +807,9 @@ public class CrmCustomerTests : BaseTest
         TestContext.WriteLine(
             $"[Cleanup Verify] Con lai ({remainingNames.Count}): {string.Join(", ", remainingNames)}");
 
-        Assert.IsTrue(totalFailed == 0 || totalDeleted > 0,
-            $"[Cleanup] Xoa that bai nhieu hon thanh cong. Deleted={totalDeleted}, Failed={totalFailed}");
+        // [FIX] Assert chat hon: khong duoc co bat ky that bai nao
+        Assert.AreEqual(0, totalFailed,
+            $"[Cleanup] Co {totalFailed} KH KHONG xoa duoc. Kiem tra log phia tren de biet chi tiet.");
     }
 
     // ============================================================
@@ -812,8 +831,9 @@ public class CrmCustomerTests : BaseTest
         {
             // Arrange
             string suffix = Guid.NewGuid().ToString("N")[..8].ToUpper();
-            string originalName = $"KH_Edit_Orig_{suffix}";
-            string newName = $"KH_Edit_New_{suffix}";
+            // Prefix AUTO_ de Cleanup loc duoc chinh xac
+            string originalName = $"AUTO_Edit_Orig_{suffix}";
+            string newName = $"AUTO_Edit_New_{suffix}";
 
             Login();
             var createPage = new CustomerCreatePage(Driver);
@@ -894,7 +914,8 @@ public class CrmCustomerTests : BaseTest
         {
             // Arrange
             string suffix = Guid.NewGuid().ToString("N")[..8].ToUpper();
-            string searchName = $"SearchFull_{suffix}";
+            // Prefix AUTO_ de Cleanup loc duoc chinh xac
+            string searchName = $"AUTO_SearchFull_{suffix}";
 
             Login();
             var createPage = new CustomerCreatePage(Driver);
@@ -959,8 +980,9 @@ public class CrmCustomerTests : BaseTest
         {
             // Arrange
             string suffix = Guid.NewGuid().ToString("N")[..8].ToUpper();
-            string fullName = $"SearchPart_{suffix}";
-            // Dung phan giua lam search term (tranh trung voi KH khac)
+            // Prefix AUTO_ de Cleanup loc duoc chinh xac
+            string fullName = $"AUTO_SearchPart_{suffix}";
+            // Dung suffix GUID lam search term — dam bao duy nhat trong DB
             string partialName = suffix; // Phan suffix la duy nhat
 
             Login();
@@ -1039,8 +1061,10 @@ public class CrmCustomerTests : BaseTest
             bool hasNoResult = listPage.HasNoResultMessage();
             TestContext.WriteLine($"[TC_CRM_015] Count={count}, HasNoResultMessage={hasNoResult}");
 
-            Assert.IsTrue(count == 0 || hasNoResult,
-                $"[TC_CRM_015] Tim kiem ten khong ton tai phai tra ve 0 ket qua. " +
+            Assert.IsTrue(count == 0 && hasNoResult,
+                // AND thay vi OR: log thuc te 2026-10-03 xac nhan ca 2 dieu kien deu dung.
+                // Neu chi 1 trong 2 la True, chi co the la loi UI (GetResultCount != HasNoResultMessage).
+                $"[TC_CRM_015] Tim kiem ten khong ton tai phai tra ve 0 ket qua VA co thong bao rong. " +
                 $"Thuc te Count={count}, HasNoResult={hasNoResult}. URL: {listPage.GetCurrentUrl()}");
 
             TestContext.WriteLine($"[TC_CRM_015 PASS] Tim kiem ten khong ton tai tra ve rong. Count={count}");
@@ -1071,7 +1095,8 @@ public class CrmCustomerTests : BaseTest
         {
             // Arrange: Tao KH moi de xoa
             string suffix = Guid.NewGuid().ToString("N")[..8].ToUpper();
-            string customerName = $"Delete_{suffix}";
+            // Prefix AUTO_ de Cleanup loc duoc chinh xac
+            string customerName = $"AUTO_Delete_{suffix}";
 
             Login();
             var createPage = new CustomerCreatePage(Driver);
@@ -1102,8 +1127,10 @@ public class CrmCustomerTests : BaseTest
             int count = listPage.GetResultCount();
             bool hasNoResult = listPage.HasNoResultMessage();
 
-            Assert.IsTrue(count == 0 || hasNoResult,
-                $"[TC_CRM_016] KH '{customerName}' da xoa nhung van tim thay trong danh sach. Count={count}");
+            Assert.IsTrue(count == 0 && hasNoResult,
+                // AND thay vi OR: log thuc te 2026-10-03 xac nhan ca 2 dieu kien deu dung sau khi xoa.
+                // Neu chi 1 trong 2 la True, can kiem tra lai GetResultCount() hoac HasNoResultMessage().
+                $"[TC_CRM_016] KH '{customerName}' da xoa nhung van tim thay trong danh sach. Count={count}, HasNoResult={hasNoResult}");
 
             TestContext.WriteLine($"[TC_CRM_016 PASS] Xoa KH thanh cong va xac minh khong con ton tai trong danh sach.");
 
