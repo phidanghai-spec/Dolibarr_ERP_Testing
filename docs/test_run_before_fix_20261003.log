@@ -1,0 +1,149 @@
+Test run for D:\Projects\DoAnThucTap_Dolibarr\automation\DolibarrTests\bin\Debug\net9.0\DolibarrTests.dll (.NETCoreApp,Version=v9.0)
+VSTest version 17.14.1 (x64)
+
+Starting test execution, please wait...
+A total of 1 test files matched the specified pattern.
+D:\Projects\DoAnThucTap_Dolibarr\automation\DolibarrTests\bin\Debug\net9.0\DolibarrTests.dll
+Test Parallelization enabled for D:\Projects\DoAnThucTap_Dolibarr\automation\DolibarrTests\bin\Debug\net9.0\DolibarrTests.dll (Workers: 4, Scope: MethodLevel)
+  Passed TC_CRM_005_CreateCustomer_NameExactly128Chars_ShouldSaveSuccessfully [26 s]
+  Standard Output Messages:
+ 
+ 
+ TestContext Messages:
+ [TC_CRM_005 PASS] Tên 128 ký tự lưu thành công. URL: http://localhost/dolibarr/societe/card.php?id=__ID__&socid=73
+ [Screenshot] D:\Projects\DoAnThucTap_Dolibarr\automation\DolibarrTests\bin\Debug\net9.0\TestResults\Screenshots\TC_CRM_005_CreateCustomer_NameExactly128Chars_ShouldSaveSuccessfully_2026-10-03_23-47-12.png
+ [Cleanup] Đã xóa KH: http://localhost/dolibarr/societe/card.php?id=__ID__&socid=73
+
+
+  Passed TC_CRM_006_CreateCustomer_Name129Chars_BrowserShouldTruncateTo128 [24 s]
+  Standard Output Messages:
+ 
+ 
+ TestContext Messages:
+ [TC_CRM_006 PASS] Browser cắt còn 128 ký tự. Lưu thành công. URL: http://localhost/dolibarr/societe/card.php?id=__ID__&socid=74
+ [Screenshot] D:\Projects\DoAnThucTap_Dolibarr\automation\DolibarrTests\bin\Debug\net9.0\TestResults\Screenshots\TC_CRM_006_CreateCustomer_Name129Chars_BrowserShouldTruncateTo128_2026-10-03_23-47-40.png
+ [Cleanup] Đã xóa KH: http://localhost/dolibarr/societe/card.php?id=__ID__&socid=74
+
+
+  Passed TC_CRM_007_CreateCustomer_EmptyName_ShouldBeBlocked [13 s]
+  Standard Output Messages:
+ 
+ 
+ TestContext Messages:
+ [TC_CRM_007] Thuộc tính 'required' của ô Tên trong HTML: False
+ [TC_CRM_007 Server-side] Redirected=False, ServerErrorMessage='Field 'Third-party name' is required'
+ [Screenshot] D:\Projects\DoAnThucTap_Dolibarr\automation\DolibarrTests\bin\Debug\net9.0\TestResults\Screenshots\TC_CRM_007_CreateCustomer_EmptyName_ShouldBeBlocked_2026-10-03_23-47-56.png
+
+
+  Passed TC_CRM_008_CreateCustomer_SingleChar_ShouldSaveSuccessfully [26 s]
+  Standard Output Messages:
+ 
+ 
+ TestContext Messages:
+ [TC_CRM_008 PASS] Lưu thành công KH tên 1 ký tự 'A'. URL: http://localhost/dolibarr/societe/card.php?id=__ID__&socid=76
+ [Screenshot] D:\Projects\DoAnThucTap_Dolibarr\automation\DolibarrTests\bin\Debug\net9.0\TestResults\Screenshots\TC_CRM_008_CreateCustomer_SingleChar_ShouldSaveSuccessfully_2026-10-03_23-48-16.png
+ [Cleanup] Đã xóa KH: http://localhost/dolibarr/societe/card.php?id=__ID__&socid=76
+
+
+  Passed TC_CRM_009_CreateCustomer_WhitespaceOnly_ObserveActualBehavior [12 s]
+  Standard Output Messages:
+ 
+ 
+ TestContext Messages:
+ [TC_CRM_009] Input length trước khi submit: 10, Raw='          '
+ [TC_CRM_009] Form bị chặn submit, thông báo lỗi: 'Field 'Third-party name' is required'
+ [TC_CRM_009 OBSERVED] Redirected=False, SavedNameLength=0, SavedNameRaw=''
+ [Screenshot] D:\Projects\DoAnThucTap_Dolibarr\automation\DolibarrTests\bin\Debug\net9.0\TestResults\Screenshots\TC_CRM_009_CreateCustomer_WhitespaceOnly_ObserveActualBehavior_2026-10-03_23-48-34.png
+
+
+  Passed TC_CRM_010_CreateCustomer_SpecialChars_ObserveXssHandling [13 s]
+  Standard Output Messages:
+ 
+ 
+ TestContext Messages:
+ [TC_CRM_010] Dolibarr sanitize dau vao bang cach loai bo ky tu <, >, " truoc khi luu (khong phai escape khi hien thi) — day la co che chong XSS/injection o tang server
+ [TC_CRM_010 DEBUG] Input goc (the hien khoang trang bang '•'): 'O'Brien•&•Cong•ty•<Test>•"123"'
+ [TC_CRM_010 DEBUG] Ky vong sau simulate (•): 'O'Brien•&•Cong•ty•123'
+ [TC_CRM_010 DEBUG] Thuc te lay duoc (•): 'O'Brien•&•Cong•ty•123'
+ [TC_CRM_010 PASS] Tên sau sanitize lưu và hiển thị đúng: 'O'Brien & Cong ty 123'. URL: http://localhost/dolibarr/societe/card.php?id=__ID__&socid=79
+ [Screenshot] D:\Projects\DoAnThucTap_Dolibarr\automation\DolibarrTests\bin\Debug\net9.0\TestResults\Screenshots\TC_CRM_010_CreateCustomer_SpecialChars_ObserveXssHandling_2026-10-03_23-48-45.png
+ [Cleanup] Đã xóa KH: http://localhost/dolibarr/societe/card.php?id=__ID__&socid=79
+
+
+  Passed TC_CRM_011_CreateCustomer_VietnameseDiacritics128Chars_ShouldSaveSuccessfully [26 s]
+  Standard Output Messages:
+ 
+ 
+ TestContext Messages:
+ [TC_CRM_011] Đã đọc chuỗi tiếng Việt 128 ký tự từ Excel: 'Công ty TNHH Kiểm Thử Dữ Liệu Tiếng Việt Có Dấu Số Nguyễn Văn Ất Ổn Ệ Ố Ắ Nguyễn Văn Ất Ổn Ệ Ố Ắ Nguyễn Văn Ất Ổn Ệ Ố Ắ Nguyễn V'
+ [TC_CRM_011] Số ký tự non-ASCII (>127): 32
+ [TC_CRM_011 PASS] Tên tiếng Việt 128 ký tự lưu và hiển thị hoàn hảo. URL: http://localhost/dolibarr/societe/card.php?id=__ID__&socid=81
+ [Screenshot] D:\Projects\DoAnThucTap_Dolibarr\automation\DolibarrTests\bin\Debug\net9.0\TestResults\Screenshots\TC_CRM_011_CreateCustomer_VietnameseDiacritics128Chars_ShouldSaveSuccessfully_2026-10-03_23-49-09.png
+ [Cleanup] Đã xóa KH: http://localhost/dolibarr/societe/card.php?id=__ID__&socid=81
+
+
+  Passed TC_CRM_012_UpdateCustomer_ChangeName_ShouldDisplayNewName [16 s]
+  Standard Output Messages:
+ 
+ 
+ TestContext Messages:
+ [TC_CRM_012] Da tao KH: 'KH_Edit_Orig_5E011400'. URL: http://localhost/dolibarr/societe/card.php?id=__ID__&socid=84
+ [TC_CRM_012] Da vao che do Edit. URL: http://localhost/dolibarr/societe/card.php?socid=84&action=edit&token=19769889243895fd2deb70370ed5e4f8
+ [TC_CRM_012 PASS] Sua ten thanh cong: 'KH_Edit_Orig_5E011400' -> 'KH_Edit_New_5E011400'. URL: http://localhost/dolibarr/societe/card.php?id=84
+ [Screenshot] D:\Projects\DoAnThucTap_Dolibarr\automation\DolibarrTests\bin\Debug\net9.0\TestResults\Screenshots\TC_CRM_012_UpdateCustomer_ChangeName_ShouldDisplayNewName_2026-10-03_23-49-27.png
+ [Cleanup] Đã xóa KH: http://localhost/dolibarr/societe/card.php?id=84
+
+
+  Passed TC_CRM_013_SearchCustomer_ByFullName_ShouldReturnExactMatch [18 s]
+  Standard Output Messages:
+ 
+ 
+ TestContext Messages:
+ [TC_CRM_013] Da tao KH: 'SearchFull_119E189C'
+ [TC_CRM_013] Da tim kiem: 'SearchFull_119E189C'. URL: http://localhost/dolibarr/societe/list.php
+ [TC_CRM_013] Ket qua: SearchFull_119E189C
+ [TC_CRM_013 PASS] Tim kiem theo ten day du thanh cong. Count=1
+ [Screenshot] D:\Projects\DoAnThucTap_Dolibarr\automation\DolibarrTests\bin\Debug\net9.0\TestResults\Screenshots\TC_CRM_013_SearchCustomer_ByFullName_ShouldReturnExactMatch_2026-10-03_23-49-46.png
+ [Cleanup] Đã xóa KH: http://localhost/dolibarr/societe/card.php?id=__ID__&socid=85
+
+
+  Passed TC_CRM_014_SearchCustomer_ByPartialName_ShouldReturnMatchingResults [10 s]
+  Standard Output Messages:
+ 
+ 
+ TestContext Messages:
+ [TC_CRM_014] Da tao KH: 'SearchPart_D61A3751'. Tim kiem theo: 'D61A3751'
+ [TC_CRM_014] Da tim kiem: 'D61A3751'
+ [TC_CRM_014] Ket qua: SearchPart_D61A3751
+ [TC_CRM_014 PASS] Tim kiem mot phan ten thanh cong. Count=1
+ [Screenshot] D:\Projects\DoAnThucTap_Dolibarr\automation\DolibarrTests\bin\Debug\net9.0\TestResults\Screenshots\TC_CRM_014_SearchCustomer_ByPartialName_ShouldReturnMatchingResults_2026-10-03_23-49-58.png
+ [Cleanup] Đã xóa KH: http://localhost/dolibarr/societe/card.php?id=__ID__&socid=87
+
+
+  Passed TC_CRM_015_SearchCustomer_NonExistentName_ShouldReturnNoResults [6 s]
+  Standard Output Messages:
+ 
+ 
+ TestContext Messages:
+ [TC_CRM_015] Da tim kiem: 'NOTEXIST_B62F885E8B08_ZZZZZ'
+ [TC_CRM_015] Count=0, HasNoResultMessage=True
+ [TC_CRM_015 PASS] Tim kiem ten khong ton tai tra ve rong. Count=0
+ [Screenshot] D:\Projects\DoAnThucTap_Dolibarr\automation\DolibarrTests\bin\Debug\net9.0\TestResults\Screenshots\TC_CRM_015_SearchCustomer_NonExistentName_ShouldReturnNoResults_2026-10-03_23-50-05.png
+
+
+  Passed TC_CRM_016_DeleteCustomer_ShouldRemoveFromList [8 s]
+  Standard Output Messages:
+ 
+ 
+ TestContext Messages:
+ [TC_CRM_016] Da tao KH: 'Delete_40ACB869', URL=http://localhost/dolibarr/societe/card.php?id=__ID__&socid=88
+ [TC_CRM_016] Da thuc hien xoa KH thanh cong.
+ [TC_CRM_016 PASS] Xoa KH thanh cong va xac minh khong con ton tai trong danh sach.
+ [Screenshot] D:\Projects\DoAnThucTap_Dolibarr\automation\DolibarrTests\bin\Debug\net9.0\TestResults\Screenshots\TC_CRM_016_DeleteCustomer_ShouldRemoveFromList_2026-10-03_23-50-13.png
+
+
+
+Test Run Successful.
+Total tests: 12
+     Passed: 12
+ Total time: 3.4017 Minutes

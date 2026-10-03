@@ -8,6 +8,7 @@ TestResults/
 ~$*
 *.tmp
 *.backup*.xlsx
+*.before_fix*.xlsx
 # Secrets / local config
 *.env
 appsettings.local.json
