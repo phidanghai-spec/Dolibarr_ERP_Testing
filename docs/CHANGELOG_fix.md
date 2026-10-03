@@ -1,99 +1,108 @@
-# CHANGELOG_fix.md — Tóm tắt fix sau Code Review
-**Ngày thực hiện:** 2026-10-03  
+# CHANGELOG_fix.md — Tóm tắt khắc phục sau Code Review (Vòng 2)
+**Ngày thực hiện:** 2026-10-03 (hoàn thiện 2026-10-04)  
 **Người thực hiện:** AI (Antigravity) + Đặng Hải Phi (xác nhận)  
-**Commit liên quan:** b122204, 8c12819
+**Nhánh làm việc:** `fix/review-20261003` (không push trực tiếp lên main)  
 
 ---
 
-## 1. ĐÃ LÀM
+## 1. ĐÃ HOÀN THÀNH
 
-### PHẦN 1 — Sửa Cleanup_DeleteAllTestCustomers (CrmCustomerTests.cs)
-
-| # | Hạng mục | Trạng thái |
-|---|----------|-----------|
-| 1a | Chỉ xóa KH có tên bắt đầu bằng prefix: AUTO_, KH_Edit_, SearchFull_, SearchPart_, Delete_, TC005_, TC006_, TC_ | DONE |
-| 1a | Whitelist bảo vệ: socid=1, socid=2, "Cong ty ABC", "Cong ty BCD" + bỏ qua (SKIP log) KH không rõ nguồn gốc | DONE |
-| 1b | Thêm prefix "AUTO_" vào tên KH: TC_CRM_012 (AUTO_Edit_), TC_013 (AUTO_SearchFull_), TC_014 (AUTO_SearchPart_), TC_016 (AUTO_Delete_) | DONE |
-| 1c | Thêm biến cấu hình CLEANUP_DRY_RUN (mặc định true từ env var). Khi true: chỉ log, KHÔNG xóa. | DONE |
-| 1d | Guard chống loop vô hạn: thoát sau 3 vòng liên tiếp không xóa thêm được KH nào | DONE |
-| 1e | Assert cuối: `Assert.AreEqual(0, totalFailed, ...)` thay vì `IsTrue(failedOk \|\| deletedOk)` | DONE |
-| 1f | [TestCategory("Cleanup")] đã có từ trước. README chưa cập nhật lệnh filter — ghi vào CHƯA LÀM | CHỜ README |
-| 1g | Chạy DRY-RUN: **KẾT QUẢ — DB HIỆN TẠI SẠCH, 0 KH test cần xóa** (các test đã cleanup trong finally). | DONE - DRY-RUN PASS, KHÔNG CÓ GÌ ĐỂ XÓA |
-
-**Log DRY-RUN (2026-10-03T23:53):**
-```
-[Cleanup] CHE DO DRY-RUN: chi liet ke, KHONG XOA. De xoa that: dat CLEANUP_DRY_RUN=false.
-[Cleanup DRY-RUN DONE] Danh sach tren la nhung KH SE BI XOA khi chay voi CLEANUP_DRY_RUN=false.
-DUNG LAI — xac nhan voi nguoi dung truoc khi xoa that.
-
-→ Không có KH nào khớp prefix test trong DB. DB sạch.
-```
-> **DỪNG LẠI theo yêu cầu 1g.** Không xóa thật. Chờ xác nhận nếu cần xóa.
+### PHẦN 1 — Sửa kịch bản Cleanup và cơ chế bảo vệ DB
+- **Prefix Whitelist:** Chỉ lọc và xóa các KH có tên bắt đầu bằng tiền tố test đã định nghĩa: `AUTO_`, `KH_Edit_`, `SearchFull_`, `SearchPart_`, `Delete_`, `TC005_`, `TC006_`, `TC_`.
+- **Bảo vệ dữ liệu nền:** Whitelist bảo vệ tuyệt đối dữ liệu nền `socid=1`, `socid=2`, `Cong ty ABC`, `Cong ty BCD`. Bỏ qua và ghi log `[Cleanup SKIP]` đối với mọi KH không rõ nguồn gốc.
+- **Tiền tố đồng nhất:** Mọi test tạo KH động đều dùng tiền tố `AUTO_`:
+  - `TC_CRM_012`: `AUTO_Edit_Orig_{suffix}` -> `AUTO_Edit_New_{suffix}`
+  - `TC_CRM_013`: `AUTO_SearchFull_{suffix}`
+  - `TC_CRM_014`: `AUTO_SearchPart_{suffix}`
+  - `TC_CRM_016`: `AUTO_Delete_{suffix}`
+- **Ghi nhận ngoại lệ prefix (Lỗ hổng prefix được kiểm soát):**
+  - `TC_CRM_008`: Tên đúng 1 ký tự (`"A"` - kiểm thử giá trị biên min length N=1). Không thể thêm tiền tố `AUTO_` vì sẽ làm sai lệch yêu cầu kiểm thử 1 ký tự.
+  - `TC_CRM_010`: Ký tự đặc biệt và thẻ HTML `O'Brien & Cong ty <Test> "123"` (kiểm thử XSS/sanitize theo đúng mẫu từ Excel).
+  - `TC_CRM_011`: Tên 128 ký tự tiếng Việt có dấu Unicode đọc từ Excel.
+  - *Cơ chế dọn dẹp:* Trong điều kiện bình thường, khối `finally { CleanupCreatedCustomer(); }` của mỗi test luôn xóa ngay theo URL trực tiếp (`_createdCustomerUrl`). Nếu trường hợp đặc biệt bị crash đột ngột giữa chừng (mất điện, ngắt tiến trình), các KH ngoại lệ này sẽ bị bỏ qua bởi whitelist của script Cleanup để tránh xóa nhầm dữ liệu, và cần dọn dẹp thủ công.
+- **Cấu hình DRY-RUN mặc định:** `CleanupDryRun = !string.Equals(Environment.GetEnvironmentVariable("CLEANUP_DRY_RUN"), "false", StringComparison.OrdinalIgnoreCase);`. Mặc định luôn là DRY-RUN (chỉ liệt kê KH khớp tiền tố, không xóa). Chỉ xóa thật khi đặt `$env:CLEANUP_DRY_RUN = "false"`.
+- **Guard chống loop vô hạn:** Tự động ngắt sau 3 vòng lặp liên tiếp nếu không có KH nào mới được xóa (`MaxStaleRounds = 3`).
+- **Lưu bằng chứng DRY-RUN:** Đã chạy lại và lưu nguyên văn ra file [`docs/dryrun_20261003.log`](file:///d:/Projects/DoAnThucTap_Dolibarr/docs/dryrun_20261003.log).
+  - *Kết luận chính xác từ log:* **Không có KH nào khớp prefix trong trang đầu (limit=100)**. (Không suy diễn là toàn bộ DB sạch).
 
 ---
 
-### PHẦN 2 — Sửa Assert các Test Case yếu (CrmCustomerTests.cs)
-
-**Dữ liệu hành vi thực tế từ log chạy 2026-10-03T23:47–23:50:**
-
-| TC | Hành vi thực tế quan sát | Fix đã thực hiện | Trạng thái |
-|----|--------------------------|-----------------|-----------|
-| TC_CRM_007 | hasRequired=False, server trả "Field 'Third-party name' is required", Redirected=False | Bỏ nhánh if/else hasRequired, chốt 1 hành vi server-side với assert cụ thể | DONE |
-| TC_CRM_009 | Input 10 spaces, Redirected=False, ErrorMessage='Field Third-party name is required' | Đổi method name ShouldBeBlocked, assert IsFalse(redirected) + lỗi chứa 'required' | DONE |
-| TC_CRM_010 | actualName="O'Brien & Cong ty 123" (match với SimulateDolibarrSanitize) | Xóa SimulateDolibarrSanitize(), dùng const ExpectedSavedName="O'Brien & Cong ty 123" từ log | DONE |
-| TC_CRM_015 | Count=0 && HasNoResultMessage=True | OR → AND (cả 2 phải đúng) | DONE |
-| TC_CRM_016 | Count=0 && HasNoResultMessage=True sau khi xóa | OR → AND (cả 2 phải đúng) | DONE |
-| TC_CRM_013/014 | Đã dùng suffix GUID làm search term (unique), count assert dùng AreEqual(1, count) | TC_013 assert count==1 đã có. TC_014 assert count>=1 (cần quan sát thêm vì partial search có thể trả nhiều) | KHÔNG SỬA TC_014 — count>=1 hợp lý vì partial match |
-
----
-
-### PHẦN 4 — Git
-
-| # | Hạng mục | Trạng thái |
-|---|----------|-----------|
-| 4a | `git rm --cached testcases/Dolibarr_TestCases.backup.xlsx testcases/Dolibarr_TestCases.backup2.xlsx` | DONE (commit b122204) |
-| 4a | Thêm pattern `testcases/Dolibarr_TestCases.backup*.xlsx` và `before_fix_*.xlsx` vào .gitignore | DONE |
-| 4b | Commit riêng: `chore: go backup xlsx`, `fix(cleanup): prefix filter + DRY_RUN + ...` | DONE |
-| 4c | Build thành công trước khi push: `Build succeeded. 0 Warning(s) 0 Error(s)` | DONE |
+### PHẦN 2 — Chuẩn hóa Assert theo hành vi quan sát thực tế
+- **TC_CRM_007 (Tên để trống):**
+  - Thuộc tính `required` trong HTML là `False`.
+  - Dolibarr chặn ở phía server: không redirect, trả thông báo lỗi `Field 'Third-party name' is required`.
+  - Đã loại bỏ hoàn toàn cấu trúc rẽ nhánh `if/else`, chốt một assert duy nhất kiểm chứng chặn server-side.
+- **TC_CRM_009 (Tên chỉ gồm khoảng trắng):**
+  - Dolibarr trim khoảng trắng ở server và xử lý như tên rỗng: không redirect, trả lỗi `Field 'Third-party name' is required`.
+  - Chốt assert `Assert.IsFalse(redirected)` và thông báo lỗi chứa `'required'`.
+- **TC_CRM_010 (Ký tự đặc biệt & XSS):**
+  - Đã xóa hoàn toàn hàm tự chế `SimulateDolibarrSanitize`.
+  - Đối chiếu trực tiếp với kết quả sanitize thực tế của Dolibarr 22.0.4: loại bỏ thẻ `<Test>` và dấu ngoặc kép `"`, giữ dấu nháy đơn `'` và ký tự `&`. Tên lưu thực tế: `"O'Brien & Cong ty 123"`.
+  - Đã thêm log kiểm chứng `[TC_CRM_010] Actual name: 'O\'Brien & Cong ty 123' (expected: 'O\'Brien & Cong ty 123')` và xuất hiện chính xác trong file log.
+- **TC_CRM_015 & TC_CRM_016 (Tìm kiếm không tồn tại & Xóa KH):**
+  - Chuyển assert từ điều kiện lỏng `count == 0 || hasNoResult` (OR) sang điều kiện chặt chẽ `count == 0 && hasNoResult` (AND) dựa trên kết quả chạy thật cả 2 điều kiện đều thỏa mãn.
 
 ---
 
-## 2. BUILD VÀ TEST LOG THẬT
-
-### dotnet build (2026-10-03T23:53)
-```
-Determining projects to restore...
-All projects are up-to-date for restore.
-DolibarrTests -> D:\Projects\DoAnThucTap_Dolibarr\automation\DolibarrTests\bin\Debug\net9.0\DolibarrTests.dll
-
-Build succeeded.
-    0 Warning(s)
-    0 Error(s)
-
-Time Elapsed 00:00:05.41
-```
-
-### dotnet test (CRM suite, trước khi fix, 2026-10-03T23:47–23:50)
-```
-Total tests: 12  |  Passed: 12  |  Failed: 0
-Total time:  3.4017 Minutes
-```
-> Tất cả 12 CRM test PASS trước khi fix. Sau khi fix code, build lại thành công.
+### PHẦN 3 — Cập nhật tài liệu hướng dẫn README.md
+- Cập nhật lệnh chạy test mặc định:
+  ```powershell
+  dotnet test --filter "TestCategory!=Cleanup"
+  ```
+- Tách riêng hướng dẫn chạy kịch bản Cleanup với chế độ DRY-RUN và chế độ xóa thật khi có xác nhận.
 
 ---
 
-## 3. CHƯA LÀM VÀ LÝ DO
-
-| # | Hạng mục | Lý do chưa làm |
-|---|----------|----------------|
-| PHẦN 1f (README) | Chỉnh README: lệnh chạy mặc định `--filter "TestCategory!=Cleanup"` | Chờ xác nhận xong PHẦN 1g trước; sẽ cập nhật trong commit tiếp theo |
-| PHẦN 3 (Excel) | Sửa sheet Test Cases, Summary, Traceability, Bug Report, AI Log | Excel cần mở bằng openpyxl — sẽ làm trong bước tiếp theo, cần Dolibarr đang chạy để lấy giá trị Actual từ lần chạy thật |
-| PHẦN 5 Test sau fix | Chạy lại toàn bộ suite sau khi sửa code để xác nhận 15/15 PASS | Cần chạy sau khi user xác nhận OK phần code |
+### PHẦN 4 — Chạy test kiểm chứng và lưu log bằng chứng
+- **Lệnh thực thi:**
+  ```powershell
+  dotnet build && dotnet test --filter "TestCategory=CRM" --logger "console;verbosity=detailed" > docs/test_run_after_fix_20261003.log 2>&1
+  ```
+- **Kết quả tổng kết nguyên văn từ log:**
+  ```
+  Test Run Successful.
+  Total tests: 12
+       Passed: 12
+   Total time: 2.7653 Minutes
+  ```
+- **File bằng chứng:** [`docs/test_run_after_fix_20261003.log`](file:///d:/Projects/DoAnThucTap_Dolibarr/docs/test_run_after_fix_20261003.log).
+- **Trích xuất dòng TC_CRM_010:**
+  ```
+  [TC_CRM_010] Actual name: 'O'Brien & Cong ty 123' (expected: 'O'Brien & Cong ty 123')
+  [TC_CRM_010 PASS] Luu va hien thi dung: 'O'Brien & Cong ty 123'. URL: http://localhost/dolibarr/societe/card.php?id=__ID__&socid=92
+  ```
 
 ---
 
-## 4. CÂU HỎI CẦN XÁC NHẬN (tối đa 2)
+### PHẦN 5 — Cập nhật file Excel `Dolibarr_TestCases.xlsx`
+Đã sao lưu trước khi chỉnh sửa: `testcases/Dolibarr_TestCases.before_fix_20261003.xlsx`.
+1. **Sheet Test Cases:**
+   - `TC_CRM_006`: Cập nhật `Loại = Auto`.
+   - Phân rã `Function ID`:
+     - `F-CRM-01`: Tạo khách hàng mới (`TC_CRM_005` đến `TC_CRM_011`).
+     - `F-CRM-02`: Chỉnh sửa thông tin khách hàng (`TC_CRM_012`).
+     - `F-CRM-03`: Tìm kiếm khách hàng (`TC_CRM_013` đến `TC_CRM_015`).
+     - `F-CRM-04`: Xóa khách hàng (`TC_CRM_016`).
+   - Cột `Actual`: Điền giá trị thực tế quan sát được từ `test_run_after_fix_20261003.log` (không sao chép từ Expected).
+   - Cột `Trạng thái`: `Pass` cho toàn bộ 12 test case.
+   - Cột `Ngày chạy`: `2026-10-03`.
+   - Cột `Minh chứng`: Đường dẫn ảnh screenshot tương ứng cho từng test.
+2. **Sheet Summary:**
+   - Tổng hợp số lượng test case, Auto, Manual, Pass, Fail theo từng Function ID (`F-CRM-01` đến `F-CRM-04`) và dòng Tổng cộng (12/12 Pass - 100%).
+3. **Sheet Traceability:**
+   - Ma trận truy vết từ Use Case (`UC-01` đến `UC-04`) -> Function ID -> Scenario -> Test ID -> Trạng thái.
+4. **Sheet Bug Report:**
+   - Cập nhật header chuẩn theo skill `bug-report`. Đợt chạy test ngày 2026-10-03 đạt 100% Pass, không phát hiện lỗi tồn đọng.
+5. **Sheet AI Log:**
+   - Thay thế toàn bộ cụm từ chung chung `(Người dùng xác nhận)` ở các dòng trước bằng nội dung người dùng đã chỉnh sửa/phê duyệt cụ thể.
+   - Thêm dòng ghi nhận công việc STT 5 cho đợt Code Review và chuẩn hóa ngày 2026-10-03.
 
-**Câu 1 — Cleanup thật:** DB hiện tại sạch (0 KH test rác). Có cần chạy cleanup thật (`CLEANUP_DRY_RUN=false`) không, hay bỏ qua vì không cần?
+---
 
-**Câu 2 — Excel Actual:** Để điền cột Actual và Ngày chạy thật trong Excel, cần kết quả từ lần chạy test ngày hôm nay (2026-10-03). Mình đã có log. Cho phép dùng log hôm nay để điền không, hay bạn muốn chạy lại test sau khi sửa xong để có log mới nhất?
+## 2. VIỆC CHƯA LÀM VÀ LÝ DO
+
+| Hạng mục | Lý do |
+|---|---|
+| Chạy xóa dữ liệu thật (`CLEANUP_DRY_RUN=false`) | Kết quả DRY-RUN cho thấy không có KH rác nào khớp prefix trong trang đầu. Người dùng đã xác nhận bỏ qua bước xóa thật. |
+| Đặt tiền tố `AUTO_` cho TC_CRM_008 và TC_CRM_011 | Ràng buộc kỹ thuật kiểm thử giá trị biên (BVA 1 ký tự và Unicode 128 ký tự tiếng Việt) không cho phép gắn prefix vào chuỗi test data. Đã có khối finally xóa trực tiếp theo URL; nếu crash sẽ dọn tay. |
+| Merge nhánh `fix/review-20261003` vào `main` | Tuân thủ quy trình kiểm thử và review: chỉ commit trên nhánh tính năng/sửa lỗi, gửi log và Excel để người dùng kiểm chứng trước khi merge. |
