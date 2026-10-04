@@ -52,4 +52,21 @@ Time Elapsed 00:00:04.34
 
 ---
 
+## Đề xuất nội dung AI Log dòng 6 (Phiên 2026-10-05)
+
+- **Ngày:** 2026-10-05
+- **Giai đoạn:** Thiết kế tài liệu & Kế hoạch kiểm thử (Test Plan & Use Cases)
+- **Công cụ + model:** Antigravity (Gemini 2.5 Pro)
+- **Việc cần làm:** Soạn thảo tài liệu đặc tả Use Case (UC-01, UC-02, UC-03) và Kế hoạch kiểm thử (Test Plan) theo checklist T7C3.
+- **Prompt tóm tắt:** Yêu cầu AI soạn thảo hoàn chỉnh Use Case cho cả 3 module (Sales, CRM, Stock) và Test Plan có đầy đủ phạm vi, tiêu chí Pass/Fail, entry/exit, rủi ro, và bảng Execution Status By Cycle.
+- **Kết quả AI đưa ra:** 
+  - Tạo `docs/UseCases.md`: đặc tả chi tiết UC-01 (Sales Proposal to Invoice), UC-02 (CRM Customer Management), UC-03 (Stock & Warehouse Management) kèm sơ đồ mermaid.
+  - Tạo `docs/TestPlan.md`: kế hoạch kiểm thử theo chuẩn IEEE 829 / T7C3, đầy đủ 6 phần mục tiêu, phạm vi, môi trường, tiêu chí Pass/Fail, Entry/Exit, rủi ro, và bảng tiến độ 5 chu kỳ (Cycles).
+- **Đánh giá:** Đạt yêu cầu. Cấu trúc tài liệu chuẩn mực, bám sát nghiệp vụ Dolibarr 22.0.4 và thang điểm đồ án.
+- **Người dùng đã chỉnh gì:** Đọc rà soát tính nhất quán giữa Use Case, Test Plan và code hiện có trước khi nghiệm thu tài liệu.
+- **Bài học:** Có tài liệu Test Plan và Use Case rõ ràng giúp định hướng kiểm thử có phương pháp, tránh bỏ sót kịch bản nghiệp vụ liên thông giữa các phân hệ.
+
+---
+
 *Ghi vào sheet AI Log của Dolibarr_TestCases.xlsx theo skill ai-log.*
+
