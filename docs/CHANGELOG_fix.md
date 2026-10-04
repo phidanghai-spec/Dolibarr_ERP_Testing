@@ -1,6 +1,6 @@
 # CHANGELOG_fix.md — Tóm tắt khắc phục sau Code Review (Vòng 2)
 **Ngày thực hiện:** 2026-10-03 (hoàn thiện 2026-10-04)  
-**Người thực hiện:** AI (Antigravity) + Đặng Hải Phi (xác nhận)  
+**Người thực hiện:** Đặng Hải Phi  
 **Nhánh làm việc:** `fix/review-20261003` (không push trực tiếp lên main)  
 
 ---
