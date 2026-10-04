@@ -13,9 +13,9 @@ Test Parallelization enabled for D:\Projects\DoAnThucTap_Dolibarr\automation\Dol
  
  
  TestContext Messages:
- [TC_CRM_005 PASS] Tên 128 ký tự lưu thành công. URL: http://localhost/dolibarr/societe/card.php?socid=89
+ [TC_CRM_005 PASS] Tên 128 ký tự lưu thành công. URL: http://localhost/dolibarr/societe/card.php?id=__ID__&socid=89
  [Screenshot] D:\Projects\DoAnThucTap_Dolibarr\automation\DolibarrTests\bin\Debug\net9.0\TestResults\Screenshots\TC_CRM_005_CreateCustomer_NameExactly128Chars_ShouldSaveSuccessfully_2026-10-04_00-09-42.png
- [Cleanup] Đã xóa KH: http://localhost/dolibarr/societe/card.php?socid=89
+ [Cleanup] Đã xóa KH: http://localhost/dolibarr/societe/card.php?id=__ID__&socid=89
 
 
   Passed TC_CRM_006_CreateCustomer_Name129Chars_BrowserShouldTruncateTo128 [21 s]
@@ -23,9 +23,9 @@ Test Parallelization enabled for D:\Projects\DoAnThucTap_Dolibarr\automation\Dol
  
  
  TestContext Messages:
- [TC_CRM_006 PASS] Browser cắt còn 128 ký tự. Lưu thành công. URL: http://localhost/dolibarr/societe/card.php?socid=90
+ [TC_CRM_006 PASS] Browser cắt còn 128 ký tự. Lưu thành công. URL: http://localhost/dolibarr/societe/card.php?id=__ID__&socid=90
  [Screenshot] D:\Projects\DoAnThucTap_Dolibarr\automation\DolibarrTests\bin\Debug\net9.0\TestResults\Screenshots\TC_CRM_006_CreateCustomer_Name129Chars_BrowserShouldTruncateTo128_2026-10-04_00-10-03.png
- [Cleanup] Đã xóa KH: http://localhost/dolibarr/societe/card.php?socid=90
+ [Cleanup] Đã xóa KH: http://localhost/dolibarr/societe/card.php?id=__ID__&socid=90
 
 
   Passed TC_CRM_007_CreateCustomer_EmptyName_ShouldBeBlocked [10 s]
@@ -45,9 +45,9 @@ Test Parallelization enabled for D:\Projects\DoAnThucTap_Dolibarr\automation\Dol
  
  
  TestContext Messages:
- [TC_CRM_008 PASS] Lưu thành công KH tên 1 ký tự 'A'. URL: http://localhost/dolibarr/societe/card.php?socid=91
+ [TC_CRM_008 PASS] Lưu thành công KH tên 1 ký tự 'A'. URL: http://localhost/dolibarr/societe/card.php?id=__ID__&socid=91
  [Screenshot] D:\Projects\DoAnThucTap_Dolibarr\automation\DolibarrTests\bin\Debug\net9.0\TestResults\Screenshots\TC_CRM_008_CreateCustomer_SingleChar_ShouldSaveSuccessfully_2026-10-04_00-10-33.png
- [Cleanup] Đã xóa KH: http://localhost/dolibarr/societe/card.php?socid=91
+ [Cleanup] Đã xóa KH: http://localhost/dolibarr/societe/card.php?id=__ID__&socid=91
 
 
   Passed TC_CRM_009_CreateCustomer_WhitespaceOnly_ShouldBeBlocked [11 s]
@@ -68,9 +68,9 @@ Test Parallelization enabled for D:\Projects\DoAnThucTap_Dolibarr\automation\Dol
  
  TestContext Messages:
  [TC_CRM_010] Actual name: 'O'Brien & Cong ty 123' (expected: 'O'Brien & Cong ty 123')
- [TC_CRM_010 PASS] Luu va hien thi dung: 'O'Brien & Cong ty 123'. URL: http://localhost/dolibarr/societe/card.php?socid=92
+ [TC_CRM_010 PASS] Luu va hien thi dung: 'O'Brien & Cong ty 123'. URL: http://localhost/dolibarr/societe/card.php?id=__ID__&socid=92
  [Screenshot] D:\Projects\DoAnThucTap_Dolibarr\automation\DolibarrTests\bin\Debug\net9.0\TestResults\Screenshots\TC_CRM_010_CreateCustomer_SpecialChars_ObserveXssHandling_2026-10-04_00-10-53.png
- [Cleanup] Đã xóa KH: http://localhost/dolibarr/societe/card.php?socid=92
+ [Cleanup] Đã xóa KH: http://localhost/dolibarr/societe/card.php?id=__ID__&socid=92
 
 
   Passed TC_CRM_011_CreateCustomer_VietnameseDiacritics128Chars_ShouldSaveSuccessfully [19 s]
@@ -80,9 +80,9 @@ Test Parallelization enabled for D:\Projects\DoAnThucTap_Dolibarr\automation\Dol
  TestContext Messages:
  [TC_CRM_011] Đã đọc chuỗi tiếng Việt 128 ký tự từ Excel: 'Công ty TNHH Kiểm Thử Dữ Liệu Tiếng Việt Có Dấu Số Nguyễn Văn Ất Ổn Ệ Ố Ắ Nguyễn Văn Ất Ổn Ệ Ố Ắ Nguyễn Văn Ất Ổn Ệ Ố Ắ Nguyễn V'
  [TC_CRM_011] Số ký tự non-ASCII (>127): 32
- [TC_CRM_011 PASS] Tên tiếng Việt 128 ký tự lưu và hiển thị hoàn hảo. URL: http://localhost/dolibarr/societe/card.php?socid=93
+ [TC_CRM_011 PASS] Tên tiếng Việt 128 ký tự lưu và hiển thị hoàn hảo. URL: http://localhost/dolibarr/societe/card.php?id=__ID__&socid=93
  [Screenshot] D:\Projects\DoAnThucTap_Dolibarr\automation\DolibarrTests\bin\Debug\net9.0\TestResults\Screenshots\TC_CRM_011_CreateCustomer_VietnameseDiacritics128Chars_ShouldSaveSuccessfully_2026-10-04_00-11-13.png
- [Cleanup] Đã xóa KH: http://localhost/dolibarr/societe/card.php?socid=93
+ [Cleanup] Đã xóa KH: http://localhost/dolibarr/societe/card.php?id=__ID__&socid=93
 
 
   Passed TC_CRM_012_UpdateCustomer_ChangeName_ShouldDisplayNewName [9 s]
@@ -90,7 +90,7 @@ Test Parallelization enabled for D:\Projects\DoAnThucTap_Dolibarr\automation\Dol
  
  
  TestContext Messages:
- [TC_CRM_012] Da tao KH: 'AUTO_Edit_Orig_1C1360BE'. URL: http://localhost/dolibarr/societe/card.php?socid=94
+ [TC_CRM_012] Da tao KH: 'AUTO_Edit_Orig_1C1360BE'. URL: http://localhost/dolibarr/societe/card.php?id=__ID__&socid=94
  [TC_CRM_012] Da vao che do Edit. URL: http://localhost/dolibarr/societe/card.php?socid=94&action=edit&token=53fd508a9f091fd41a62b5791bb1224a
  [TC_CRM_012 PASS] Sua ten thanh cong: 'AUTO_Edit_Orig_1C1360BE' -> 'AUTO_Edit_New_1C1360BE'. URL: http://localhost/dolibarr/societe/card.php?id=94
  [Screenshot] D:\Projects\DoAnThucTap_Dolibarr\automation\DolibarrTests\bin\Debug\net9.0\TestResults\Screenshots\TC_CRM_012_UpdateCustomer_ChangeName_ShouldDisplayNewName_2026-10-04_00-11-23.png
@@ -107,7 +107,7 @@ Test Parallelization enabled for D:\Projects\DoAnThucTap_Dolibarr\automation\Dol
  [TC_CRM_013] Ket qua: AUTO_SearchFull_6FE5F2D5
  [TC_CRM_013 PASS] Tim kiem theo ten day du thanh cong. Count=1
  [Screenshot] D:\Projects\DoAnThucTap_Dolibarr\automation\DolibarrTests\bin\Debug\net9.0\TestResults\Screenshots\TC_CRM_013_SearchCustomer_ByFullName_ShouldReturnExactMatch_2026-10-04_00-11-31.png
- [Cleanup] Đã xóa KH: http://localhost/dolibarr/societe/card.php?socid=95
+ [Cleanup] Đã xóa KH: http://localhost/dolibarr/societe/card.php?id=__ID__&socid=95
 
 
   Passed TC_CRM_014_SearchCustomer_ByPartialName_ShouldReturnMatchingResults [10 s]
@@ -120,7 +120,7 @@ Test Parallelization enabled for D:\Projects\DoAnThucTap_Dolibarr\automation\Dol
  [TC_CRM_014] Ket qua: AUTO_SearchPart_6D811D77
  [TC_CRM_014 PASS] Tim kiem mot phan ten thanh cong. Count=1
  [Screenshot] D:\Projects\DoAnThucTap_Dolibarr\automation\DolibarrTests\bin\Debug\net9.0\TestResults\Screenshots\TC_CRM_014_SearchCustomer_ByPartialName_ShouldReturnMatchingResults_2026-10-04_00-11-43.png
- [Cleanup] Đã xóa KH: http://localhost/dolibarr/societe/card.php?socid=96
+ [Cleanup] Đã xóa KH: http://localhost/dolibarr/societe/card.php?id=__ID__&socid=96
 
 
   Passed TC_CRM_015_SearchCustomer_NonExistentName_ShouldReturnNoResults [6 s]
@@ -139,7 +139,7 @@ Test Parallelization enabled for D:\Projects\DoAnThucTap_Dolibarr\automation\Dol
  
  
  TestContext Messages:
- [TC_CRM_016] Da tao KH: 'AUTO_Delete_C27D6FC5', URL=http://localhost/dolibarr/societe/card.php?socid=97
+ [TC_CRM_016] Da tao KH: 'AUTO_Delete_C27D6FC5', URL=http://localhost/dolibarr/societe/card.php?id=__ID__&socid=97
  [TC_CRM_016] Da thuc hien xoa KH thanh cong.
  [TC_CRM_016 PASS] Xoa KH thanh cong va xac minh khong con ton tai trong danh sach.
  [Screenshot] D:\Projects\DoAnThucTap_Dolibarr\automation\DolibarrTests\bin\Debug\net9.0\TestResults\Screenshots\TC_CRM_016_DeleteCustomer_ShouldRemoveFromList_2026-10-04_00-12-04.png
