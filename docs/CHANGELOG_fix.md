@@ -69,7 +69,7 @@
 - **Trích xuất dòng TC_CRM_010:**
   ```
   [TC_CRM_010] Actual name: 'O'Brien & Cong ty 123' (expected: 'O'Brien & Cong ty 123')
-  [TC_CRM_010 PASS] Luu va hien thi dung: 'O'Brien & Cong ty 123'. URL: http://localhost/dolibarr/societe/card.php?id=__ID__&socid=92
+  [TC_CRM_010 PASS] Luu va hien thi dung: 'O'Brien & Cong ty 123'. URL: http://localhost/dolibarr/societe/card.php?socid=92
   ```
 
 ---

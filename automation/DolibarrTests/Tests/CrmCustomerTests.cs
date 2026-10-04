@@ -658,14 +658,14 @@ public class CrmCustomerTests : BaseTest
 
     /// <summary>
     /// Cleanup_DeleteAllTestCustomers:
-    /// Chi xoa KH co ten khop prefix TEST (AUTO_, KH_Edit_, SearchFull_, ...).
+    /// Chi xoa KH co ten khop prefix whitelist (AUTO_, KH_Edit_, SearchFull_, ...).
     /// Mac dinh chay DRY-RUN (chi in danh sach, khong xoa).
     /// De xoa that: dat bien moi truong CLEANUP_DRY_RUN=false truoc khi chay.
     /// Guard: thoat neu 3 vong lien tiep khong xoa duoc them KH nao (tranh loop vo han).
     /// </summary>
     [TestMethod]
     [TestCategory("Cleanup")]
-    [Description("Don sach KH test: chi xoa KH co ten bat dau bang prefix TEST (xem TestNamePrefixes). Mac dinh DRY-RUN.")]
+    [Description("Don sach KH test: chi xoa KH co ten bat dau bang prefix whitelist (xem TestNamePrefixes). Mac dinh DRY-RUN.")]
     public void Cleanup_DeleteAllTestCustomers()
     {
         Login();
@@ -723,7 +723,7 @@ public class CrmCustomerTests : BaseTest
                     name.Equals("Cong ty BCD", StringComparison.OrdinalIgnoreCase))
                     continue;
 
-                // Chi them KH co ten khop prefix TEST — an toan hon truoc
+                // Chi them KH co ten khop prefix whitelist — an toan hon truoc
                 if (!IsTestCustomerName(name))
                 {
                     TestContext.WriteLine($"[Cleanup SKIP] Bo qua KH khong ro nguon goc: '{name}' ({url})");
@@ -938,14 +938,15 @@ public class CrmCustomerTests : BaseTest
             listPage.SearchByName(searchName);
             TestContext.WriteLine($"[TC_CRM_013] Da tim kiem: '{searchName}'. URL: {listPage.GetCurrentUrl()}");
 
-            // Assert 1: So luong ket qua phai >= 1
+            // Assert 1: So luong ket qua phai dung 1 (hoac >= 1)
             int count = listPage.GetResultCount();
-            Assert.IsTrue(count >= 1,
-                $"[TC_CRM_013] Phai co it nhat 1 ket qua khi tim theo ten day du '{searchName}'. Tim thay: {count}");
+            var resultNames = listPage.GetResultNames();
+            TestContext.WriteLine($"[TC_CRM_013] Count={count}, Ket qua={string.Join(", ", resultNames)}");
+
+            Assert.AreEqual(1, count,
+                $"[TC_CRM_013] Phai tra ve dung 1 ket qua khi tim theo ten day du '{searchName}'. Tim thay: {count}");
 
             // Assert 2: Danh sach ten phai chua ten da tim kiem
-            var resultNames = listPage.GetResultNames();
-            TestContext.WriteLine($"[TC_CRM_013] Ket qua: {string.Join(", ", resultNames)}");
             bool found = resultNames.Any(n => n.Equals(searchName, StringComparison.OrdinalIgnoreCase)
                                            || n.Contains(searchName, StringComparison.OrdinalIgnoreCase));
             Assert.IsTrue(found,
@@ -1008,6 +1009,7 @@ public class CrmCustomerTests : BaseTest
 
             // Assert 1: Co ket qua
             int count = listPage.GetResultCount();
+            TestContext.WriteLine($"[TC_CRM_014] Count={count}, Tim kiem theo='{partialName}'");
             Assert.IsTrue(count >= 1,
                 $"[TC_CRM_014] Phai co it nhat 1 ket qua khi tim phan '{partialName}'. Tim thay: {count}");
 
@@ -1126,6 +1128,7 @@ public class CrmCustomerTests : BaseTest
             listPage.SearchByName(customerName);
             int count = listPage.GetResultCount();
             bool hasNoResult = listPage.HasNoResultMessage();
+            TestContext.WriteLine($"[TC_CRM_016] Count={count}, HasNoResult={hasNoResult} sau khi xóa");
 
             Assert.IsTrue(count == 0 && hasNoResult,
                 // AND thay vi OR: log thuc te 2026-10-03 xac nhan ca 2 dieu kien deu dung sau khi xoa.
