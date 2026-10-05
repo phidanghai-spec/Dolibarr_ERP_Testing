@@ -100,7 +100,7 @@ Cung cấp chức năng quản lý toàn diện thông tin đối tác khách h�
    - Nhập tên khách hàng (*Third-party name*).
    - Nhấn **Save**. Hệ thống kiểm tra hợp lệ:
      - Tên rỗng hoặc chỉ chứa khoảng trắng: Bị chặn lại, thông báo lỗi *"Field 'Third-party name' is required"*.
-       > **[Ghi chú bổ sung — 2026-10-05]** Yêu cầu này được thêm vào spec ngày 2026-10-05 sau khi kiểm thử phát hiện hành vi server trim khoảng trắng và chặn submit (TC_CRM_009). Expected ban đầu trong Excel được đánh dấu "CHUA XAC DINH TRUOC" tại commit `a655b0a` (2026-09-25), và được cập nhật theo kết quả quan sát tại commit `18b97f9`. Yêu cầu này được xác nhận là hành vi nghiệp vụ hợp lý (tên khách hàng không được chỉ có khoảng trắng) và bổ sung vào spec làm căn cứ cho Expected trong Excel, không phải bịa từ log.
+       > **[Ghi chú bổ sung — 2026-10-05]** Yêu cầu này được bổ sung ngày 2026-10-05 dựa trên hành vi quan sát được trong kiểm thử; chưa được giảng viên xác nhận. Expected ban đầu trong Excel được đánh dấu "CHUA XAC DINH TRUOC" tại commit `a655b0a` (2026-09-25), và được ghi nhận theo kết quả quan sát tại commit `18b97f9`. Trạng thái hiện tại: Expected theo quan sát, chờ xác nhận.
      - Tên tối đa 128 ký tự (theo `llx_societe.nom` và thuộc tính `maxlength="128"`).
      - Browser tự động cắt ngắn chuỗi nhập nếu vượt quá 128 ký tự.
      - Ký tự HTML/XSS (ví dụ: `<Test>`): Dữ liệu được lưu và hiển thị dưới dạng văn bản thuần; thẻ HTML và script không được thực thi trên trang chi tiết. Đây là yêu cầu bảo mật cơ bản (XSS prevention).
