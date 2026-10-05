@@ -20,25 +20,64 @@ public abstract class BaseTest
     public void InitializeTest()
     {
         Driver = DriverFactory.CreateChromeDriver();
+
+        // Khởi tạo ExtentTest node cho báo cáo HTML
+        string testName = TestContext.TestName ?? "UnknownTest";
+        var extentTest = ExtentReportManager.CreateTest(testName);
+
+        // Gán Category và Author cho báo cáo
+        string className = TestContext.FullyQualifiedTestClassName ?? string.Empty;
+        if (className.Contains("Crm", StringComparison.OrdinalIgnoreCase))
+            extentTest.AssignCategory("CRM");
+        else if (className.Contains("Sales", StringComparison.OrdinalIgnoreCase))
+            extentTest.AssignCategory("Sales & Invoicing");
+        else if (className.Contains("Stock", StringComparison.OrdinalIgnoreCase) || className.Contains("Special", StringComparison.OrdinalIgnoreCase))
+            extentTest.AssignCategory("Stock & Invoicing Special");
+        else
+            extentTest.AssignCategory("General");
+
+        extentTest.AssignAuthor("Dang Hai Phi (23DH112608)");
+        extentTest.Info($"Bắt đầu thực thi: {testName}");
     }
 
     [TestCleanup]
     public void CleanupTest()
     {
+        var extentTest = ExtentReportManager.CurrentTest;
         try
         {
-            // Chụp ảnh khi test FAIL
-            if (TestContext.CurrentTestOutcome == UnitTestOutcome.Failed)
+            if (TestContext.CurrentTestOutcome == UnitTestOutcome.Passed)
             {
+                extentTest?.Pass("Kiểm thử thành công (PASS)");
+            }
+            else if (TestContext.CurrentTestOutcome == UnitTestOutcome.Failed)
+            {
+                // Chụp ảnh khi test FAIL và đính kèm vào ExtentReport
                 var screenshotPath = ScreenshotHelper.Capture(Driver, TestContext.TestName ?? "unknown");
                 if (screenshotPath != null)
                 {
                     TestContext.WriteLine($"[Screenshot khi Fail] {screenshotPath}");
+                    extentTest?.AddScreenCaptureFromPath(screenshotPath, "Minh chứng lỗi khi Fail");
                 }
+                extentTest?.Fail("Kiểm thử thất bại (FAIL)");
             }
+            else
+            {
+                extentTest?.Skip("Kiểm thử bị bỏ qua (SKIPPED)");
+            }
+        }
+        catch (Exception ex)
+        {
+            extentTest?.Warning($"Lỗi trong quá trình ghi log ExtentReport: {ex.Message}");
         }
         finally
         {
+            try
+            {
+                ExtentReportManager.Flush();
+            }
+            catch { }
+
             Driver?.Quit();
         }
     }

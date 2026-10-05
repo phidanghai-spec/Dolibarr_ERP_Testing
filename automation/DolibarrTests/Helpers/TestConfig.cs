@@ -63,4 +63,13 @@ public static class TestConfig
     public static string ExcelPath =>
         _config["TestData:ExcelPath"]
         ?? @"D:\Projects\DoAnThucTap_Dolibarr\testcases\Dolibarr_TestCases.xlsx";
+
+    /// <summary>
+    /// Chuỗi kết nối cơ sở dữ liệu MariaDB Dolibarr.
+    /// Mặc định: Server=localhost;Port=3306;Database=dolibarr;Uid=dolibarrmysql;Pwd=changeme;Charset=utf8mb4;
+    /// </summary>
+    public static string DbConnectionString =>
+        Environment.GetEnvironmentVariable("DOLIBARR_DB_CONNECTION")
+        ?? _config["Database:ConnectionString"]
+        ?? "Server=localhost;Port=3306;Database=dolibarr;Uid=dolibarrmysql;Pwd=changeme;Charset=utf8mb4;";
 }

@@ -1,0 +1,261 @@
+{
+  "info": {
+    "name": "Dolibarr REST API Testing Collection",
+    "description": "Bộ kịch bản kiểm thử tự động REST API cho Dolibarr ERP & CRM 22.0.4.\nNgười thực hiện: Đặng Hải Phi (23DH112608).",
+    "schema": "https://schema.getpostman.com/json/collection/v2.1.0/collection.json"
+  },
+  "item": [
+    {
+      "name": "1. System & Explorer",
+      "item": [
+        {
+          "name": "GET API Status",
+          "request": {
+            "method": "GET",
+            "header": [
+              { "key": "DOLAPIKEY", "value": "{{apiKey}}" },
+              { "key": "Accept", "value": "application/json" }
+            ],
+            "url": {
+              "raw": "{{baseUrl}}/status",
+              "host": ["{{baseUrl}}"],
+              "path": ["status"]
+            }
+          },
+          "event": [
+            {
+              "listen": "test",
+              "script": {
+                "exec": [
+                  "pm.test('Status code is 200', function () {",
+                  "    pm.response.to.have.status(200);",
+                  "});",
+                  "pm.test('Response is valid JSON', function () {",
+                  "    pm.response.to.be.json;",
+                  "    var data = pm.response.json();",
+                  "    pm.expect(data.success).to.be.an('object');",
+                  "});"
+                ],
+                "type": "text/javascript"
+              }
+            }
+          ]
+        }
+      ]
+    },
+    {
+      "name": "2. CRM - Third Parties",
+      "item": [
+        {
+          "name": "GET List Third Parties",
+          "request": {
+            "method": "GET",
+            "header": [
+              { "key": "DOLAPIKEY", "value": "{{apiKey}}" },
+              { "key": "Accept", "value": "application/json" }
+            ],
+            "url": {
+              "raw": "{{baseUrl}}/thirdparties?limit=10",
+              "host": ["{{baseUrl}}"],
+              "path": ["thirdparties"],
+              "query": [{ "key": "limit", "value": "10" }]
+            }
+          },
+          "event": [
+            {
+              "listen": "test",
+              "script": {
+                "exec": [
+                  "pm.test('Status code is 200', function () {",
+                  "    pm.response.to.have.status(200);",
+                  "});",
+                  "pm.test('Returns an array of thirdparties', function () {",
+                  "    var data = pm.response.json();",
+                  "    pm.expect(data).to.be.an('array');",
+                  "    pm.expect(data.length).to.be.above(0);",
+                  "});"
+                ],
+                "type": "text/javascript"
+              }
+            }
+          ]
+        },
+        {
+          "name": "GET Third Party by ID 1 (Cong ty ABC)",
+          "request": {
+            "method": "GET",
+            "header": [
+              { "key": "DOLAPIKEY", "value": "{{apiKey}}" },
+              { "key": "Accept", "value": "application/json" }
+            ],
+            "url": {
+              "raw": "{{baseUrl}}/thirdparties/1",
+              "host": ["{{baseUrl}}"],
+              "path": ["thirdparties", "1"]
+            }
+          },
+          "event": [
+            {
+              "listen": "test",
+              "script": {
+                "exec": [
+                  "pm.test('Status code is 200', function () {",
+                  "    pm.response.to.have.status(200);",
+                  "});",
+                  "pm.test('Thirdparty name matches Cong ty ABC', function () {",
+                  "    var data = pm.response.json();",
+                  "    pm.expect(data.name).to.eql('Cong ty ABC');",
+                  "    pm.expect(data.status).to.eql('1');",
+                  "});"
+                ],
+                "type": "text/javascript"
+              }
+            }
+          ]
+        }
+      ]
+    },
+    {
+      "name": "3. Sales & Invoicing",
+      "item": [
+        {
+          "name": "GET Commercial Proposals",
+          "request": {
+            "method": "GET",
+            "header": [
+              { "key": "DOLAPIKEY", "value": "{{apiKey}}" },
+              { "key": "Accept", "value": "application/json" }
+            ],
+            "url": {
+              "raw": "{{baseUrl}}/proposals?limit=5",
+              "host": ["{{baseUrl}}"],
+              "path": ["proposals"],
+              "query": [{ "key": "limit", "value": "5" }]
+            }
+          },
+          "event": [
+            {
+              "listen": "test",
+              "script": {
+                "exec": [
+                  "pm.test('Status code is 200', function () {",
+                  "    pm.response.to.have.status(200);",
+                  "});",
+                  "pm.test('Proposals list is array', function () {",
+                  "    var data = pm.response.json();",
+                  "    pm.expect(data).to.be.an('array');",
+                  "});"
+                ],
+                "type": "text/javascript"
+              }
+            }
+          ]
+        },
+        {
+          "name": "GET Customer Invoices",
+          "request": {
+            "method": "GET",
+            "header": [
+              { "key": "DOLAPIKEY", "value": "{{apiKey}}" },
+              { "key": "Accept", "value": "application/json" }
+            ],
+            "url": {
+              "raw": "{{baseUrl}}/invoices?limit=5",
+              "host": ["{{baseUrl}}"],
+              "path": ["invoices"],
+              "query": [{ "key": "limit", "value": "5" }]
+            }
+          },
+          "event": [
+            {
+              "listen": "test",
+              "script": {
+                "exec": [
+                  "pm.test('Status code is 200', function () {",
+                  "    pm.response.to.have.status(200);",
+                  "});",
+                  "pm.test('Invoices list is array', function () {",
+                  "    var data = pm.response.json();",
+                  "    pm.expect(data).to.be.an('array');",
+                  "});"
+                ],
+                "type": "text/javascript"
+              }
+            }
+          ]
+        }
+      ]
+    },
+    {
+      "name": "4. Stock & Products",
+      "item": [
+        {
+          "name": "GET Products List",
+          "request": {
+            "method": "GET",
+            "header": [
+              { "key": "DOLAPIKEY", "value": "{{apiKey}}" },
+              { "key": "Accept", "value": "application/json" }
+            ],
+            "url": {
+              "raw": "{{baseUrl}}/products?limit=10",
+              "host": ["{{baseUrl}}"],
+              "path": ["products"],
+              "query": [{ "key": "limit", "value": "10" }]
+            }
+          },
+          "event": [
+            {
+              "listen": "test",
+              "script": {
+                "exec": [
+                  "pm.test('Status code is 200', function () {",
+                  "    pm.response.to.have.status(200);",
+                  "});",
+                  "pm.test('Products list contains PR001', function () {",
+                  "    var data = pm.response.json();",
+                  "    var found = data.some(function(p) { return p.ref === 'PR001'; });",
+                  "    pm.expect(found).to.be.true;",
+                  "});"
+                ],
+                "type": "text/javascript"
+              }
+            }
+          ]
+        },
+        {
+          "name": "GET Product PR001 Stock Info",
+          "request": {
+            "method": "GET",
+            "header": [
+              { "key": "DOLAPIKEY", "value": "{{apiKey}}" },
+              { "key": "Accept", "value": "application/json" }
+            ],
+            "url": {
+              "raw": "{{baseUrl}}/products/1/stock",
+              "host": ["{{baseUrl}}"],
+              "path": ["products", "1", "stock"]
+            }
+          },
+          "event": [
+            {
+              "listen": "test",
+              "script": {
+                "exec": [
+                  "pm.test('Status code is 200', function () {",
+                  "    pm.response.to.have.status(200);",
+                  "});",
+                  "pm.test('Stock info has real stock number', function () {",
+                  "    var data = pm.response.json();",
+                  "    pm.expect(data.stock_reel).to.not.be.undefined;",
+                  "});"
+                ],
+                "type": "text/javascript"
+              }
+            }
+          ]
+        }
+      ]
+    }
+  ]
+}
