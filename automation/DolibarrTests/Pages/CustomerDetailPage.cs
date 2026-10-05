@@ -115,6 +115,21 @@ public class CustomerDetailPage
         return string.Empty;
     }
 
+    /// <summary>
+    /// Chuẩn hóa URL trang chi tiết khách hàng CHỈ DÙNG CHO CLEANUP.
+    /// Dolibarr 22.0.4 (htdocs/societe/card.php dòng 204 & 645) có lỗi server-side (BUG_001):
+    /// khi redirect sau khi tạo, chuỗi placeholder 'id=__ID__' không được thay thế bằng object->id,
+    /// mà lại nối thêm '&socid={id}' thành 'societe/card.php?id=__ID__&socid={id}'.
+    /// Hàm này CHỈ DÙNG để hỗ trợ dọn dẹp dữ liệu (cleanup) sau test,
+    /// TUYỆT ĐỐI KHÔNG dùng để assert hay làm đẹp kết quả kiểm thử.
+    /// </summary>
+    public static string NormalizeCustomerUrl(string? url)
+    {
+        if (string.IsNullOrWhiteSpace(url)) return string.Empty;
+        string cleaned = Regex.Replace(url, @"([?&])id=__ID__&?", "$1");
+        return cleaned.TrimEnd('?', '&');
+    }
+
     public string GetCurrentUrl() => _driver.Url;
 
     /// <summary>Trich xuat socid tu URL hien tai. Tra ve chuoi so hoac rong neu khong tim thay.</summary>

@@ -27,6 +27,7 @@ public class CrmCustomerTests : BaseTest
 
     // ── ID khách hàng đã tạo (dùng để cleanup) ───────────────────────────────────
     // Reset về null trước mỗi test, gán sau khi redirect thành công.
+    // Lưu ý: Lưu URL thô; CleanupCreatedCustomer() sẽ tự chuẩn hóa để điều hướng xóa KH.
     private string? _createdCustomerUrl;
 
     // ── Helper: đăng nhập ─────────────────────────────────────────────────────────
@@ -54,7 +55,8 @@ public class CrmCustomerTests : BaseTest
         try
         {
             // Loai bo tham so action=... (nhu action=edit) de dam bao ve trang chi tiet co nut Xoa
-            string cleanUrl = Regex.Replace(_createdCustomerUrl, @"([&?])action=[^&]+(&|$)", "$1").TrimEnd('?', '&');
+            string cleanUrl = CustomerDetailPage.NormalizeCustomerUrl(_createdCustomerUrl);
+            cleanUrl = Regex.Replace(cleanUrl, @"([&?])action=[^&]+(&|$)", "$1").TrimEnd('?', '&');
             Driver.Navigate().GoToUrl(cleanUrl);
             var detailPage = new CustomerDetailPage(Driver);
             bool deleted = detailPage.DeleteCustomer(timeoutSeconds: 15);
@@ -519,6 +521,13 @@ public class CrmCustomerTests : BaseTest
             _createdCustomerUrl = Driver.Url;
             Assert.IsTrue(redirected,
                 $"[TC_CRM_010] Form phải lưu được và redirect về trang chi tiết. URL: {Driver.Url}");
+
+            // Assert 1b (BUG_001): URL redirect KHÔNG được chứa placeholder '__ID__'
+            // Spec UC-02 §4: URL chuyển hướng sau khi lưu phải có định dạng 'societe/card.php?socid={id}'.
+            // Lỗi Dolibarr 22.0.4: htdocs/societe/card.php dòng 204 & 644-648 tạo chuỗi 'id=__ID__&socid={id}'.
+            Assert.IsFalse(Driver.Url.Contains("__ID__"),
+                $"[TC_CRM_010] [BUG_001] URL thô chứa placeholder '__ID__': {Driver.Url}. " +
+                $"Expected theo UC-02 §4: URL hợp lệ dạng 'societe/card.php?socid={{id}}' không chứa '__ID__'.");
 
             // Assert 2: XSS Prevention — <Test> không xuất hiện unescaped trong HTML container
             // Mục tiêu: thẻ HTML/script không được thực thi trên trang chi tiết (UC-02 §4)
