@@ -400,13 +400,16 @@ public class CrmCustomerTests : BaseTest
     // TC_CRM_009 — Tên chỉ gồm khoảng trắng (Edge Case)
     // ════════════════════════════════════════════════════════════════════════════
     /// <summary>
-    /// TC_CRM_009: Nhập tên chỉ gồm 10 khoảng trắng.
-    /// Hành vi thực tế quan sát 2026-10-03:
-    ///   - Input trước submit: length=10, raw='          '.
-    ///   - Server trim khoảng trắng → xem là tên rỗng → chặn giống TC_CRM_007.
-    ///   - ErrorMessage: "Field 'Third-party name' is required".
-    ///   - Redirected=False, SavedNameLength=0.
-    /// Assert chốt theo hành vi thật này.
+    /// TC_CRM_009: Tạo KH với tên chỉ gồm 10 ký tự khoảng trắng.
+    /// Yêu cầu nghiệp vụ (UC-02 §4, bổ sung 2026-10-05, commit d65c868):
+    ///   Tên khách hàng không được chỉ có khoảng trắng. Server trim rồi kiểm tra rỗng
+    ///   → Chặn submit với lỗi "Field 'Third-party name' is required".
+    /// Assert:
+    ///   1. Không redirect (IsRedirected = False).
+    ///   2. Thông báo lỗi chứa 'required' / 'obligatoire' / 'bắt buộc'.
+    ///   3. Trang không có PHP Fatal error.
+    /// Nguồn spec: UC-02 §4 (cập nhật 2026-10-05). Expected cũ đánh dấu "CHUA XAC DINH TRUOC"
+    /// tại commit a655b0a đã được loại bỏ; yêu cầu bổ sung này là căn cứ chính thức.
     /// </summary>
     [TestMethod]
     [TestCategory("CRM")]
@@ -477,27 +480,28 @@ public class CrmCustomerTests : BaseTest
     // ════════════════════════════════════════════════════════════════════════════
     /// <summary>
     /// TC_CRM_010: Tạo KH với chuỗi O'Brien &amp; Cong ty &lt;Test&gt; "123".
-    /// Hành vi thực tế quan sát 2026-10-03:
-    ///   - Dolibarr xóa thẻ HTML &lt;Test&gt; và ký tự ngoặc kép "123" → lưu: "O'Brien &amp; Cong ty 123".
-    ///   - Giữ nguyên dấu nháy đơn (') và ký tự &amp;.
-    /// Expected cố định từ log thực tế: "O'Brien &amp; Cong ty 123".
-    /// Không còn phụ thuộc vào SimulateDolibarrSanitize() làm oracle.
+    /// Yêu cầu bảo mật (UC-02 §4, phương án A 2026-10-05):
+    ///   Dữ liệu được lưu và hiển thị dưới dạng văn bản thuần;
+    ///   thẻ HTML và script không được thực thi trên trang chi tiết.
+    /// Assert (không assert chuỗi cố định từ log — xem ghi chú phạm vi UC-02):
+    ///   1. Form lưu thành công (redirect về trang chi tiết).
+    ///   2. Container HTML không chứa <Test> unescaped (XSS prevention).
+    ///   3. Trang không có PHP Fatal error.
+    ///   4. Phần nội dung hợp lệ "O'Brien" vẫn hiển thị sau sanitize.
+    ///   5. Tên đã lưu không chứa ký tự < hoặc >.
+    /// Nguồn spec: UC-02 §4 (2026-10-05). Hành vi strip cụ thể chưa có spec chính thức.
     /// </summary>
     [TestMethod]
     [TestCategory("CRM")]
     [TestCategory("Security")]
-    [Description("TC_CRM_010 — Tạo KH với ký tự đặc biệt: Dolibarr sanitize server-side, lưu 'O'Brien & Cong ty 123'.")]
+    [Description("TC_CRM_010 — Phương án A: Assert mục tiêu XSS prevention (không assert chuỗi lưu cố định). Spec: UC-02 §4 (2026-10-05).")]
     public void TC_CRM_010_CreateCustomer_SpecialChars_ObserveXssHandling()
     {
         _createdCustomerUrl = null;
         try
         {
             var row = ExcelDataReader.GetRowByTestId("TC_CRM_010", TestConfig.ExcelPath);
-            string specialName = row["Test data"];
-
-            // Expected cố định từ log thực tế 2026-10-03:
-            // Dolibarr xóa <Test> và "123", giữ ' và & → kết quả "O'Brien & Cong ty 123"
-            const string ExpectedSavedName = "O'Brien & Cong ty 123";
+            string specialName = row["Test data"];  // O'Brien & Cong ty <Test> "123"
 
             Login();
             var createPage = new CustomerCreatePage(Driver);
@@ -508,39 +512,37 @@ public class CrmCustomerTests : BaseTest
 
             createPage.SelectCustomerType();
             createPage.EnterName(specialName);
-
             createPage.ClickSave();
 
+            // Assert 1: Form lưu thành công (redirect về trang chi tiết)
             bool redirected = detailPage.WaitForRedirectAfterSave();
             _createdCustomerUrl = Driver.Url;
-
             Assert.IsTrue(redirected,
                 $"[TC_CRM_010] Form phải lưu được và redirect về trang chi tiết. URL: {Driver.Url}");
 
-            // Assert 1: Kiểm tra XSS — <Test> không được xuất hiện unescaped trong HTML
+            // Assert 2: XSS Prevention — <Test> không xuất hiện unescaped trong HTML container
+            // Mục tiêu: thẻ HTML/script không được thực thi trên trang chi tiết (UC-02 §4)
             string containerHtml = detailPage.GetCustomerNameContainerHtml();
             Assert.IsFalse(containerHtml.Contains("<Test>", StringComparison.OrdinalIgnoreCase),
                 "[TC_CRM_010] CANH BAO XSS: the <Test> xuat hien khong escape trong HTML container!");
 
-            // Assert 2 (Rule độc lập): Tên đã lưu KHÔNG chứa < > "
+            // Assert 3: Trang không có PHP Fatal error
+            string pageSource = Driver.PageSource;
+            Assert.IsFalse(pageSource.Contains("Fatal error:", StringComparison.OrdinalIgnoreCase),
+                "[TC_CRM_010] Khong duoc co 'Fatal error' PHP tren trang chi tiet.");
+
+            // Assert 4: Phần nội dung hợp lệ "O'Brien" vẫn hiển thị sau sanitize
+            // Không assert chuỗi cố định từ log — xem ghi chú phạm vi UC-02 §4 (2026-10-05)
             string actualName = detailPage.GetDisplayedName();
-            TestContext.WriteLine($"[TC_CRM_010] Actual name: '{actualName}' (expected: '{ExpectedSavedName}')");
-            Assert.AreEqual(-1, actualName.IndexOfAny(new[] { '<', '>', '"' }),
-                $"[TC_CRM_010] Ten da luu KHONG duoc chua ky tu '<', '>', '\"'. Thuc te: '{actualName}'");
+            TestContext.WriteLine($"[TC_CRM_010] Actual name: '{actualName}'");
+            Assert.IsTrue(actualName.Contains("O'Brien", StringComparison.OrdinalIgnoreCase),
+                $"[TC_CRM_010] Phan noi dung hop le \"O'Brien\" phai con xuat hien sau sanitize. Thuc te: '{actualName}'");
 
-            // Assert 3: Tên đã lưu phải giữ dấu nháy đơn và &
-            Assert.IsTrue(actualName.Contains('\''),
-                $"[TC_CRM_010] Ten phai giu nguyen ky tu nháy đơn ('). Thuc te: '{actualName}'");
-            Assert.IsTrue(actualName.Contains('&'),
-                $"[TC_CRM_010] Ten phai giu nguyen ky tu '&'. Thuc te: '{actualName}'");
+            // Assert 5: Ký tự < > không tồn tại trong tên đã lưu
+            Assert.AreEqual(-1, actualName.IndexOfAny(new[] { '<', '>' }),
+                $"[TC_CRM_010] Ten da luu KHONG duoc chua ky tu '<' hoac '>'. Thuc te: '{actualName}'");
 
-            // Assert 4: So khớp với expected cố định từ log thực tế
-            Assert.AreEqual(ExpectedSavedName, actualName,
-                $"[TC_CRM_010] Ten sau sanitize phai khop chinh xac gia tri quan sat tu log 2026-10-03.\n" +
-                $"Expected: '{ExpectedSavedName}'\n" +
-                $"Actual:   '{actualName}'");
-
-            TestContext.WriteLine($"[TC_CRM_010 PASS] Luu va hien thi dung: '{actualName}'. URL: {Driver.Url}");
+            TestContext.WriteLine($"[TC_CRM_010 PASS] XSS prevention OK. Actual name='{actualName}'. URL: {Driver.Url}");
 
             var screenshotPath = ScreenshotHelper.Capture(Driver, TestContext.TestName ?? "TC_CRM_010");
             if (screenshotPath != null)
@@ -551,6 +553,7 @@ public class CrmCustomerTests : BaseTest
             CleanupCreatedCustomer();
         }
     }
+
 
 
     // ════════════════════════════════════════════════════════════════════════════
