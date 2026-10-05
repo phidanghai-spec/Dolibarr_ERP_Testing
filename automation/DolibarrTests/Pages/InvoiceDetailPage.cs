@@ -25,7 +25,7 @@ public class InvoiceDetailPage
     private static readonly By StatusBadge = By.CssSelector("span.badge-status, .statusref, div.statusref");
     private static readonly By CreateDraftSubmit = By.CssSelector("input[type='submit'].button-save, input[type='submit'][value*='draft']");
     private static readonly By ValidateButton = By.CssSelector("a.butAction[href*='action=valid'], a.butAction:not(.butActionRefused)");
-    private static readonly By ConfirmButton = By.CssSelector("input.confirmvalidatebutton, input.button-confirm, button.ui-button:first-of-type, input[value='Yes'], input[name='confirm']");
+    private static readonly By ConfirmButton = By.XPath("//div[contains(@class, 'ui-dialog-buttonset')]//button[contains(., 'Yes') or contains(., 'Oui')] | //div[contains(@class, 'ui-dialog-buttonset')]//button[1] | //input[@value='Yes' or @value='Oui'] | //input[contains(@class, 'confirmvalidatebutton')]");
 
     public InvoiceDetailPage(IWebDriver driver) => _driver = driver;
 
@@ -76,7 +76,7 @@ public class InvoiceDetailPage
             try
             {
                 var elem = _driver.FindElement(RefTitle);
-                var match = Regex.Match(elem.Text, @"(IN\d{4}-\d{4,5}|PROV\d+)", RegexOptions.IgnoreCase);
+                var match = Regex.Match(elem.Text, @"(IN\d{4}-\d{4,5}|IC\d{4}-\d{4,5}|AV\d{4}-\d{4,5}|PROV\d+)", RegexOptions.IgnoreCase);
                 if (match.Success) return match.Value;
             }
             catch (Exception ex) when (ex is NoSuchElementException || ex is StaleElementReferenceException)
@@ -86,7 +86,7 @@ public class InvoiceDetailPage
         }
 
         var pageSource = _driver.PageSource;
-        var m = Regex.Match(pageSource, @"(IN\d{4}-\d{4,5}|PROV\d+)", RegexOptions.IgnoreCase);
+        var m = Regex.Match(pageSource, @"(IN\d{4}-\d{4,5}|IC\d{4}-\d{4,5}|AV\d{4}-\d{4,5}|PROV\d+)", RegexOptions.IgnoreCase);
         return m.Success ? m.Value : string.Empty;
     }
 

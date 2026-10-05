@@ -37,4 +37,32 @@ public static class ScreenshotHelper
             return null;
         }
     }
+
+    /// <summary>
+    /// Chụp ảnh và lưu vào đường dẫn tùy chỉnh (ví dụ: evidence/manual/TC_SAL_009.png).
+    /// </summary>
+    public static string? CaptureToPath(IWebDriver driver, string absoluteOrRelativePath)
+    {
+        try
+        {
+            string fullPath = Path.IsPathRooted(absoluteOrRelativePath)
+                ? absoluteOrRelativePath
+                : Path.GetFullPath(Path.Combine(AppContext.BaseDirectory, "..", "..", "..", "..", "..", absoluteOrRelativePath));
+
+            string? dir = Path.GetDirectoryName(fullPath);
+            if (!string.IsNullOrEmpty(dir))
+            {
+                Directory.CreateDirectory(dir);
+            }
+
+            var screenshot = ((ITakesScreenshot)driver).GetScreenshot();
+            screenshot.SaveAsFile(fullPath);
+            return fullPath;
+        }
+        catch (Exception ex)
+        {
+            Console.WriteLine($"[ScreenshotHelper] Không chụp được ảnh tới {absoluteOrRelativePath}: {ex.Message}");
+            return null;
+        }
+    }
 }
