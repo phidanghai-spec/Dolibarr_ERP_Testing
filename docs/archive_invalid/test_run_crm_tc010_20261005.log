@@ -1,0 +1,38 @@
+  Determining projects to restore...
+  All projects are up-to-date for restore.
+  DolibarrTests -> D:\Projects\DoAnThucTap_Dolibarr\automation\DolibarrTests\bin\Debug\net9.0\DolibarrTests.dll
+Test run for D:\Projects\DoAnThucTap_Dolibarr\automation\DolibarrTests\bin\Debug\net9.0\DolibarrTests.dll (.NETCoreApp,Version=v9.0)
+VSTest version 17.14.1 (x64)
+
+Starting test execution, please wait...
+A total of 1 test files matched the specified pattern.
+D:\Projects\DoAnThucTap_Dolibarr\automation\DolibarrTests\bin\Debug\net9.0\DolibarrTests.dll
+Test Parallelization enabled for D:\Projects\DoAnThucTap_Dolibarr\automation\DolibarrTests\bin\Debug\net9.0\DolibarrTests.dll (Workers: 4, Scope: MethodLevel)
+  Passed TC_CRM_009_CreateCustomer_WhitespaceOnly_ShouldBeBlocked [12 s]
+  Standard Output Messages:
+ 
+ 
+ TestContext Messages:
+ [TC_CRM_009] Input tr╞░ß╗¢c submit: length=10
+ [TC_CRM_009] Redirected=False (expected=False)
+ [TC_CRM_009] ErrorMessage='Field 'Third-party name' is required' (expected chua 'required')
+ [TC_CRM_009 PASS] Dolibarr chan dung ten chi gom khoang trang. ErrorMessage='Field 'Third-party name' is required'
+ [Screenshot] D:\Projects\DoAnThucTap_Dolibarr\automation\DolibarrTests\bin\Debug\net9.0\TestResults\Screenshots\TC_CRM_009_CreateCustomer_WhitespaceOnly_ShouldBeBlocked_2026-10-05_15-58-00.png
+
+
+  Passed TC_CRM_010_CreateCustomer_SpecialChars_ObserveXssHandling [9 s]
+  Standard Output Messages:
+ 
+ 
+ TestContext Messages:
+ [TC_CRM_010] Actual name: 'O'Brien & Cong ty 123'
+ [TC_CRM_010 PASS] XSS prevention OK. Actual name='O'Brien & Cong ty 123'. URL: http://localhost/dolibarr/societe/card.php?socid=108
+ [Screenshot] D:\Projects\DoAnThucTap_Dolibarr\automation\DolibarrTests\bin\Debug\net9.0\TestResults\Screenshots\TC_CRM_010_CreateCustomer_SpecialChars_ObserveXssHandling_2026-10-05_15-58-08.png
+ [Cleanup] ─É├ú x├│a KH: http://localhost/dolibarr/societe/card.php?socid=108
+
+
+
+Test Run Successful.
+Total tests: 2
+     Passed: 2
+ Total time: 23.2260 Seconds
