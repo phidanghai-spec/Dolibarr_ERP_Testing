@@ -100,9 +100,11 @@ Cung cấp chức năng quản lý toàn diện thông tin đối tác khách h�
    - Nhập tên khách hàng (*Third-party name*).
    - Nhấn **Save**. Hệ thống kiểm tra hợp lệ:
      - Tên rỗng hoặc chỉ chứa khoảng trắng: Bị chặn lại, thông báo lỗi *"Field 'Third-party name' is required"*.
+       > **[Ghi chú bổ sung — 2026-10-05]** Yêu cầu này được thêm vào spec ngày 2026-10-05 sau khi kiểm thử phát hiện hành vi server trim khoảng trắng và chặn submit (TC_CRM_009). Expected ban đầu trong Excel được đánh dấu "CHUA XAC DINH TRUOC" tại commit `a655b0a` (2026-09-25), và được cập nhật theo kết quả quan sát tại commit `18b97f9`. Yêu cầu này được xác nhận là hành vi nghiệp vụ hợp lý (tên khách hàng không được chỉ có khoảng trắng) và bổ sung vào spec làm căn cứ cho Expected trong Excel, không phải bịa từ log.
      - Tên tối đa 128 ký tự (theo `llx_societe.nom` và thuộc tính `maxlength="128"`).
      - Browser tự động cắt ngắn chuỗi nhập nếu vượt quá 128 ký tự.
-     - Ký tự HTML/XSS (ví dụ: `<Test>`): Dolibarr thực hiện sanitize phía server (`strip_tags`), loại bỏ thẻ nguy hiểm trước khi lưu vào DB.
+     - Ký tự HTML/XSS (ví dụ: `<Test>`): Dữ liệu được lưu và hiển thị dưới dạng văn bản thuần; thẻ HTML và script không được thực thi trên trang chi tiết. Đây là yêu cầu bảo mật cơ bản (XSS prevention).
+       > **[Ghi chú phạm vi — 2026-10-05]** Hành vi cụ thể phía server (loại bỏ `<`, `>`, `"` qua `strip_tags`) được quan sát ngày 2026-09-25 và 2026-10-03, nhưng **chưa có spec chính thức xác nhận đây là thiết kế chủ đích hay hành vi phụ**. Expected của TC_CRM_010 theo phương án A (2026-10-05) không assert chuỗi lưu cố định, chỉ assert trang chi tiết không thực thi script/HTML và hiển thị phần nội dung hợp lệ. Cần xác nhận từ giảng viên nếu muốn assert hành vi strip cụ thể.
      - Chuỗi Unicode tiếng Việt có dấu: Hệ thống lưu trữ và hiển thị toàn vẹn 100% không bị lỗi mã hóa (mojibake).
    - Form lưu thành công và tự động redirect về trang chi tiết khách hàng: `societe/card.php?socid={id}`.
 2. **Cập nhật thông tin Khách hàng (Update Customer):**
