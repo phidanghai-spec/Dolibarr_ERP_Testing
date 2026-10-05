@@ -142,7 +142,7 @@ gantt
 |:---|:---|:---:|:---:|:---:|:---:|:---:|:---:|
 | **Cycle 1** | Smoke Test & Khởi tạo khung Automation | 2 | 2 | 0 | 0 | 100% | **Hoàn thành** |
 | **Cycle 2** | Kiểm thử CRM BVA (128/129 ký tự), Negative & Unicode | 7 | 7 | 0 | 0 | 100% | **Hoàn thành** |
-| **Cycle 3** | CRM hoàn thiện: Update, Search, Delete & Review gia cố Cleanup | 5 | 5 | 0 | 0 | 100% | **Hoàn thành (Đang PR #2)** |
-| **Cycle 4** | Automation Sales & Invoicing: Proposal $\rightarrow$ Invoice $\rightarrow$ Trừ kho | 10 (dự kiến) | 0 | 0 | 0 | 0% | *Sắp triển khai (Tuần 2–4)* |
-| **Cycle 5** | Manual Testing: Hóa đơn đặc biệt, Quản lý kho & Phần mở rộng AI/Postman | 12 (dự kiến) | 0 | 0 | 0 | 0% | *Kế hoạch (Tuần 5–7)* |
-| **TỔNG HỢP** | **Toàn bộ dự án** | **36** | **14** | **0** | **0** | **100% (hiện tại)** | **Đang tiến hành** |
+| **Cycle 3** | CRM hoàn thiện: Update, Search, Delete & Review gia cố Cleanup | 5 | 5 | 0 | 0 | 100% | **Hoàn thành (Đã nộp PR #2)** |
+| **Cycle 4** | Automation Sales & Invoicing: Proposal $\rightarrow$ Invoice $\rightarrow$ Trừ kho | 8 | 8 | 0 | 0 | 100% | **Hoàn thành (8/8 Pass)** |
+| **Cycle 5** | Manual Testing: Hóa đơn đặc biệt, Quản lý kho & Mở rộng API Postman / Đối chiếu DB | 12 (dự kiến) | 0 | 0 | 0 | 0% | *Kế hoạch (Tuần 5–7)* |
+| **TỔNG HỢP** | **Toàn bộ dự án** | **34** | **22** | **0** | **0** | **100% (hiện tại)** | **Đang tiến hành** |

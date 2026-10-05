@@ -1,0 +1,177 @@
+using DolibarrTests.Helpers;
+using OpenQA.Selenium;
+using OpenQA.Selenium.Support.UI;
+using System.Globalization;
+using System.Text.RegularExpressions;
+
+namespace DolibarrTests.Pages;
+
+/// <summary>
+/// Page Object cho trang Hóa đơn bán hàng (Customer Invoice Detail).
+/// URL: {BaseUrl}/compta/facture/card.php?id={id}
+/// 
+/// Hỗ trợ các nghiệp vụ:
+/// - Đọc mã tham chiếu hóa đơn (PROV... hoặc IN...)
+/// - Đọc trạng thái (Draft, Unpaid, Paid, Cancelled)
+/// - Đọc tổng tiền Total HT, VAT, Total TTC
+/// - Xác thực hóa đơn (Validate Invoice -> Trạng thái Unpaid)
+/// </summary>
+public class InvoiceDetailPage
+{
+    private readonly IWebDriver _driver;
+
+    // ── Locators ────────────────────────────────────────────────────────────────
+    private static readonly By RefTitle = By.CssSelector("div.titre, div.inline-block.valignmiddle.refid, .refidno");
+    private static readonly By StatusBadge = By.CssSelector("span.badge-status, .statusref, div.statusref");
+    private static readonly By CreateDraftSubmit = By.CssSelector("input[type='submit'].button-save, input[type='submit'][value*='draft']");
+    private static readonly By ValidateButton = By.CssSelector("a.butAction[href*='action=valid'], a.butAction:not(.butActionRefused)");
+    private static readonly By ConfirmButton = By.CssSelector("input.confirmvalidatebutton, input.button-confirm, button.ui-button:first-of-type, input[value='Yes'], input[name='confirm']");
+
+    public InvoiceDetailPage(IWebDriver driver) => _driver = driver;
+
+    public void GoTo(string url)
+    {
+        _driver.Navigate().GoToUrl(url);
+        WaitHelper.WaitVisible(_driver, By.CssSelector("div.fiche"), timeoutSeconds: 15);
+    }
+
+    /// <summary>
+    /// Thao tác tạo hóa đơn nháp từ màn hình create hóa đơn (sau khi nhấn Create invoice từ Proposal).
+    /// </summary>
+    public void SubmitCreateInvoiceDraft()
+    {
+        // Click nút Now của Invoice date
+        try
+        {
+            var nowBtn = WaitHelper.WaitClickable(_driver, By.XPath("//tr[contains(., 'Invoice date')]//a[contains(., 'Now')] | //tr[contains(., 'Invoice date')]//button[contains(., 'Now')]"), timeoutSeconds: 5);
+            nowBtn.Click();
+        }
+        catch (WebDriverTimeoutException)
+        {
+            var js = (IJavaScriptExecutor)_driver;
+            js.ExecuteScript(@"
+                var links = document.querySelectorAll('a, button');
+                for (var i = 0; i < links.length; i++) {
+                    if (links[i].innerText && links[i].innerText.trim() === 'Now') {
+                        links[i].click();
+                        break;
+                    }
+                }
+            ");
+        }
+
+        var submitBtn = WaitHelper.WaitClickable(_driver, CreateDraftSubmit, timeoutSeconds: 10);
+        submitBtn.Click();
+
+        // Chờ chuyển về trang chi tiết hóa đơn (compta/facture/card.php?facid=\d+ hoặc id=\d+)
+        var wait = new WebDriverWait(_driver, TimeSpan.FromSeconds(15));
+        wait.Until(d => d.Url.Contains("compta/facture/card.php") && !d.Url.Contains("action=create"));
+    }
+
+    /// <summary>Đọc mã tham chiếu hóa đơn (PROV... hoặc IN...)</summary>
+    public string GetReference()
+    {
+        for (int i = 0; i < 3; i++)
+        {
+            try
+            {
+                var elem = _driver.FindElement(RefTitle);
+                var match = Regex.Match(elem.Text, @"(IN\d{4}-\d{4,5}|PROV\d+)", RegexOptions.IgnoreCase);
+                if (match.Success) return match.Value;
+            }
+            catch (Exception ex) when (ex is NoSuchElementException || ex is StaleElementReferenceException)
+            {
+                System.Threading.SpinWait.SpinUntil(() => false, 500);
+            }
+        }
+
+        var pageSource = _driver.PageSource;
+        var m = Regex.Match(pageSource, @"(IN\d{4}-\d{4,5}|PROV\d+)", RegexOptions.IgnoreCase);
+        return m.Success ? m.Value : string.Empty;
+    }
+
+    /// <summary>Đọc trạng thái của hóa đơn (Draft, Unpaid, Paid...)</summary>
+    public string GetStatusText()
+    {
+        try
+        {
+            var elem = _driver.FindElement(StatusBadge);
+            return elem.Text.Trim();
+        }
+        catch (NoSuchElementException)
+        {
+            var badges = _driver.FindElements(By.CssSelector(".badge, .statusref, span[class*='status']"));
+            foreach (var b in badges)
+            {
+                if (b.Displayed && !string.IsNullOrWhiteSpace(b.Text))
+                    return b.Text.Trim();
+            }
+            return string.Empty;
+        }
+    }
+
+    /// <summary>Đọc số tiền Amount (inc. tax) - Total TTC của hóa đơn</summary>
+    public decimal GetAmountIncTax()
+    {
+        try
+        {
+            var row = _driver.FindElement(By.XPath("//tr[contains(., 'Amount (inc. tax)') or contains(., 'Total (inc. tax)') or contains(., 'Total TTC')]"));
+            var cells = row.FindElements(By.TagName("td"));
+            string text = cells.Count > 0 ? cells[^1].Text : row.Text;
+
+            var match = Regex.Match(text, @"([\d\s,.]+)\s*€?");
+            if (match.Success)
+            {
+                string clean = match.Groups[1].Value.Replace(" ", "").Replace("€", "").Trim();
+                if (clean.Contains(',') && !clean.Contains('.'))
+                    clean = clean.Replace(',', '.');
+                else if (clean.Contains(',') && clean.Contains('.'))
+                    clean = clean.Replace(".", "").Replace(',', '.');
+
+                if (decimal.TryParse(clean, NumberStyles.Any, CultureInfo.InvariantCulture, out decimal val))
+                    return val;
+            }
+        }
+        catch (NoSuchElementException) { }
+        return -1m;
+    }
+
+    /// <summary>
+    /// Xác thực hóa đơn (Validate Invoice) -> chuyển trạng thái từ Draft sang Unpaid.
+    /// Kích hoạt cơ chế tự động trừ kho nếu rule kho đã được bật.
+    /// </summary>
+    public void ValidateInvoice()
+    {
+        var validateBtn = WaitHelper.WaitClickable(_driver, By.XPath("//a[contains(@class, 'butAction') and (contains(text(), 'Validate') or contains(@href, 'action=valid'))]"), timeoutSeconds: 10);
+        validateBtn.Click();
+
+        ConfirmDialog();
+
+        // Chờ trạng thái cập nhật (không còn Draft)
+        var wait = new WebDriverWait(_driver, TimeSpan.FromSeconds(10));
+        wait.Until(d => !GetStatusText().Contains("Draft", StringComparison.OrdinalIgnoreCase));
+    }
+
+    private void ConfirmDialog()
+    {
+        try
+        {
+            var btn = WaitHelper.WaitClickable(_driver, ConfirmButton, timeoutSeconds: 5);
+            btn.Click();
+        }
+        catch (WebDriverTimeoutException)
+        {
+            var js = (IJavaScriptExecutor)_driver;
+            js.ExecuteScript(@"
+                var btns = document.querySelectorAll('input[type=""submit""], button');
+                for (var i = 0; i < btns.length; i++) {
+                    var val = (btns[i].value || btns[i].innerText || '').toLowerCase().trim();
+                    if (val === 'yes' || val === 'oui' || btns[i].classList.contains('confirmvalidatebutton')) {
+                        btns[i].click();
+                        break;
+                    }
+                }
+            ");
+        }
+    }
+}

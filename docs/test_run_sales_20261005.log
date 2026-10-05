@@ -1,0 +1,100 @@
+  Determining projects to restore...
+  All projects are up-to-date for restore.
+  DolibarrTests -> D:\Projects\DoAnThucTap_Dolibarr\automation\DolibarrTests\bin\Debug\net9.0\DolibarrTests.dll
+Test run for D:\Projects\DoAnThucTap_Dolibarr\automation\DolibarrTests\bin\Debug\net9.0\DolibarrTests.dll (.NETCoreApp,Version=v9.0)
+VSTest version 17.14.1 (x64)
+
+Starting test execution, please wait...
+A total of 1 test files matched the specified pattern.
+D:\Projects\DoAnThucTap_Dolibarr\automation\DolibarrTests\bin\Debug\net9.0\DolibarrTests.dll
+Test Parallelization enabled for D:\Projects\DoAnThucTap_Dolibarr\automation\DolibarrTests\bin\Debug\net9.0\DolibarrTests.dll (Workers: 4, Scope: MethodLevel)
+  Passed TC_SAL_001_CreateDraftProposal_ShouldSucceed [8 s]
+  Standard Output Messages:
+ 
+ 
+ TestContext Messages:
+ [TC_SAL_001] Proposal Reference: 'PROV24'
+ [TC_SAL_001 PASS] Tß║ío b├ío gi├í nh├íp th├ánh c├┤ng cho 'Cong ty ABC'. URL: http://localhost/dolibarr/comm/propal/card.php?id=24
+ [Screenshot] D:\Projects\DoAnThucTap_Dolibarr\automation\DolibarrTests\bin\Debug\net9.0\TestResults\Screenshots\TC_SAL_001_CreateDraftProposal_ShouldSucceed_2026-10-05_08-32-58.png
+ [Cleanup info] Proposal URL created: http://localhost/dolibarr/comm/propal/card.php?id=24
+
+
+  Passed TC_SAL_002_AddProductLine_ShouldCalculateCorrectTotal [10 s]
+  Standard Output Messages:
+ 
+ 
+ TestContext Messages:
+ [TC_SAL_002] Tß║ío b├ío gi├í nh├íp th├ánh c├┤ng: PROV25
+ [TC_SAL_002] Kß║┐t quß║ú t├¡nh tiß╗ün: Total HT = 200.00000 Γé¼, Total VAT = 20.00000 Γé¼, Total TTC = 220.00000 Γé¼
+ [Screenshot] D:\Projects\DoAnThucTap_Dolibarr\automation\DolibarrTests\bin\Debug\net9.0\TestResults\Screenshots\TC_SAL_002_AddProductLine_ShouldCalculateCorrectTotal_2026-10-05_08-33-08.png
+
+
+  Passed TC_SAL_003_AddMultipleProducts_ShouldCalculateCumulativeTotal [11 s]
+  Standard Output Messages:
+ 
+ 
+ TestContext Messages:
+ [TC_SAL_003] Tß║ío b├ío gi├í nh├íp th├ánh c├┤ng: PROV26
+ [TC_SAL_003] Kß║┐t quß║ú l┼⌐y kß║┐: Total HT = 310.00000 Γé¼, Total VAT = 31.00000 Γé¼, Total TTC = 341.00000 Γé¼
+ [Screenshot] D:\Projects\DoAnThucTap_Dolibarr\automation\DolibarrTests\bin\Debug\net9.0\TestResults\Screenshots\TC_SAL_003_AddMultipleProducts_ShouldCalculateCumulativeTotal_2026-10-05_08-33-20.png
+
+
+  Passed TC_SAL_004_ValidateProposal_ShouldChangeStatusToOpen [15 s]
+  Standard Output Messages:
+ 
+ 
+ TestContext Messages:
+ [TC_SAL_004] B├ío gi├í nh├íp ban ─æß║ºu: PROV27
+ [TC_SAL_004] M├ú tham chiß║┐u sau khi Validate: PR2610-0013
+ [TC_SAL_004] Trß║íng th├íi sau Validate: 'Validated (proposal is open)'
+ [Screenshot] D:\Projects\DoAnThucTap_Dolibarr\automation\DolibarrTests\bin\Debug\net9.0\TestResults\Screenshots\TC_SAL_004_ValidateProposal_ShouldChangeStatusToOpen_2026-10-05_08-33-35.png
+
+
+  Passed TC_SAL_005_CloseProposalAsSigned_ShouldUpdateStatus [22 s]
+  Standard Output Messages:
+ 
+ 
+ TestContext Messages:
+ [TC_SAL_005] Trß║íng th├íi sau khi ─É├│ng: 'Signed (needs billing)'
+ [Screenshot] D:\Projects\DoAnThucTap_Dolibarr\automation\DolibarrTests\bin\Debug\net9.0\TestResults\Screenshots\TC_SAL_005_CloseProposalAsSigned_ShouldUpdateStatus_2026-10-05_08-33-58.png
+
+
+  Passed TC_SAL_006_CreateInvoiceFromSignedProposal_ShouldInheritTotal [24 s]
+  Standard Output Messages:
+ 
+ 
+ TestContext Messages:
+ [TC_SAL_006] H├│a ─æ╞ín nh├íp: Ref='PROV8', Status='Draft (needs to be validated)', Total TTC=220.00000 Γé¼
+ [Screenshot] D:\Projects\DoAnThucTap_Dolibarr\automation\DolibarrTests\bin\Debug\net9.0\TestResults\Screenshots\TC_SAL_006_CreateInvoiceFromSignedProposal_ShouldInheritTotal_2026-10-05_08-34-23.png
+
+
+  Passed TC_SAL_007_ValidateInvoice_ShouldChangeStatusToUnpaid [30 s]
+  Standard Output Messages:
+ 
+ 
+ TestContext Messages:
+ [TC_SAL_007] H├│a ─æ╞ín sau Validate: Ref='IN2610-0005', Status='Not paid'
+ [Screenshot] D:\Projects\DoAnThucTap_Dolibarr\automation\DolibarrTests\bin\Debug\net9.0\TestResults\Screenshots\TC_SAL_007_ValidateInvoice_ShouldChangeStatusToUnpaid_2026-10-05_08-34-54.png
+
+
+  Passed TC_SAL_008_ValidateInvoice_ShouldDecreaseProductStock [32 s]
+  Standard Output Messages:
+ [Stock Debug] URL after tab click: http://localhost/dolibarr/product/stock/product.php?id=1
+ [Stock Debug] Found stock row text: 'Physical Stock 46    Stocks at date'
+ [Stock Debug] URL after tab click: http://localhost/dolibarr/product/stock/product.php?id=1
+ [Stock Debug] Found stock row text: 'Physical Stock 44    Stocks at date'
+ 
+ 
+ TestContext Messages:
+ [TC_SAL_008] Tß╗ôn kho ban ─æß║ºu cß╗ºa PR001: 46
+ [TC_SAL_008] H├│a ─æ╞ín ─æ├ú validate: IN2610-0006
+ [TC_SAL_008] Tß╗ôn kho cß╗ºa PR001 sau khi Validate h├│a ─æ╞ín: 44
+ [TC_SAL_008 PASS] Quy tß║»c tß╗▒ ─æß╗Öng trß╗½ kho hoß║ít ─æß╗Öng ho├án hß║úo: 46 -> 44 (-2)
+ [Screenshot] D:\Projects\DoAnThucTap_Dolibarr\automation\DolibarrTests\bin\Debug\net9.0\TestResults\Screenshots\TC_SAL_008_ValidateInvoice_ShouldDecreaseProductStock_2026-10-05_08-35-26.png
+
+
+
+Test Run Successful.
+Total tests: 8
+     Passed: 8
+ Total time: 2.6296 Minutes
