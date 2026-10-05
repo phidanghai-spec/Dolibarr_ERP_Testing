@@ -116,3 +116,28 @@
   - Trong điều kiện chạy bình thường, các khách hàng này luôn được dọn dẹp tức thì qua URL trực tiếp trong khối `finally { CleanupCreatedCustomer(); }`.
   - Tuy nhiên, nếu lần chạy test bị crash đột ngột giữa chừng (mất điện, kill process WebDriver), các khách hàng này sẽ không được dọn tự động bởi script Cleanup (nhằm tránh nguy cơ xóa nhầm dữ liệu nghiệp vụ khác); khi đó cần can thiệp kiểm tra và dọn dẹp bằng tay.
 - **Lý do chưa sửa:** Tên khách hàng được đọc từ Excel và có ràng buộc độ dài nghiêm ngặt theo kỹ thuật phân tích giá trị biên BVA (biên min length $N=1$ ở `TC_008`, biên Unicode 128 ký tự ở `TC_011`, hoặc chuỗi kiểm thử XSS đặc thù ở `TC_010`) nên không thể gắn thêm tiền tố `AUTO_`.
+
+---
+
+## 4. CẬP NHẬT ĐỢT REVIEW VÒNG 3 (2026-10-05)
+
+### 4.1. Điều chỉnh tính độc lập của Expected TC_CRM_009
+- **Hiện trạng:** Expected ban đầu tại commit `a655b0a` (2026-09-25) được ghi chú là "CHƯA XÁC ĐỊNH TRƯỚC" và cập nhật theo log quan sát tại commit `18b97f9`.
+- **Điều chỉnh:** Sửa lại ghi chú trong `docs/UseCases.md` (commit `061a596`) và `Dolibarr_TestCases.xlsx`: Yêu cầu "tên chỉ gồm khoảng trắng bị chặn submit" được bổ sung ngày 2026-10-05 dựa trên hành vi quan sát được trong kiểm thử; **chưa được giảng viên xác nhận**.
+- **Đánh giá kiểm thử:** TC_CRM_009 Pass theo quan sát thực tế (chứng minh ứng dụng vẫn hoạt động như hành vi ghi nhận), không ghi nhận là spec chính thức của hệ thống.
+
+### 4.2. Phương án kiểm thử TC_CRM_010 (XSS & Ký tự đặc biệt)
+- **Mục tiêu XSS:** Test kiểm tra dữ liệu lưu và hiển thị dưới dạng văn bản thuần, thẻ HTML `<Test>` không được thực thi trên trang chi tiết (an toàn XSS), không bị lỗi PHP Fatal, và giữ lại phần dữ liệu hợp lệ `O'Brien`.
+- **Ký tự ngoặc kép `"`:** Server Dolibarr tự động loại bỏ `"`. Tuy nhiên mã kiểm thử **chưa assert ký tự `"`** do chưa có đặc tả chính thức xác nhận đây là hành vi chủ đích hay phụ. Nội dung này đang chờ câu hỏi gửi giảng viên xác nhận trước khi chốt assert trong code.
+
+### 4.3. Phát hiện lỗi và mở BUG_001 (Placeholder `__ID__` trong URL Redirect)
+- **Hiện tượng:** Khi tạo khách hàng mới, Dolibarr 22.0.4 chuyển hướng về URL:
+  `http://localhost/dolibarr/societe/card.php?id=__ID__&socid={id}`
+- **Nguyên nhân gốc từ Dolibarr:** Mã nguồn Dolibarr 22.0.4 (`htdocs/societe/card.php` dòng 204 & 644–648) gán trường ẩn `$backtopage` mặc định `.../societe/card.php?id=__ID__`. Khi redirect, code thực hiện `preg_replace('/--IDFORBACKTOPAGE--/', ...)` thay vì `__ID__`, sau đó nối thêm `&socid={id}`, khiến chuỗi `id=__ID__` bị giữ nguyên trên URL trình duyệt.
+- **Vi phạm đặc tả:** `UC-02 §4` yêu cầu URL sau khi tạo phải có dạng hợp lệ `societe/card.php?socid={id}` (hoặc `id={id}` số).
+- **Hành động khắc phục trên bộ test:**
+  - Thêm `Assert 1b` trong `TC_CRM_010`: `Assert.IsFalse(Driver.Url.Contains("__ID__"))`.
+  - Giữ hàm `CustomerDetailPage.NormalizeCustomerUrl()` **chỉ cho mục đích dọn dẹp dữ liệu (cleanup)** sau test, tuyệt đối không dùng để che giấu lỗi hay làm đẹp kết quả kiểm thử.
+  - Test `TC_CRM_010` **Fail** ở Assert 1b để phơi bày lỗi ứng dụng. Minh chứng log thực tế: `docs/test_run_crm_tc010_fail_bug001_20261005.log`.
+- **Mở BUG_001:** Đã ghi nhận bug mới vào sheet `Bug Report` trong `Dolibarr_TestCases.xlsx`, cập nhật trạng thái `TC_CRM_010` thành `Fail`, và điều chỉnh bảng `Summary` (F-CRM-01: 6 Passed, 1 Failed; Tổng cộng: 11 Passed, 1 Failed).
+
