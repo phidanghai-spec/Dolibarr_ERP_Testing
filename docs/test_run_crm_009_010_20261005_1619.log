@@ -1,0 +1,43 @@
+  Determining projects to restore...
+  All projects are up-to-date for restore.
+  DolibarrTests -> D:\Projects\DoAnThucTap_Dolibarr\automation\DolibarrTests\bin\Debug\net9.0\DolibarrTests.dll
+Test run for D:\Projects\DoAnThucTap_Dolibarr\automation\DolibarrTests\bin\Debug\net9.0\DolibarrTests.dll (.NETCoreApp,Version=v9.0)
+VSTest version 17.14.1 (x64)
+
+Starting test execution, please wait...
+A total of 1 test files matched the specified pattern.
+D:\Projects\DoAnThucTap_Dolibarr\automation\DolibarrTests\bin\Debug\net9.0\DolibarrTests.dll
+Test Parallelization enabled for D:\Projects\DoAnThucTap_Dolibarr\automation\DolibarrTests\bin\Debug\net9.0\DolibarrTests.dll (Workers: 4, Scope: MethodLevel)
+  Passed TC_CRM_009_CreateCustomer_WhitespaceOnly_ShouldBeBlocked [13 s]
+  Standard Output Messages:
+ 
+ 
+ TestContext Messages:
+ [TC_CRM_009] Input tr╞░ß╗¢c submit: length=10
+ [TC_CRM_009] Redirected=False (expected=False)
+ [TC_CRM_009] ErrorMessage='Field 'Third-party name' is required' (expected chua 'required')
+ [TC_CRM_009 PASS] Dolibarr chan dung ten chi gom khoang trang. ErrorMessage='Field 'Third-party name' is required'
+ [Screenshot] D:\Projects\DoAnThucTap_Dolibarr\automation\DolibarrTests\bin\Debug\net9.0\TestResults\Screenshots\TC_CRM_009_CreateCustomer_WhitespaceOnly_ShouldBeBlocked_2026-10-05_16-19-30.png
+
+
+  Failed TC_CRM_010_CreateCustomer_SpecialChars_ObserveXssHandling [6 s]
+  Error Message:
+   Assert.IsFalse failed. [TC_CRM_010] [BUG_001] URL th├┤ chß╗⌐a placeholder '__ID__': http://localhost/dolibarr/societe/card.php?id=__ID__&socid=110. Expected theo UC-02 ┬º4: URL hß╗úp lß╗ç dß║íng 'societe/card.php?socid={id}' kh├┤ng chß╗⌐a '__ID__'.
+  Stack Trace:
+     at DolibarrTests.Tests.CrmCustomerTests.TC_CRM_010_CreateCustomer_SpecialChars_ObserveXssHandling() in D:\Projects\DoAnThucTap_Dolibarr\automation\DolibarrTests\Tests\CrmCustomerTests.cs:line 528
+   at System.RuntimeMethodHandle.InvokeMethod(Object target, Void** arguments, Signature sig, Boolean isConstructor)
+   at System.Reflection.MethodBaseInvoker.InvokeWithNoArgs(Object obj, BindingFlags invokeAttr)
+
+  Standard Output Messages:
+ 
+ 
+ TestContext Messages:
+ [Cleanup] ─É├ú x├│a KH: http://localhost/dolibarr/societe/card.php?socid=110
+ [Screenshot khi Fail] D:\Projects\DoAnThucTap_Dolibarr\automation\DolibarrTests\bin\Debug\net9.0\TestResults\Screenshots\TC_CRM_010_CreateCustomer_SpecialChars_ObserveXssHandling_2026-10-05_16-19-37.png
+
+
+
+Total tests: 2
+     Passed: 1
+     Failed: 1
+ Total time: 20.4994 Seconds

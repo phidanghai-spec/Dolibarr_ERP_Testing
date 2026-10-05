@@ -138,6 +138,22 @@
 - **Hành động khắc phục trên bộ test:**
   - Thêm `Assert 1b` trong `TC_CRM_010`: `Assert.IsFalse(Driver.Url.Contains("__ID__"))`.
   - Giữ hàm `CustomerDetailPage.NormalizeCustomerUrl()` **chỉ cho mục đích dọn dẹp dữ liệu (cleanup)** sau test, tuyệt đối không dùng để che giấu lỗi hay làm đẹp kết quả kiểm thử.
-  - Test `TC_CRM_010` **Fail** ở Assert 1b để phơi bày lỗi ứng dụng. Minh chứng log thực tế: `docs/test_run_crm_tc010_fail_bug001_20261005.log`.
-- **Mở BUG_001:** Đã ghi nhận bug mới vào sheet `Bug Report` trong `Dolibarr_TestCases.xlsx`, cập nhật trạng thái `TC_CRM_010` thành `Fail`, và điều chỉnh bảng `Summary` (F-CRM-01: 6 Passed, 1 Failed; Tổng cộng: 11 Passed, 1 Failed).
+  - Test `TC_CRM_010` **Fail** ở Assert 1b để phơi bày lỗi ứng dụng. Minh chứng log thực tế: `docs/test_run_crm_tc010_fail_bug001_20261005.log` và log kiểm chứng độc lập `docs/test_run_crm_009_010_20261005_1619.log`.
+- **Mở BUG_001:** Đã ghi nhận bug mới vào sheet `Bug Report` trong `Dolibarr_TestCases.xlsx`, cập nhật trạng thái `TC_CRM_010` thành `Fail`.
+
+### 4.4. Cải tiến sheet `Summary` sang công thức tự động
+- **Hiện trạng kiểm chứng:** Kiểm tra file backup `Dolibarr_TestCases.backup_20261005.xlsx` bằng `data_only=False` xác nhận toàn bộ ô Passed/Failed và Tỷ lệ Pass trước đây đều là số nguyên và chuỗi tĩnh (`'100%'`), không chứa công thức.
+- **Cải tiến thiết kế:** Chuyển đổi toàn bộ sheet `Summary` sang công thức Excel động:
+  - Cột Tổng số TC: `=COUNTIF('Test Cases'!$C:$C, B{r})`
+  - Cột Auto / Manual: `=COUNTIFS('Test Cases'!$C:$C, B{r}, 'Test Cases'!$H:$H, "Auto")` / `"Manual"`
+  - Cột Passed / Failed / Not Run: `=COUNTIFS('Test Cases'!$C:$C, B{r}, 'Test Cases'!$N:$N, "Pass")` / `"Fail"` / `"Not Run"`
+  - Dòng Tổng cộng: `=SUM(...)`
+  - Cột Tỷ lệ Pass: `=IF(D{r}>0, G{r}/D{r}, 0)` định dạng `0.0%` (kết quả hiển thị tự động: F-CRM-01 đạt 85.7%, Tổng CRM đạt 91.7%).
+
+### 4.5. Xử lý file log không hợp lệ (`docs/archive_invalid/`)
+- Di chuyển file log chạy thử `docs/test_run_crm_tc010_20261005.log` (do sử dụng hàm chuẩn hóa che lỗi URL) vào thư mục `docs/archive_invalid/`.
+- Bổ sung file `docs/archive_invalid/README.md` giải thích chi tiết lý do không sử dụng file log này làm bằng chứng nghiệm thu, tránh nhầm lẫn cho hội đồng chấm.
+
+### 4.6. Câu hỏi gửi giảng viên hướng dẫn
+- Soạn thảo câu hỏi gửi giảng viên về việc xử lý ký tự ngoặc kép `"` và thẻ `<tag>` phía server của Dolibarr để chốt căn cứ cho Expected của `TC_CRM_010` trước khi viết báo cáo quá trình.
 
