@@ -367,80 +367,48 @@ public class SpecialInvoiceAndStockTests : BaseTest
             $"Thanh toán hoàn tất toàn bộ nợ. Hóa đơn chuyển trạng thái {statusText}, công nợ về 0.", evidenceRelPath);
     }
 
-    /// <summary>Helper điều chỉnh tồn kho thủ công cho sản phẩm</summary>
+    /// <summary>Helper điều chỉnh tồn kho thủ công cho sản phẩm (sử dụng locator thật Dolibarr 22.0.4)</summary>
     private void PerformStockCorrection(string productRef, int qtyChange, string label)
     {
-        // 1. Điều hướng đến sản phẩm và tab Stock
-        Driver.Navigate().GoToUrl($"{TestConfig.BaseUrl}/product/card.php?ref={productRef}");
+        // 1. Điều hướng thẳng tới tab Stock của sản phẩm
+        Driver.Navigate().GoToUrl($"{TestConfig.BaseUrl}/product/stock/product.php?ref={productRef}");
         WaitHelper.WaitVisible(Driver, By.CssSelector("div.fiche"), 15);
 
-        try
-        {
-            var stockTab = WaitHelper.WaitClickable(Driver, By.XPath("//div[contains(@class, 'tabs')]//a[contains(text(), 'Stock') or contains(@href, 'stock')]"), 5);
-            stockTab.Click();
-            WaitHelper.WaitVisible(Driver, By.CssSelector("div.fiche"), 10);
-        }
-        catch { }
-
         // 2. Nhấn nút Correct stock
-        var correctBtn = WaitHelper.WaitClickable(Driver, By.XPath("//a[contains(@class, 'butAction') and (contains(text(), 'Correct stock') or contains(@href, 'correction') or contains(@href, 'massstockmove'))]"), 10);
+        var correctBtn = WaitHelper.WaitClickable(Driver, By.XPath("//a[contains(@class, 'butAction') and contains(@href, 'action=correction')]"), 10);
         correctBtn.Click();
 
-        WaitHelper.WaitVisible(Driver, By.CssSelector("form[action*='massstockmove.php'], form[action*='product.php'], form[name='formsoc'], div.fiche"), 15);
+        WaitHelper.WaitVisible(Driver, By.Id("nbpiece"), 15);
 
-        // 3. Chọn kho KHO001, số lượng, thao tác và lý do qua JS/DOM
+        // 3. Chọn kho KHO001 và loại biến động (0=Add, 1=Delete) qua Select2 jQuery
         var js = (IJavaScriptExecutor)Driver;
+        int mvtVal = qtyChange < 0 ? 1 : 0;
+        int absQty = Math.Abs(qtyChange);
+
         js.ExecuteScript(@"
-            var qty = arguments[0];
-            var label = arguments[1];
-
-            // Chọn kho KHO001
-            var whSelect = document.querySelector('select[name*=""warehouse""], select[name*=""entrepot""], select[id*=""entrepot""]');
-            if (whSelect && whSelect.options.length > 1) {
-                for (var i = 0; i < whSelect.options.length; i++) {
-                    if (whSelect.options[i].text.indexOf('KHO001') !== -1) {
-                        whSelect.selectedIndex = i;
-                        $(whSelect).trigger('change');
-                        break;
-                    }
-                }
+            var whOption = Array.from($('#id_entrepot option')).find(o => o.text.indexOf('KHO001') !== -1);
+            if (whOption) {
+                $('#id_entrepot').val(whOption.value).trigger('change');
             }
+            $('#mouvement').val(arguments[0]).trigger('change');
+        ", mvtVal);
 
-            // Nhập số lượng
-            var qtyInput = document.querySelector('input[name*=""nbpiece""], input[name*=""qty""], input[name*=""unit""]');
-            if (qtyInput) {
-                qtyInput.value = Math.abs(qty);
-                $(qtyInput).trigger('change');
-            }
+        // Điền số lượng
+        var qtyInput = Driver.FindElement(By.Id("nbpiece"));
+        qtyInput.Clear();
+        qtyInput.SendKeys(absQty.ToString());
 
-            // Chọn thao tác trong select[name=""mouvement""]
-            var mSelect = document.querySelector('select[name=""mouvement""]');
-            if (mSelect && mSelect.options.length > 1) {
-                if (qty < 0) {
-                    mSelect.selectedIndex = 1; // Thao tác Trừ / Remove
-                } else {
-                    mSelect.selectedIndex = 0; // Thao tác Cộng / Add
-                }
-                $(mSelect).trigger('change');
-            }
+        // Điền lý do
+        var labelInput = Driver.FindElement(By.Name("label"));
+        labelInput.Clear();
+        labelInput.SendKeys(label);
 
-            // Nhập lý do label
-            var lblInput = document.querySelector('input[name*=""label""], textarea[name*=""label""], input[name*=""inventorycode""]');
-            if (lblInput) {
-                lblInput.value = label;
-            }
-        ", qtyChange, label);
-
-        Console.WriteLine("[Stock Form Debug] " + js.ExecuteScript("return Array.from(document.querySelectorAll('form input, form select')).map(e => e.name + '=' + e.value + '(' + e.type + ')').join('; ');"));
-
-        // 4. Nhấn Save / Record
-        var recordBtn = WaitHelper.WaitClickable(Driver, By.CssSelector("input[type='submit'].button-save, input[type='submit'][value*='Save'], input[type='submit'][value*='Record'], input[name='save']"), 10);
+        // 4. Nhấn nút Record
+        var recordBtn = WaitHelper.WaitClickable(Driver, By.CssSelector("input[type='submit'][name='save']"), 10);
         recordBtn.Click();
 
-        // Chờ redirect hoàn tất điều chỉnh kho (không còn form correction / massstockmove)
-        new WebDriverWait(Driver, TimeSpan.FromSeconds(10)).Until(d =>
-            !d.Url.Contains("action=correction", StringComparison.OrdinalIgnoreCase) &&
-            !d.Url.Contains("massstockmove", StringComparison.OrdinalIgnoreCase));
+        // Chờ hoàn tất điều chỉnh kho
+        WaitHelper.WaitVisible(Driver, By.CssSelector("div.fiche"), 15);
     }
 
     [TestMethod]
@@ -529,38 +497,88 @@ public class SpecialInvoiceAndStockTests : BaseTest
     public void TC_STK_004_StockLimitAlert()
     {
         const string targetProduct = "PR003";
-
-        // 1. Vào trang sửa PR003 để đặt Stock limit for alert = 10
-        Driver.Navigate().GoToUrl($"{TestConfig.BaseUrl}/product/card.php?ref={targetProduct}&action=edit");
-        WaitHelper.WaitVisible(Driver, By.CssSelector("form[name='formsoc'], form[action*='card.php'], div.fiche"), 15);
-
-        var js = (IJavaScriptExecutor)Driver;
-        js.ExecuteScript(@"
-            var limitInput = document.querySelector('input[name*=""seuil_stock_alerte""], input[name*=""stock_alerte""], input[name*=""limit""]');
-            if (limitInput) {
-                limitInput.value = '10';
-                $(limitInput).trigger('change');
-            }
-        ");
-
-        var saveBtn = WaitHelper.WaitClickable(Driver, By.CssSelector("input[type='submit'].button-save, input[type='submit'][value*='Save'], input[name='save']"), 10);
-        saveBtn.Click();
-
-        // Chờ redirect sau khi lưu thông tin sản phẩm (không còn action=edit)
-        new WebDriverWait(Driver, TimeSpan.FromSeconds(10)).Until(d =>
-            !d.Url.Contains("action=edit", StringComparison.OrdinalIgnoreCase));
-
-        // 2. Kiểm tra trang Danh sách sản phẩm hoặc Replenishment
-        Driver.Navigate().GoToUrl($"{TestConfig.BaseUrl}/product/list.php?search_status=1");
-        WaitHelper.WaitVisible(Driver, By.CssSelector("table.noborder, div.fiche"), 15);
-
         string evidenceRelPath = "evidence/manual/TC_STK_004_limit_alert.png";
-        ScreenshotHelper.CaptureToPath(Driver, evidenceRelPath);
 
-        TestContext.WriteLine($"[TC_STK_004] Đã cấu hình ngưỡng cảnh báo tồn tối thiểu là 10 cho {targetProduct}");
+        try
+        {
+            // BƯỚC 1: Cấu hình ngưỡng cảnh báo tồn tối thiểu = 10 cho PR003
+            Driver.Navigate().GoToUrl($"{TestConfig.BaseUrl}/product/stock/product.php?ref={targetProduct}");
+            WaitHelper.WaitVisible(Driver, By.CssSelector("div.fiche"), 15);
 
-        ExcelResultUpdater.UpdateResult(TestConfig.ExcelPath, "TC_STK_004", "Pass",
-            $"Cấu hình ngưỡng tồn tối thiểu (Limit=10) cho {targetProduct}. Hệ thống kích hoạt cơ chế theo dõi bổ sung kho.", evidenceRelPath);
+            var editIcon = WaitHelper.WaitClickable(Driver, By.XPath("//a[contains(@href, 'action=editseuil_stock_alerte')]"), 10);
+            string editAlertUrl = editIcon.GetAttribute("href")!;
+            Driver.Navigate().GoToUrl(editAlertUrl);
+
+            var limitInput = WaitHelper.WaitVisible(Driver, By.Id("seuil_stock_alerte"), 10);
+            limitInput.Clear();
+            limitInput.SendKeys("10");
+
+            var saveBtn = WaitHelper.WaitClickable(Driver, By.CssSelector("input[type='submit'][name='modify']"), 10);
+            saveBtn.Click();
+
+            WaitHelper.WaitVisible(Driver, By.CssSelector("div.fiche"), 15);
+
+            // Assert Bước 1: Đọc chính xác ô giá trị hiển thị Stock limit for alert
+            var limitCell = WaitHelper.WaitVisible(Driver, By.XPath("//a[contains(@href, 'action=editseuil_stock_alerte')]/ancestor::td[2]/following-sibling::td[1]"), 10);
+            string savedLimit = limitCell.Text.Trim();
+            TestContext.WriteLine($"[TC_STK_004] Ngưỡng cảnh báo sau khi lưu: '{savedLimit}'");
+            Assert.AreEqual("10", savedLimit, "Ngưỡng cảnh báo tồn tối thiểu trong bảng thông tin phải bằng đúng 10.");
+
+            // BƯỚC 2: Kích hoạt cảnh báo — Hạ tồn kho PR003 xuống <= 10 (tồn ban đầu 40 -> trừ 32 còn 8)
+            PerformStockCorrection(targetProduct, -32, "Ha ton PR003 xuong duoi nguong canh bao");
+
+            // BƯỚC 3: Quan sát & Assert cảnh báo xuất hiện
+            // 3.1. Quan sát trên Thẻ kho của sản phẩm: Có biểu tượng cảnh báo tam giác (pictowarning)
+            Driver.Navigate().GoToUrl($"{TestConfig.BaseUrl}/product/stock/product.php?ref={targetProduct}");
+            WaitHelper.WaitVisible(Driver, By.CssSelector("div.fiche"), 15);
+
+            var warningIcon = WaitHelper.WaitVisible(Driver, By.CssSelector(".pictowarning, span[title*='Stock lower than alert limit']"), 10);
+            string warningTitle = warningIcon.GetAttribute("title") ?? string.Empty;
+            TestContext.WriteLine($"[TC_STK_004] Icon cảnh báo hiển thị trên thẻ kho với title: '{warningTitle}'");
+            Assert.IsTrue(warningTitle.Contains("Stock lower than alert limit", StringComparison.OrdinalIgnoreCase) ||
+                          warningTitle.Contains("10", StringComparison.OrdinalIgnoreCase),
+                $"Icon cảnh báo phải có tooltip cảnh báo tồn thấp hơn ngưỡng alerte. Thực tế: '{warningTitle}'");
+
+            // 3.2. Quan sát trên Trang đề xuất bổ sung kho (Replenishment)
+            Driver.Navigate().GoToUrl($"{TestConfig.BaseUrl}/product/stock/replenish.php");
+            WaitHelper.WaitVisible(Driver, By.CssSelector("table.liste, table.noborder"), 15);
+
+            // Chụp ảnh minh chứng ngay trên bảng bổ sung tồn kho
+            ScreenshotHelper.CaptureToPath(Driver, evidenceRelPath);
+
+            var pr003ReplenishRow = Driver.FindElements(By.XPath($"//table[contains(@class, 'liste') or contains(@class, 'noborder')]//tr[contains(., '{targetProduct}')]"));
+            Assert.IsTrue(pr003ReplenishRow.Count > 0,
+                $"Sản phẩm {targetProduct} phải xuất hiện trong bảng bổ sung kho (Replenishment) khi tồn (8) <= ngưỡng cảnh báo (10).");
+
+            string replenishRowText = pr003ReplenishRow[0].Text;
+            TestContext.WriteLine($"[TC_STK_004] Dòng sản phẩm trong Replenishment: {replenishRowText}");
+            Assert.IsTrue(replenishRowText.Contains("10"), "Dòng bổ sung kho phải hiển thị đúng Limit for alert là 10.");
+
+            // Ghi kết quả Pass vào Excel chỉ khi TẤT CẢ các Assert đều thành công
+            ExcelResultUpdater.UpdateResult(TestConfig.ExcelPath, "TC_STK_004", "Pass",
+                $"Cấu hình ngưỡng 10 thành công. Khi hạ tồn xuống 8 (<= 10), hệ thống kích hoạt icon cảnh báo '{warningTitle}' và PR003 xuất hiện trong danh sách Replenishment.", evidenceRelPath);
+        }
+        catch (Exception ex)
+        {
+            // Chụp ảnh lỗi và ghi Fail vào Excel
+            ScreenshotHelper.CaptureToPath(Driver, evidenceRelPath);
+            ExcelResultUpdater.UpdateResult(TestConfig.ExcelPath, "TC_STK_004", "Fail",
+                $"Lỗi kiểm thử cảnh báo tồn kho: {ex.Message}", evidenceRelPath);
+            throw;
+        }
+        finally
+        {
+            // CLEANUP: Hoàn trả lại tồn kho PR003 về 40 (+32) để đảm bảo dữ liệu mốc sạch cho các test khác
+            try
+            {
+                PerformStockCorrection(targetProduct, 32, "Hoan tra ton PR003 ve 40 sau khi hoan tat TC_STK_004");
+                TestContext.WriteLine("[TC_STK_004 Cleanup] Đã hoàn trả tồn kho PR003 về mức mốc sạch ban đầu (40).");
+            }
+            catch (Exception cleanupEx)
+            {
+                TestContext.WriteLine($"[TC_STK_004 Cleanup Cảnh báo] Không thể hoàn trả tồn: {cleanupEx.Message}");
+            }
+        }
     }
 }
 
