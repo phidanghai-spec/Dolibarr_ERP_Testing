@@ -45,24 +45,22 @@ public class ProposalDetailPage
     /// <summary>Đọc mã tham chiếu của báo giá (PROV... hoặc PR...)</summary>
     public string GetReference()
     {
-        for (int i = 0; i < 3; i++)
+        try
         {
-            try
+            var wait = new WebDriverWait(_driver, TimeSpan.FromSeconds(5));
+            return wait.Until(d =>
             {
-                var elem = _driver.FindElement(RefTitle);
+                var elem = d.FindElement(RefTitle);
                 var match = Regex.Match(elem.Text, @"(PR\d{4}-\d{4,5}|PROV\d+)", RegexOptions.IgnoreCase);
-                if (match.Success) return match.Value;
-            }
-            catch (Exception ex) when (ex is NoSuchElementException || ex is StaleElementReferenceException)
-            {
-                System.Threading.SpinWait.SpinUntil(() => false, 500);
-            }
+                return match.Success ? match.Value : null;
+            })!;
         }
-
-        // Fallback đọc từ page title hoặc PageSource
-        var pageSource = _driver.PageSource;
-        var m = Regex.Match(pageSource, @"(PR\d{4}-\d{4,5}|PROV\d+)", RegexOptions.IgnoreCase);
-        return m.Success ? m.Value : string.Empty;
+        catch (WebDriverTimeoutException)
+        {
+            var pageSource = _driver.PageSource;
+            var m = Regex.Match(pageSource, @"(PR\d{4}-\d{4,5}|PROV\d+)", RegexOptions.IgnoreCase);
+            return m.Success ? m.Value : string.Empty;
+        }
     }
 
     /// <summary>Đọc trạng thái hiện tại (Draft, Open, Signed, etc.)</summary>
@@ -176,8 +174,13 @@ public class ProposalDetailPage
             }
         }
 
-        // Chờ Dolibarr Ajax tải thông tin sản phẩm
-        System.Threading.SpinWait.SpinUntil(() => false, 1500);
+        // Chờ Dolibarr Ajax tải thông tin sản phẩm và cập nhật đơn giá vào form
+        try
+        {
+            new WebDriverWait(_driver, TimeSpan.FromSeconds(5)).Until(d =>
+                ((IJavaScriptExecutor)d).ExecuteScript("return window.jQuery ? jQuery.active == 0 : true") as bool? == true);
+        }
+        catch { }
 
         // 3. Nhập số lượng Qty
         var qtyElem = WaitHelper.WaitPresent(_driver, QtyInput, timeoutSeconds: 5);

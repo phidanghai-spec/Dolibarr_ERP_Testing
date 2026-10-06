@@ -85,7 +85,6 @@ public class SpecialInvoiceAndStockTests : BaseTest
                     comment.value = 'Khách hàng đổi ý hủy đơn';
                 }
             ");
-            System.Threading.Thread.Sleep(500);
 
             var confirmBtn = WaitHelper.WaitClickable(Driver, By.XPath("//div[contains(@class, 'ui-dialog-buttonset')]//button[contains(., 'Yes') or 1]"), 5);
             confirmBtn.Click();
@@ -99,14 +98,22 @@ public class SpecialInvoiceAndStockTests : BaseTest
             ");
         }
 
-        System.Threading.Thread.Sleep(2000);
+        // Chờ dialog đóng và badge trạng thái chuyển sang Abandoned / Canceled
+        WaitHelper.WaitGone(Driver, By.CssSelector("div.ui-dialog"), 10);
+        var invPage = new InvoiceDetailPage(Driver);
+        new WebDriverWait(Driver, TimeSpan.FromSeconds(10)).Until(d =>
+        {
+            string s = invPage.GetStatusText();
+            return s.Contains("Canceled", StringComparison.OrdinalIgnoreCase) ||
+                   s.Contains("Abandoned", StringComparison.OrdinalIgnoreCase) ||
+                   s.Contains("Bị hủy", StringComparison.OrdinalIgnoreCase);
+        });
 
         // Chụp ảnh minh chứng
         string evidenceRelPath = "evidence/manual/TC_SAL_009_invoice_canceled.png";
         ScreenshotHelper.CaptureToPath(Driver, evidenceRelPath);
 
         // Assert trạng thái Canceled / Abandoned qua InvoiceDetailPage
-        var invPage = new InvoiceDetailPage(Driver);
         string statusText = invPage.GetStatusText();
         TestContext.WriteLine($"[TC_SAL_009] Trạng thái sau khi hủy: '{statusText}'");
 
@@ -155,7 +162,6 @@ public class SpecialInvoiceAndStockTests : BaseTest
                 $(cbs[0]).trigger('change');
             }
         ");
-        System.Threading.Thread.Sleep(800);
 
         // Nhấn Create draft cho Credit note
         var submitBtn = WaitHelper.WaitClickable(Driver, By.CssSelector("input[type='submit'].button-save, input[type='submit'][value*='draft'], input[name='bouton']"), 10);
@@ -164,7 +170,13 @@ public class SpecialInvoiceAndStockTests : BaseTest
         // Validate Credit note
         var invPage = new InvoiceDetailPage(Driver);
         invPage.ValidateInvoice();
-        System.Threading.Thread.Sleep(1500);
+
+        // Chờ reference của credit note được cấp mã chính thức (AV... hoặc IC...)
+        new WebDriverWait(Driver, TimeSpan.FromSeconds(10)).Until(d =>
+        {
+            string r = invPage.GetReference();
+            return Regex.IsMatch(r, @"^(AV|IC)\d+", RegexOptions.IgnoreCase);
+        });
 
         string creditRef = invPage.GetReference();
         string statusText = invPage.GetStatusText();
@@ -255,19 +267,23 @@ public class SpecialInvoiceAndStockTests : BaseTest
             }
         ", facId, payAmount > 0 ? payAmount.ToString("0", CultureInfo.InvariantCulture) : 0);
 
-        System.Threading.Thread.Sleep(800);
-
         // 3. Nhấn nút Pay ở form 1
         var savePayBtn = WaitHelper.WaitClickable(Driver, By.CssSelector("form#payment_form input[type='submit'][value='Pay'], input[type='submit'].reposition"), 10);
         savePayBtn.Click();
-        System.Threading.Thread.Sleep(1500);
+
+        // Chờ form xác nhận thứ 2 tải xong
+        WaitHelper.WaitVisible(Driver, By.CssSelector("input.confirmvalidatebutton, input[type='submit'][value='Validate'], form[action*='paiement']"), 10);
 
         // 4. Nhấn nút Validate ở form xác nhận thứ 2 (confirm_paiement)
         try
         {
             var validateBtn = WaitHelper.WaitClickable(Driver, By.CssSelector("input.confirmvalidatebutton, input[type='submit'][value='Validate']"), 5);
             validateBtn.Click();
-            System.Threading.Thread.Sleep(2000);
+
+            // Chờ redirect hoàn tất thanh toán (không còn confirm_paiement trên URL)
+            new WebDriverWait(Driver, TimeSpan.FromSeconds(10)).Until(d =>
+                !d.Url.Contains("confirm_paiement", StringComparison.OrdinalIgnoreCase) &&
+                !d.Url.Contains("action=add", StringComparison.OrdinalIgnoreCase));
         }
         catch (WebDriverTimeoutException)
         {
@@ -416,13 +432,15 @@ public class SpecialInvoiceAndStockTests : BaseTest
         ", qtyChange, label);
 
         Console.WriteLine("[Stock Form Debug] " + js.ExecuteScript("return Array.from(document.querySelectorAll('form input, form select')).map(e => e.name + '=' + e.value + '(' + e.type + ')').join('; ');"));
-        System.Threading.Thread.Sleep(800);
 
         // 4. Nhấn Save / Record
         var recordBtn = WaitHelper.WaitClickable(Driver, By.CssSelector("input[type='submit'].button-save, input[type='submit'][value*='Save'], input[type='submit'][value*='Record'], input[name='save']"), 10);
         recordBtn.Click();
 
-        System.Threading.Thread.Sleep(2000);
+        // Chờ redirect hoàn tất điều chỉnh kho (không còn form correction / massstockmove)
+        new WebDriverWait(Driver, TimeSpan.FromSeconds(10)).Until(d =>
+            !d.Url.Contains("action=correction", StringComparison.OrdinalIgnoreCase) &&
+            !d.Url.Contains("massstockmove", StringComparison.OrdinalIgnoreCase));
     }
 
     [TestMethod]
@@ -527,7 +545,10 @@ public class SpecialInvoiceAndStockTests : BaseTest
 
         var saveBtn = WaitHelper.WaitClickable(Driver, By.CssSelector("input[type='submit'].button-save, input[type='submit'][value*='Save'], input[name='save']"), 10);
         saveBtn.Click();
-        System.Threading.Thread.Sleep(1500);
+
+        // Chờ redirect sau khi lưu thông tin sản phẩm (không còn action=edit)
+        new WebDriverWait(Driver, TimeSpan.FromSeconds(10)).Until(d =>
+            !d.Url.Contains("action=edit", StringComparison.OrdinalIgnoreCase));
 
         // 2. Kiểm tra trang Danh sách sản phẩm hoặc Replenishment
         Driver.Navigate().GoToUrl($"{TestConfig.BaseUrl}/product/list.php?search_status=1");

@@ -13,8 +13,8 @@ namespace DolibarrTests.Tests;
 public class ApiIntegrationTests
 {
     private static readonly HttpClient HttpClient = new();
-    private const string ApiBaseUrl = "http://localhost/dolibarr/api/index.php";
-    private const string ApiKey = "dolibarr_test_api_key_2026";
+    private static string ApiBaseUrl => TestConfig.ApiBaseUrl;
+    private static string ApiKey => TestConfig.ApiKey;
 
     public TestContext TestContext { get; set; } = null!;
 

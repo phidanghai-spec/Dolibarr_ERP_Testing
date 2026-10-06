@@ -65,6 +65,22 @@ public static class TestConfig
         ?? @"D:\Projects\DoAnThucTap_Dolibarr\testcases\Dolibarr_TestCases.xlsx";
 
     /// <summary>
+    /// URL gốc của Dolibarr REST API.
+    /// Mặc định: {BaseUrl}/api/index.php
+    /// </summary>
+    public static string ApiBaseUrl =>
+        _config["Dolibarr:ApiBaseUrl"] ?? $"{BaseUrl}/api/index.php";
+
+    /// <summary>
+    /// API Key xác thực khi gọi REST API.
+    /// Ưu tiên biến môi trường DOLIBARR_API_KEY, sau đó tới appsettings.local.json.
+    /// </summary>
+    public static string ApiKey =>
+        Environment.GetEnvironmentVariable("DOLIBARR_API_KEY")
+        ?? _config["Dolibarr:ApiKey"]
+        ?? "dolibarr_test_api_key_2026";
+
+    /// <summary>
     /// Chuỗi kết nối cơ sở dữ liệu MariaDB Dolibarr.
     /// Mặc định: Server=localhost;Port=3306;Database=dolibarr;Uid=dolibarrmysql;Pwd=changeme;Charset=utf8mb4;
     /// </summary>

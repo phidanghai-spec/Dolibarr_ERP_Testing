@@ -157,3 +157,42 @@
 ### 4.6. Câu hỏi gửi giảng viên hướng dẫn
 - Soạn thảo câu hỏi gửi giảng viên về việc xử lý ký tự ngoặc kép `"` và thẻ `<tag>` phía server của Dolibarr để chốt căn cứ cho Expected của `TC_CRM_010` trước khi viết báo cáo quá trình.
 
+---
+
+## 5. CẬP NHẬT ĐỢT REVIEW VÒNG 4 & TỐI ƯU TOÀN DIỆN (2026-10-06)
+
+### 5.1. Khử triệt để 100% `Thread.Sleep` và `SpinWait` trong toàn bộ Solution
+- **Hiện trạng phát hiện:** Trong `SpecialInvoiceAndStockTests.cs` tồn tại 10 vị trí sử dụng `System.Threading.Thread.Sleep(...)`, và trong `ProposalDetailPage.cs`, `InvoiceDetailPage.cs` tồn tại 3 vị trí `SpinWait.SpinUntil(() => false, ...)`. Vi phạm quy tắc bắt buộc số 3 trong `AGENTS.md` và nguyên tắc thiết kế POM.
+- **Hành động khắc phục:**
+  - `SpecialInvoiceAndStockTests.cs`:
+    - `TC_SAL_009`: Thay `Sleep(500)` và `Sleep(2000)` bằng `WaitHelper.WaitClickable` cho nút xác nhận, `WaitHelper.WaitGone` cho `div.ui-dialog`, và `WebDriverWait` chờ badge trạng thái chuyển sang `Canceled / Abandoned`.
+    - `TC_SAL_010`: Thay `Sleep(800)` và `Sleep(1500)` bằng `WaitHelper.WaitClickable` và `WebDriverWait` chờ mã tham chiếu Credit note cập nhật tiền tố `AV...` hoặc `IC...`.
+    - `EnterPayment`: Thay `Sleep(800)`, `Sleep(1500)` và `Sleep(2000)` bằng `WaitHelper.WaitVisible` chờ form thanh toán và `WebDriverWait` chờ URL điều hướng hoàn tất giao dịch.
+    - `PerformStockCorrection`: Thay `Sleep(800)` và `Sleep(2000)` bằng `WebDriverWait` chờ URL thoát khỏi màn hình điều chỉnh kho.
+    - `TC_STK_004`: Thay `Sleep(1500)` bằng `WebDriverWait` chờ lưu xong thẻ sản phẩm (`!Url.Contains("action=edit")`).
+  - `ProposalDetailPage.cs` & `InvoiceDetailPage.cs`:
+    - Thay thế `SpinWait` trong `GetReference()` bằng `WebDriverWait` tìm kiếm element `RefTitle` có timeout.
+    - Thay thế `SpinWait` trong `AddPredefinedProduct` bằng điều kiện chờ hoàn tất AJAX của jQuery (`jQuery.active == 0`).
+- **Kết quả quét kiểm tra:** 0 `Thread.Sleep`, 0 `SpinWait` trong toàn bộ mã nguồn kiểm thử.
+
+### 5.2. Chuẩn hóa cấu hình REST API & Database (Loại bỏ Hard-code)
+- **Hiện trạng:** `ApiIntegrationTests.cs` hard-code URL `http://localhost/dolibarr/api/index.php` và API Key `dolibarr_test_api_key_2026`. Vi phạm Rule 8 của `selenium-csharp-pom`.
+- **Hành động khắc phục:**
+  - Bổ sung property `ApiBaseUrl` và `ApiKey` vào `TestConfig.cs`, ưu tiên đọc từ biến môi trường `DOLIBARR_API_KEY`, sau đó đến `appsettings.local.json`.
+  - Cập nhật `ApiIntegrationTests.cs` sử dụng `TestConfig.ApiBaseUrl` và `TestConfig.ApiKey`.
+  - Cập nhật file mẫu `appsettings.example.json` và file cấu hình thực tế `appsettings.local.json` với đầy đủ các section `Dolibarr (API)` và `Database (MariaDB)`.
+
+### 5.3. Xử lý an toàn xung đột file Excel (Excel File Lock)
+- **Cải tiến:** Bổ sung khối bắt ngoại lệ `catch (IOException ioEx)` trong `ExcelResultUpdater.cs`. Khi file Excel đang được mở bởi ứng dụng khác (Excel lock), hệ thống ghi log cảnh báo rõ ràng thay vì ném unhandled exception làm gián đoạn tiến trình kiểm thử.
+
+### 5.4. Đồng bộ AI Log STT 12
+- Ghi nhận đầy đủ thông tin vào sheet `AI Log` của `testcases/Dolibarr_TestCases.xlsx` cho đợt Rà soát & Tối ưu toàn diện ngày 2026-10-06.
+
+### 5.5. Nghiệm thu kiểm thử thực tế trên hệ thống (Verification Run)
+- `dotnet build`: **0 Warning(s), 0 Error(s)**.
+- `SmokeTests`: **2/2 Pass (100%)** — 21.5s.
+- `DatabaseVerificationTests`: **4/4 Pass (100%)** — 18.7s.
+- `ApiIntegrationTests`: **4/4 Pass (100%)** — 6.8s.
+- `ExtentReportManager`: Báo cáo HTML Dashboard tự động sinh tại `TestResults/ExtentReports/Dolibarr_TestReport.html`.
+
+

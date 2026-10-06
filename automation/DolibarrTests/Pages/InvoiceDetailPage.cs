@@ -71,23 +71,22 @@ public class InvoiceDetailPage
     /// <summary>Đọc mã tham chiếu hóa đơn (PROV... hoặc IN...)</summary>
     public string GetReference()
     {
-        for (int i = 0; i < 3; i++)
+        try
         {
-            try
+            var wait = new WebDriverWait(_driver, TimeSpan.FromSeconds(5));
+            return wait.Until(d =>
             {
-                var elem = _driver.FindElement(RefTitle);
+                var elem = d.FindElement(RefTitle);
                 var match = Regex.Match(elem.Text, @"(IN\d{4}-\d{4,5}|IC\d{4}-\d{4,5}|AV\d{4}-\d{4,5}|PROV\d+)", RegexOptions.IgnoreCase);
-                if (match.Success) return match.Value;
-            }
-            catch (Exception ex) when (ex is NoSuchElementException || ex is StaleElementReferenceException)
-            {
-                System.Threading.SpinWait.SpinUntil(() => false, 500);
-            }
+                return match.Success ? match.Value : null;
+            })!;
         }
-
-        var pageSource = _driver.PageSource;
-        var m = Regex.Match(pageSource, @"(IN\d{4}-\d{4,5}|IC\d{4}-\d{4,5}|AV\d{4}-\d{4,5}|PROV\d+)", RegexOptions.IgnoreCase);
-        return m.Success ? m.Value : string.Empty;
+        catch (WebDriverTimeoutException)
+        {
+            var pageSource = _driver.PageSource;
+            var m = Regex.Match(pageSource, @"(IN\d{4}-\d{4,5}|IC\d{4}-\d{4,5}|AV\d{4}-\d{4,5}|PROV\d+)", RegexOptions.IgnoreCase);
+            return m.Success ? m.Value : string.Empty;
+        }
     }
 
     /// <summary>Đọc trạng thái của hóa đơn (Draft, Unpaid, Paid...)</summary>

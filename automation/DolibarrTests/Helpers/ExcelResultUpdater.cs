@@ -81,6 +81,11 @@ public static class ExcelResultUpdater
                     return false;
                 }
             }
+            catch (IOException ioEx)
+            {
+                Console.WriteLine($"[ExcelResultUpdater WARN] File Excel đang được mở/khóa bởi tiến trình khác (Excel lock): {ioEx.Message}. Bỏ qua cập nhật trực tiếp để không làm gián đoạn test.");
+                return false;
+            }
             catch (Exception ex)
             {
                 Console.WriteLine($"[ExcelResultUpdater ERROR] Lỗi khi ghi Excel: {ex.Message}");
