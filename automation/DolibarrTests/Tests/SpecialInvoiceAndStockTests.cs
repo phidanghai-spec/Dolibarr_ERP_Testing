@@ -498,7 +498,15 @@ public class SpecialInvoiceAndStockTests : BaseTest
     {
         const string targetProduct = "PR003";
         string evidenceRelPath = "evidence/manual/TC_STK_004_limit_alert.png";
+        var stockPage = new WarehouseStockPage(Driver);
 
+        // PRECONDITION: Đọc tồn vật lý hiện tại của PR003, không giả định cố định số 40
+        int initialStock = stockPage.GetProductPhysicalStock(targetProduct);
+        TestContext.WriteLine($"[TC_STK_004 Precondition] Tồn kho vật lý ban đầu của {targetProduct}: {initialStock}");
+        Assert.IsTrue(initialStock > 10,
+            $"Precondition không thỏa: Tồn kho của {targetProduct} trước khi test phải > 10 để kiểm tra ngưỡng alerte. Thực tế: {initialStock}");
+
+        bool testPassed = false;
         try
         {
             // BƯỚC 1: Cấu hình ngưỡng cảnh báo tồn tối thiểu = 10 cho PR003
@@ -518,49 +526,75 @@ public class SpecialInvoiceAndStockTests : BaseTest
 
             WaitHelper.WaitVisible(Driver, By.CssSelector("div.fiche"), 15);
 
-            // Assert Bước 1: Đọc chính xác ô giá trị hiển thị Stock limit for alert
+            // Assert 1: Đọc chính xác ô giá trị hiển thị Stock limit for alert
             var limitCell = WaitHelper.WaitVisible(Driver, By.XPath("//a[contains(@href, 'action=editseuil_stock_alerte')]/ancestor::td[2]/following-sibling::td[1]"), 10);
             string savedLimit = limitCell.Text.Trim();
-            TestContext.WriteLine($"[TC_STK_004] Ngưỡng cảnh báo sau khi lưu: '{savedLimit}'");
+            TestContext.WriteLine($"[TC_STK_004 Bước 1] Ngưỡng cảnh báo sau khi lưu: '{savedLimit}'");
             Assert.AreEqual("10", savedLimit, "Ngưỡng cảnh báo tồn tối thiểu trong bảng thông tin phải bằng đúng 10.");
 
-            // BƯỚC 2: Kích hoạt cảnh báo — Hạ tồn kho PR003 xuống <= 10 (tồn ban đầu 40 -> trừ 32 còn 8)
-            PerformStockCorrection(targetProduct, -32, "Ha ton PR003 xuong duoi nguong canh bao");
+            // ĐỐI CHỨNG (Negative Baseline Assertion): Khi tồn kho > 10 (chưa hạ tồn), kiểm chứng KHÔNG CÓ CẢNH BÁO
+            // Đối chứng 1: Thẻ kho không có icon pictowarning
+            var warningIconsBefore = Driver.FindElements(By.CssSelector(".pictowarning, span[title*='Stock lower than alert limit']"));
+            Assert.AreEqual(0, warningIconsBefore.Count,
+                $"[Đối chứng] Khi tồn kho ({initialStock}) > ngưỡng (10), Thẻ kho KHÔNG được hiển thị icon cảnh báo.");
 
-            // BƯỚC 3: Quan sát & Assert cảnh báo xuất hiện
-            // 3.1. Quan sát trên Thẻ kho của sản phẩm: Có biểu tượng cảnh báo tam giác (pictowarning)
+            // Đối chứng 2: Trang Replenishment không xuất hiện PR003
+            Driver.Navigate().GoToUrl($"{TestConfig.BaseUrl}/product/stock/replenish.php");
+            WaitHelper.WaitVisible(Driver, By.CssSelector("table.liste, table.noborder, div.fiche"), 15);
+            var replenishRowsBefore = Driver.FindElements(By.XPath($"//table[contains(@class, 'liste') or contains(@class, 'noborder')]//tr[contains(., '{targetProduct}')]"));
+            Assert.AreEqual(0, replenishRowsBefore.Count,
+                $"[Đối chứng] Khi tồn kho ({initialStock}) > ngưỡng (10), {targetProduct} KHÔNG được xuất hiện trong danh sách Replenishment.");
+
+            // BƯỚC 2: Kích hoạt cảnh báo — Tính delta động để hạ tồn kho PR003 xuống đúng mức 8 (<= 10)
+            const int targetLowStock = 8;
+            int deltaReduce = initialStock - targetLowStock;
+            PerformStockCorrection(targetProduct, -deltaReduce, $"Ha ton {targetProduct} tu {initialStock} xuong {targetLowStock} de kich hoat canh bao");
+
+            int stockAfterReduce = stockPage.GetProductPhysicalStock(targetProduct);
+            TestContext.WriteLine($"[TC_STK_004 Bước 2] Tồn kho thực tế sau khi hạ: {stockAfterReduce}");
+            Assert.AreEqual(targetLowStock, stockAfterReduce,
+                $"Tồn kho sau khi hạ phải đạt đúng mức {targetLowStock}. Thực tế: {stockAfterReduce}");
+
+            // BƯỚC 3: Quan sát & Assert cảnh báo xuất hiện chặt chẽ
+            // 3.1. Thẻ kho sản phẩm: Assert tooltip chính xác "Stock lower than alert limit" (không chấp nhận chuỗi 10 chung chung)
             Driver.Navigate().GoToUrl($"{TestConfig.BaseUrl}/product/stock/product.php?ref={targetProduct}");
             WaitHelper.WaitVisible(Driver, By.CssSelector("div.fiche"), 15);
 
             var warningIcon = WaitHelper.WaitVisible(Driver, By.CssSelector(".pictowarning, span[title*='Stock lower than alert limit']"), 10);
             string warningTitle = warningIcon.GetAttribute("title") ?? string.Empty;
-            TestContext.WriteLine($"[TC_STK_004] Icon cảnh báo hiển thị trên thẻ kho với title: '{warningTitle}'");
-            Assert.IsTrue(warningTitle.Contains("Stock lower than alert limit", StringComparison.OrdinalIgnoreCase) ||
-                          warningTitle.Contains("10", StringComparison.OrdinalIgnoreCase),
-                $"Icon cảnh báo phải có tooltip cảnh báo tồn thấp hơn ngưỡng alerte. Thực tế: '{warningTitle}'");
+            TestContext.WriteLine($"[TC_STK_004 Bước 3.1] Icon cảnh báo tooltip: '{warningTitle}'");
+            Assert.IsTrue(warningTitle.Contains("Stock lower than alert limit", StringComparison.OrdinalIgnoreCase),
+                $"Icon cảnh báo phải có tooltip chứa 'Stock lower than alert limit'. Thực tế: '{warningTitle}'");
 
-            // 3.2. Quan sát trên Trang đề xuất bổ sung kho (Replenishment)
+            // 3.2. Trang đề xuất bổ sung kho (Replenishment): Đọc chính xác từng cột trong bảng
             Driver.Navigate().GoToUrl($"{TestConfig.BaseUrl}/product/stock/replenish.php");
             WaitHelper.WaitVisible(Driver, By.CssSelector("table.liste, table.noborder"), 15);
 
-            // Chụp ảnh minh chứng ngay trên bảng bổ sung tồn kho
             ScreenshotHelper.CaptureToPath(Driver, evidenceRelPath);
 
-            var pr003ReplenishRow = Driver.FindElements(By.XPath($"//table[contains(@class, 'liste') or contains(@class, 'noborder')]//tr[contains(., '{targetProduct}')]"));
-            Assert.IsTrue(pr003ReplenishRow.Count > 0,
-                $"Sản phẩm {targetProduct} phải xuất hiện trong bảng bổ sung kho (Replenishment) khi tồn (8) <= ngưỡng cảnh báo (10).");
+            var pr003ReplenishRows = Driver.FindElements(By.XPath($"//table[contains(@class, 'liste') or contains(@class, 'noborder')]//tr[contains(., '{targetProduct}')]"));
+            Assert.IsTrue(pr003ReplenishRows.Count > 0,
+                $"Sản phẩm {targetProduct} phải xuất hiện trong bảng bổ sung kho khi tồn ({stockAfterReduce}) <= ngưỡng (10).");
 
-            string replenishRowText = pr003ReplenishRow[0].Text;
-            TestContext.WriteLine($"[TC_STK_004] Dòng sản phẩm trong Replenishment: {replenishRowText}");
-            Assert.IsTrue(replenishRowText.Contains("10"), "Dòng bổ sung kho phải hiển thị đúng Limit for alert là 10.");
+            var pr003Cells = pr003ReplenishRows[0].FindElements(By.TagName("td"));
+            Assert.IsTrue(pr003Cells.Count >= 6, $"Dòng sản phẩm trong Replenishment phải có ít nhất 6 cột. Thực tế: {pr003Cells.Count}");
 
-            // Ghi kết quả Pass vào Excel chỉ khi TẤT CẢ các Assert đều thành công
+            // Cột 4: Limit for alert (index 4)
+            string alertLimitCol = pr003Cells[4].Text.Trim();
+            // Cột 5: Physical Stock (index 5)
+            string physicalStockCol = pr003Cells[5].Text.Trim();
+
+            TestContext.WriteLine($"[TC_STK_004 Bước 3.2] Cột Limit for alert: '{alertLimitCol}', Cột Physical Stock: '{physicalStockCol}'");
+            Assert.AreEqual("10", alertLimitCol, $"Cột 'Limit for alert' trong bảng Replenishment phải đúng bằng 10. Thực tế: '{alertLimitCol}'");
+            Assert.IsTrue(int.TryParse(physicalStockCol, out int repStock) && repStock <= 10,
+                $"Cột 'Physical Stock' trong bảng Replenishment phải là số <= 10. Thực tế: '{physicalStockCol}'");
+
+            testPassed = true;
             ExcelResultUpdater.UpdateResult(TestConfig.ExcelPath, "TC_STK_004", "Pass",
-                $"Cấu hình ngưỡng 10 thành công. Khi hạ tồn xuống 8 (<= 10), hệ thống kích hoạt icon cảnh báo '{warningTitle}' và PR003 xuất hiện trong danh sách Replenishment.", evidenceRelPath);
+                $"Kiểm chứng 3 pha thành công: Đối chứng (tồn={initialStock}>10: không cảnh báo). Cấu hình Limit=10. Kích hoạt hạ tồn về {stockAfterReduce}<=10: xuất hiện icon pictowarning ('{warningTitle}') và dòng Replenish (Limit=10, Stock={physicalStockCol}).", evidenceRelPath);
         }
         catch (Exception ex)
         {
-            // Chụp ảnh lỗi và ghi Fail vào Excel
             ScreenshotHelper.CaptureToPath(Driver, evidenceRelPath);
             ExcelResultUpdater.UpdateResult(TestConfig.ExcelPath, "TC_STK_004", "Fail",
                 $"Lỗi kiểm thử cảnh báo tồn kho: {ex.Message}", evidenceRelPath);
@@ -568,15 +602,38 @@ public class SpecialInvoiceAndStockTests : BaseTest
         }
         finally
         {
-            // CLEANUP: Hoàn trả lại tồn kho PR003 về 40 (+32) để đảm bảo dữ liệu mốc sạch cho các test khác
+            // CLEANUP: Hoàn trả lại tồn kho PR003 đúng về mức ban đầu đã đọc (initialStock), đảm bảo tính Idempotent
             try
             {
-                PerformStockCorrection(targetProduct, 32, "Hoan tra ton PR003 ve 40 sau khi hoan tat TC_STK_004");
-                TestContext.WriteLine("[TC_STK_004 Cleanup] Đã hoàn trả tồn kho PR003 về mức mốc sạch ban đầu (40).");
+                int currentStock = stockPage.GetProductPhysicalStock(targetProduct);
+                if (currentStock != initialStock)
+                {
+                    int deltaRestore = initialStock - currentStock;
+                    PerformStockCorrection(targetProduct, deltaRestore, $"Hoan tra ton {targetProduct} ve dung muc ban dau ({initialStock})");
+                }
+
+                int verifiedRestoredStock = stockPage.GetProductPhysicalStock(targetProduct);
+                TestContext.WriteLine($"[TC_STK_004 Cleanup] Tồn kho {targetProduct} sau khi hoàn trả: {verifiedRestoredStock} (Ban đầu: {initialStock})");
+
+                if (verifiedRestoredStock != initialStock)
+                {
+                    string cleanupErrMsg = $"Cảnh báo nghiêm trọng: Cleanup không thể đưa tồn kho {targetProduct} về {initialStock} (hiện tại: {verifiedRestoredStock}).";
+                    TestContext.WriteLine($"[TC_STK_004 Cleanup LỖI] {cleanupErrMsg}");
+                    if (testPassed)
+                    {
+                        ExcelResultUpdater.UpdateResult(TestConfig.ExcelPath, "TC_STK_004", "Pass (Cảnh báo Cleanup)",
+                            $"Test Pass nhưng cleanup tồn kho lệch mốc: ban đầu {initialStock}, sau hoàn trả {verifiedRestoredStock}.", evidenceRelPath);
+                    }
+                }
             }
             catch (Exception cleanupEx)
             {
-                TestContext.WriteLine($"[TC_STK_004 Cleanup Cảnh báo] Không thể hoàn trả tồn: {cleanupEx.Message}");
+                TestContext.WriteLine($"[TC_STK_004 Cleanup Exception] {cleanupEx.Message}");
+                if (testPassed)
+                {
+                    ExcelResultUpdater.UpdateResult(TestConfig.ExcelPath, "TC_STK_004", "Pass (Cleanup Failed)",
+                        $"Test Pass nhưng exception khi hoàn trả tồn: {cleanupEx.Message}", evidenceRelPath);
+                }
             }
         }
     }
