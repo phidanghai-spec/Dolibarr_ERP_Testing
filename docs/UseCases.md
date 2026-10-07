@@ -179,6 +179,12 @@ Quản lý số lượng tồn kho thực tế của sản phẩm tại từng k
        - **Biên 2 (Tồn = 9):** Tồn dưới ngưỡng ($9 < 10$ là `True`) $\rightarrow$ Hệ thống **KÍCH HOẠT biểu tượng cảnh báo tam giác vàng** (`Stock lower than alert limit (10)`) và đưa sản phẩm vào bảng Bổ sung kho (*Replenishment*).
    - *Ghi chú Test Data*: Tồn kho ban đầu của `PR003` là 40; sau khi thực thi hóa đơn bán hàng `IN2609-0002` (bán 5 chiếc ngày 18/09/2026), tồn thực tế tự nhiên còn 35. Mốc dữ liệu sạch chuẩn này được sao lưu trong `db/dolibarr_baseline.sql`. Các kịch bản test kho (`TC_STK_004`) sử dụng cơ chế Dynamic Baseline: đọc tồn thực tế $S_0$, hạ tồn kiểm tra biên và khôi phục đối xứng về đúng $S_0$ sau khi test hoàn tất.
 
-#### 5. Hậu điều kiện (Postconditions)
+#### 5. Luồng sự kiện thay thế (Alternative Flows)
+- **A1 — Điều chỉnh tăng tồn kho thủ công (Stock Increase - TC_STK_001):** Thủ kho phát hiện hàng thừa qua kiểm kê, thực hiện cộng thêm 10 đơn vị cho `PR002`. Tồn kho tăng chính xác từ 30 lên 40 đơn vị, tab Stock movements phát sinh bản ghi tăng `+10`.
+- **A2 — Điều chỉnh giảm tồn kho thủ công do hỏng (Stock Decrease - TC_STK_002):** Thủ kho thực hiện xuất hủy 5 đơn vị hàng hư hỏng cho `PR002`. Tồn kho giảm chính xác từ 40 về 35 đơn vị (hoặc từ 30 về 25), tab Stock movements phát sinh bản ghi giảm `-5`.
+- **A3 — Khảo sát điều chỉnh xuất quá số lượng tồn (Negative Stock BVA - TC_STK_003):** Thực hiện xuất 100 đơn vị cho `PR004` khi tồn thực tế chỉ có 89 (vượt biên 11 đơn vị). Khảo sát phản hồi của Dolibarr theo cấu hình: chặn giao dịch hoặc ghi nhận tồn âm -11 đơn vị bôi đỏ.
+- **A4 — Cảnh báo chạm ngưỡng tồn tối thiểu (Stock Limit BVA - TC_STK_004):** Hạ tồn kho sản phẩm `PR003` xuống 8 đơn vị (dưới ngưỡng cảnh báo 10). Hệ thống hiển thị biểu tượng cảnh báo tam giác vàng và đưa vào danh sách đề xuất bổ sung 42 đơn vị trong trang Replenishment.
+
+#### 6. Hậu điều kiện (Postconditions)
 - Bảng cơ sở dữ liệu `llx_product_stock` (cột `reel` theo kho `KHO001`) và `llx_product` (cột `stock`) ghi nhận chính xác số tồn và từng giao dịch chuyển dịch kho kèm thời gian, người thực hiện và mã chứng từ liên kết.
 
