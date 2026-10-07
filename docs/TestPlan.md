@@ -45,15 +45,33 @@ Kiểm thử tập trung vào **3 module trọng tâm** theo quy định đề t
 - **Base URL:** `http://localhost/dolibarr` (Trang đăng nhập: `http://localhost/dolibarr/index.php`).
 - **Tài khoản quản trị kiểm thử:** `admin` (mật khẩu được lưu trong biến môi trường bảo mật `DOLIBARR_ADMIN_PASSWORD`).
 
-### 2.2 Cấu hình nghiệp vụ quan trọng
+### 2.2 Cấu hình nghiệp vụ và Dữ liệu nền kiểm thử
+
+#### 1. Cấu hình nghiệp vụ bắt buộc
 - **Quy tắc trừ kho bắt buộc:** Bật cấu hình *"Decrease real stocks on validation of customer invoice/credit note"* (tại `Home` > `Setup` > `Modules` > `Stocks`). Quy tắc này là điều kiện tiên quyết để tồn kho tự động giảm khi hóa đơn được xác thực.
-- **Dữ liệu nền mốc chuẩn (Clean Baseline Data):**
-  - Khách hàng: `Cong ty ABC` (socid=1), `Cong ty BCD` (socid=2).
-  - Sản phẩm & Tồn kho ban đầu tại kho `KHO001`:
-    - `PR001`: Tồn 50 cái.
-    - `PR002`: Tồn 30 cái.
-    - `PR003`: Tồn 40 cái.
-    - `PR004`: Tồn 89 cái.
+
+#### 2. Dữ liệu mốc sạch ban đầu (Clean Baseline Data — Trước mọi kiểm thử nghiệp vụ)
+Được định nghĩa là trạng thái nền nguyên bản của hệ thống SUT sau khi cài đặt thuần qua Dolibarr Fresh Install Wizard và nạp dữ liệu nền chuẩn qua API lõi Dolibarr:
+- **Tệp dump mốc sạch:** `db/dolibarr_clean_baseline.sql` (Dung lượng: 705,175 bytes).
+- **Mã băm toàn vẹn (SHA-256):** `D1F61E3B3A5E5ECD8B0A724BABEFFE7EBEB21F341F07C2B8CDCF99E5A0B1254C`
+- **Script khôi phục tự động an toàn:** `pwsh tools\restore-db.ps1` (tự động đọc cấu hình, xác thực qua `--defaults-extra-file`, không lộ mật khẩu).
+- **Khách hàng nền:** `Cong ty ABC` (socid=1, code=`CU2609-00001`, client=1), `Cong ty BCD` (socid=2, code=`CU2609-00002`, client=1).
+- **Kho hàng nền:** `KHO001` (rowid=1, ref=`KHO001`, statut=1).
+- **Sản phẩm, Đơn giá và Tồn kho ban đầu tại kho `KHO001`:**
+  *(Ghi chú: Đơn giá và tồn kho được định nghĩa chuẩn xác theo đặc tả số học cho các ca kiểm thử Bán hàng & Hóa đơn)*:
+  - `PR001` (*San pham Test 1*): Đơn giá trước thuế (HT) = **100,000 VND**, VAT 10% = 10,000 VND, Đơn giá sau thuế (TTC) = **110,000 VND**; Tồn ban đầu = **50 cái**.
+  - `PR002` (*San pham Test 2*): Đơn giá trước thuế (HT) = **110,000 VND**, VAT 10% = 11,000 VND, Đơn giá sau thuế (TTC) = **121,000 VND**; Tồn ban đầu = **30 cái**.
+  - `PR003` (*San pham Test 3*): Đơn giá trước thuế (HT) = **111,000 VND**, VAT 10% = 11,100 VND, Đơn giá sau thuế (TTC) = **122,100 VND**; Tồn ban đầu = **40 cái**.
+  - `PR004` (*San pham Test 4*): Đơn giá trước thuế (HT) = **111,100 VND**, VAT 10% = 11,110 VND, Đơn giá sau thuế (TTC) = **122,210 VND**; Tồn ban đầu = **89 cái**.
+- **Chỉ số AUTO_INCREMENT sạch:** `llx_facture`: 1, `llx_propal`: 1, `llx_societe`: 3, `llx_product`: 5, `llx_stock_mouvement`: 5. Không mang dấu vết hoặc sequence ID bị nhảy vọt từ các thao tác trước đó.
+
+#### 3. Trạng thái sau chu kỳ bán hàng chuẩn (Post-Standard-Cycle State — Sau Cycle 4)
+- Sau khi thực thi trọn vẹn luồng chuẩn Báo giá $\rightarrow$ Hóa đơn $\rightarrow$ Trừ kho (`TC_SAL_001` đến `TC_SAL_008`), hệ thống phát sinh hóa đơn bán hàng chính thức **`IN2609-0002`**:
+  - Đối tác: `Cong ty ABC` (socid=1).
+  - Chi tiết hàng bán: 5 cái sản phẩm `PR003` với đơn giá 111,000 VND.
+  - Thành tiền: Tổng trước thuế (Total HT) = **555,000 VND**; Tiền thuế VAT 10% = **55,500 VND**; Tổng thanh toán (Total TTC) = **610,500 VND**.
+  - Trạng thái hóa đơn: `fk_statut = 1` (*Validated / Unpaid*), `paye = 0`.
+  - Tồn kho `PR003` tại kho `KHO001`: Giảm 5 cái (từ 40 cái $\rightarrow$ **35 cái**).
 
 ### 2.3 Môi trường máy trạm thực thi Automation
 - **Nền tảng:** .NET SDK 9.0.317.
@@ -130,10 +148,11 @@ gantt
     section Cycle 3
     CRM Refactoring & Review (PR #2)     :done, 2026-09-29, 2026-10-04
     section Cycle 4
-    Automation Sales & Invoicing (Tuần 2-4):active, 2026-10-05, 2026-10-25
+    Automation Sales & Invoicing         :done, 2026-10-05, 2026-10-06
     section Cycle 5
-    Manual Stock, Invoice & Mở rộng (Tuần 5-7): 2026-10-26, 2026-11-15
-    Tổng kết báo cáo & Nghiệm thu (Tuần 8): 2026-11-16, 2026-12-01
+    Manual Stock, Invoice & Mở rộng DB/API:done, 2026-10-06, 2026-10-07
+    section Nghiệm thu
+    Mốc sạch Baseline, Báo cáo & Tổng kết :active, 2026-10-07, 2026-12-01
 ```
 
 ### Bảng theo dõi thực thi theo chu kỳ (Execution Status By Cycle)
@@ -141,8 +160,31 @@ gantt
 | Chu kỳ (Cycle) | Giai đoạn / Nội dung | Số TC | Passed | Failed | Blocked | Tỷ lệ Pass | Trạng thái |
 |:---|:---|:---:|:---:|:---:|:---:|:---:|:---:|
 | **Cycle 1** | Smoke Test & Khởi tạo khung Automation | 2 | 2 | 0 | 0 | 100% | **Hoàn thành** |
-| **Cycle 2** | Kiểm thử CRM BVA (128/129 ký tự), Negative & Unicode | 7 | 7 | 0 | 0 | 100% | **Hoàn thành** |
-| **Cycle 3** | CRM hoàn thiện: Update, Search, Delete & Review gia cố Cleanup | 5 | 5 | 0 | 0 | 100% | **Hoàn thành (Đã nộp PR #2)** |
-| **Cycle 4** | Automation Sales & Invoicing: Proposal $\rightarrow$ Invoice $\rightarrow$ Trừ kho | 8 | 8 | 0 | 0 | 100% | **Hoàn thành (8/8 Pass)** |
-| **Cycle 5** | Manual Testing: Hóa đơn đặc biệt, Quản lý kho & Mở rộng API Postman / Đối chiếu DB | 12 (dự kiến) | 0 | 0 | 0 | 0% | *Kế hoạch (Tuần 5–7)* |
-| **TỔNG HỢP** | **Toàn bộ dự án** | **34** | **22** | **0** | **0** | **100% (hiện tại)** | **Đang tiến hành** |
+| **Cycle 2** | Kiểm thử CRM BVA (128/129 ký tự), Negative & Unicode (Phát hiện BUG_001) | 7 | 6 | 1 | 0 | 85.7% | **Hoàn thành (Ghi nhận BUG_001)** |
+| **Cycle 3** | CRM hoàn thiện: Update, Search, Delete & Review gia cố Cleanup | 5 | 5 | 0 | 0 | 100% | **Hoàn thành** |
+| **Cycle 4** | Automation Sales & Invoicing: Proposal $\rightarrow$ Invoice $\rightarrow$ Trừ kho | 8 | 8 | 0 | 0 | 100% | **Hoàn thành** |
+| **Cycle 5** | Manual Testing (8 TC: Hóa đơn đặc biệt & Kho - Chưa chạy tay) + Mở rộng (8 TC: 4 DB + 4 REST API) | 16 | 8 | 0 | 0 | 50.0% | **Mở rộng Đạt, 8 Manual Not Run** |
+| **TỔNG HỢP** | **Toàn bộ bộ kiểm thử (Core 28 TC + Kỹ thuật 8 TC)** | **36** | **27** | **1** | **0** | **75.0%** | **27 Pass, 1 Fail, 8 Not Run** |
+| **TRONG ĐÓ** | **28 Ca kiểm thử nghiệp vụ (Core Test Cases trong Excel)** | **28** | **19** | **1** | **0** | **67.9%** | **19 Pass, 1 Fail, 8 Not Run** |
+| **TRONG ĐÓ** | **31 Ca kiểm thử tự động (Automation Test Suite .NET 9)** | **31** | **30** | **1** | **0** | **96.8%** | **Vượt tiêu chí $\ge 95\%$** |
+
+---
+
+### 4.7 Nghiệm thu chạy tự động trên Mốc sạch Baseline (Acceptance Run — 07/10/2026)
+
+- **Môi trường & Database:** Dolibarr 22.0.4 chạy trên MariaDB schema `dolibarr_clean` (độc lập, 282 bảng, 0 chứng từ rác, tồn ban đầu chuẩn 209 sản phẩm).
+- **Điều kiện thực thi:** Chạy tuần tự an toàn toàn bộ test suite (`[assembly: DoNotParallelize]`), khắc phục triệt để hiện tượng race condition khi nhiều trình duyệt gửi request đồng thời lên local web server.
+- **Lệnh thực thi:**
+  ```powershell
+  dotnet test automation\DolibarrTests\DolibarrTests.csproj --filter "TestCategory!=Reference" --logger "console;verbosity=normal"
+  ```
+- **Kết quả thực tế (Log thật tại `docs/test_run_acceptance_20261007.log`):**
+  - **Tổng số test:** 31 tests.
+  - **Passed:** 30 / 31 (Đạt 96.8% trên toàn bộ test suite tự động; 19/20 Passed cho phạm vi Core Automation).
+  - **Failed:** 1 / 31 — duy nhất `TC_CRM_010` (Bắt đúng `BUG_001` — URL redirect chứa `__ID__` theo đúng đặc tả UC-02).
+  - **Thời gian chạy:** 5.62 phút (nhanh hơn và ổn định hơn so với chạy song song 4 workers do tránh nghẽn I/O).
+- **Phát hiện kỹ thuật & giải pháp khắc phục Race Condition (`TC_SAL_006`):**
+  - *Hiện tượng:* Khi chạy đa luồng (`Workers: 4`), `TC_SAL_006` bị timeout 10 giây tại `ValidateProposal()`. Ảnh chụp màn hình cho thấy form báo giá bị trễ nhịp Ajax khi chọn sản phẩm `PR001`, nút `ADD` được kích hoạt trước khi sản phẩm được gắn vào form, dẫn đến báo giá trống và Dolibarr không hiển thị nút Validate.
+  - *Cô lập nguyên nhân:* Chạy độc lập `TC_SAL_006` vượt qua 100% trong 29 giây.
+  - *Giải pháp triệt để:* Chuyển đổi cấu hình MSTest sang `[assembly: DoNotParallelize]`. Toàn bộ test suite chạy tuần tự xác định (deterministic), không còn phụ thuộc vào độ trễ mạng cục bộ hay nghẽn tài nguyên CPU.
+- **Hoàn nguyên Baseline sau kiểm thử:** Chạy `pwsh tools\restore-db.ps1`, khôi phục database về đúng 4 bút toán tồn kho với tổng 209 đơn vị.

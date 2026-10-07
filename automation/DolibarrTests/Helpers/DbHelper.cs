@@ -39,7 +39,7 @@ public static class DbHelper
     public static async Task<DataRow?> GetCustomerByNameAsync(string customerName)
     {
         const string query = @"
-            SELECT rowid, nom, code_client, status, datec 
+            SELECT rowid, nom, code_client, client, status, datec 
             FROM llx_societe 
             WHERE nom = @name 
             ORDER BY rowid DESC 
@@ -79,7 +79,7 @@ public static class DbHelper
     }
 
     /// <summary>
-    /// Đối chiếu tồn kho thực tế (stock) của sản phẩm trong bảng llx_product theo Mã (ref).
+    /// Đối chiếu tổng tồn kho toàn hệ thống (stock) của sản phẩm trong bảng llx_product theo Mã (ref).
     /// </summary>
     public static async Task<decimal> GetProductStockByRefAsync(string productRef)
     {
@@ -96,6 +96,30 @@ public static class DbHelper
         var result = await cmd.ExecuteScalarAsync();
         return result != null && result != DBNull.Value ? Convert.ToDecimal(result) : -1m;
     }
+
+    /// <summary>
+    /// Đối chiếu tồn kho thực tế (reel) của sản phẩm theo từng kho cụ thể trong bảng llx_product_stock.
+    /// Tránh đọc nhầm tổng tồn toàn hệ thống khi phân tích dữ liệu kho riêng lẻ.
+    /// </summary>
+    public static async Task<decimal> GetWarehouseStockByRefAsync(string productRef, string warehouseRef = "KHO001")
+    {
+        const string query = @"
+            SELECT ps.reel
+            FROM llx_product_stock ps
+            JOIN llx_product p ON p.rowid = ps.fk_product
+            JOIN llx_entrepot e ON e.rowid = ps.fk_entrepot
+            WHERE p.ref = @productRef AND e.ref = @warehouseRef
+            LIMIT 1;";
+
+        await using var conn = await OpenConnectionAsync();
+        await using var cmd = new MySqlCommand(query, conn);
+        cmd.Parameters.AddWithValue("@productRef", productRef);
+        cmd.Parameters.AddWithValue("@warehouseRef", warehouseRef);
+
+        var result = await cmd.ExecuteScalarAsync();
+        return result != null && result != DBNull.Value ? Convert.ToDecimal(result) : -1m;
+    }
+
 
     /// <summary>
     /// Lấy biến động tồn kho gần nhất trong bảng llx_stock_mouvement của sản phẩm.

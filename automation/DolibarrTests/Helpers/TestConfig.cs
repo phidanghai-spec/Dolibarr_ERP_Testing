@@ -13,8 +13,8 @@ public static class TestConfig
     static TestConfig()
     {
         _config = new ConfigurationBuilder()
-            .AddJsonFile("appsettings.local.json", optional: true, reloadOnChange: false)
             .AddJsonFile("appsettings.example.json", optional: true, reloadOnChange: false)
+            .AddJsonFile("appsettings.local.json", optional: true, reloadOnChange: false)
             .AddEnvironmentVariables()
             .Build();
     }
@@ -82,10 +82,31 @@ public static class TestConfig
 
     /// <summary>
     /// Chuỗi kết nối cơ sở dữ liệu MariaDB Dolibarr.
-    /// Mặc định: Server=localhost;Port=3306;Database=dolibarr;Uid=dolibarrmysql;Pwd=changeme;Charset=utf8mb4;
+    /// Ưu tiên: DOLIBARR_DB_CONNECTION > config (appsettings.local.json có inject DOLIBARR_DB_PASSWORD nếu có).
     /// </summary>
-    public static string DbConnectionString =>
-        Environment.GetEnvironmentVariable("DOLIBARR_DB_CONNECTION")
-        ?? _config["Database:ConnectionString"]
-        ?? "Server=localhost;Port=3306;Database=dolibarr;Uid=dolibarrmysql;Pwd=changeme;Charset=utf8mb4;";
+    public static string DbConnectionString
+    {
+        get
+        {
+            var envConn = Environment.GetEnvironmentVariable("DOLIBARR_DB_CONNECTION");
+            if (!string.IsNullOrWhiteSpace(envConn)) return envConn;
+
+            var configConn = _config["Database:ConnectionString"]
+                ?? "Server=localhost;Port=3306;Database=dolibarr;Uid=dolibarrmysql;Charset=utf8mb4;";
+
+            var envPass = Environment.GetEnvironmentVariable("DOLIBARR_DB_PASSWORD");
+            if (!string.IsNullOrWhiteSpace(envPass))
+            {
+                if (configConn.Contains("Pwd="))
+                {
+                    configConn = System.Text.RegularExpressions.Regex.Replace(configConn, @"Pwd=[^;]*", $"Pwd={envPass}");
+                }
+                else
+                {
+                    configConn = configConn.TrimEnd(';') + $";Pwd={envPass};";
+                }
+            }
+            return configConn;
+        }
+    }
 }

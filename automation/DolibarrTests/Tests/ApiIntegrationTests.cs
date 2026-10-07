@@ -10,6 +10,7 @@ namespace DolibarrTests.Tests;
 /// Đồng bộ kết quả trực tiếp vào Dashboard HTML ExtentReports.
 /// </summary>
 [TestClass]
+[DoNotParallelize]
 public class ApiIntegrationTests
 {
     private static readonly HttpClient HttpClient = new();

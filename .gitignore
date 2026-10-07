@@ -9,11 +9,13 @@ TestResults/
 *.tmp
 *.backup*.xlsx
 *.before_fix*.xlsx
+*.bak
 # Secrets / local config
 *.env
 appsettings.local.json
 # DB dumps
 db/*.sql
+!db/dolibarr_clean_baseline.sql
 # OS
 Thumbs.db
 .DS_Store

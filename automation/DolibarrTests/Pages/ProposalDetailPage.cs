@@ -48,14 +48,22 @@ public class ProposalDetailPage
         try
         {
             var wait = new WebDriverWait(_driver, TimeSpan.FromSeconds(5));
+            wait.IgnoreExceptionTypes(typeof(StaleElementReferenceException), typeof(NoSuchElementException));
             return wait.Until(d =>
             {
-                var elem = d.FindElement(RefTitle);
-                var match = Regex.Match(elem.Text, @"(PR\d{4}-\d{4,5}|PROV\d+)", RegexOptions.IgnoreCase);
-                return match.Success ? match.Value : null;
+                try
+                {
+                    var elem = d.FindElement(RefTitle);
+                    var match = Regex.Match(elem.Text, @"(PR\d{4}-\d{4,5}|PROV\d+)", RegexOptions.IgnoreCase);
+                    return match.Success ? match.Value : null;
+                }
+                catch (StaleElementReferenceException)
+                {
+                    return null;
+                }
             })!;
         }
-        catch (WebDriverTimeoutException)
+        catch (Exception)
         {
             var pageSource = _driver.PageSource;
             var m = Regex.Match(pageSource, @"(PR\d{4}-\d{4,5}|PROV\d+)", RegexOptions.IgnoreCase);

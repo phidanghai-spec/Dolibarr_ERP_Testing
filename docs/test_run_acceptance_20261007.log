@@ -1,0 +1,68 @@
+=== KIỂM THỬ TỰ ĐỘNG DOLIBARR ERP - NGHIỆM THU MỐC SẠCH BASELINE ===
+Thời gian chạy: 2026-10-07 15:58:27 - 16:04:09 (Tổng thời gian: 5.6229 Phút)
+Môi trường: Dolibarr 22.0.4 (DoliWamp) trên localhost, Database: dolibarr_clean (MariaDB 10.6.5)
+Chế độ thực thi: Tuần tự ([assembly: DoNotParallelize])
+Lệnh chạy: dotnet test automation\DolibarrTests\DolibarrTests.csproj --filter "TestCategory!=Reference" --logger "console;verbosity=normal"
+
+======================== CONSOLE OUTPUT ========================
+  Determining projects to restore...
+  All projects are up-to-date for restore.
+  DolibarrTests -> D:\Projects\DoAnThucTap_Dolibarr\automation\DolibarrTests\bin\Debug\net9.0\DolibarrTests.dll
+Test run for D:\Projects\DoAnThucTap_Dolibarr\automation\DolibarrTests\bin\Debug\net9.0\DolibarrTests.dll (.NETCoreApp,Version=v9.0)
+VSTest version 17.14.1 (x64)
+
+Starting test execution, please wait...
+A total of 1 test files matched the specified pattern.
+  Passed TC_API_001_GetApiStatus [5 s]
+  Passed TC_API_002_GetThirdParties [316 ms]
+  Passed TC_API_003_GetInvoices [348 ms]
+  Passed TC_API_004_GetProductStock [309 ms]
+  Passed TC_CRM_005_CreateCustomer_NameExactly128Chars_ShouldSaveSuccessfully [21 s]
+  Passed TC_CRM_006_CreateCustomer_Name129Chars_BrowserShouldTruncateTo128 [20 s]
+  Passed TC_CRM_007_CreateCustomer_EmptyName_ShouldBeBlocked [10 s]
+  Passed TC_CRM_008_CreateCustomer_SingleChar_ShouldSaveSuccessfully [20 s]
+  Passed TC_CRM_009_CreateCustomer_WhitespaceOnly_ShouldBeBlocked [11 s]
+  Failed TC_CRM_010_CreateCustomer_SpecialChars_ObserveXssHandling [7 s]
+  Error Message:
+   Assert.IsFalse failed. [TC_CRM_010] [BUG_001] URL thô chứa placeholder '__ID__': http://localhost/dolibarr/societe/card.php?id=__ID__&socid=6. Expected theo UC-02 §4: URL hợp lệ dạng 'societe/card.php?socid={id}' không chứa '__ID__'.
+  Stack Trace:
+     at DolibarrTests.Tests.CrmCustomerTests.TC_CRM_010_CreateCustomer_SpecialChars_ObserveXssHandling() in D:\Projects\DoAnThucTap_Dolibarr\automation\DolibarrTests\Tests\CrmCustomerTests.cs:line 528
+   at System.RuntimeMethodHandle.InvokeMethod(Object target, Void** arguments, Signature sig, Boolean isConstructor)
+   at System.Reflection.MethodBaseInvoker.InvokeWithNoArgs(Object obj, BindingFlags invokeAttr)
+
+  Standard Output Messages:
+ 
+ 
+ TestContext Messages:
+ [Cleanup] Đã xóa KH: http://localhost/dolibarr/societe/card.php?socid=6
+ [Screenshot khi Fail] D:\Projects\DoAnThucTap_Dolibarr\automation\DolibarrTests\bin\Debug\net9.0\TestResults\Screenshots\TC_CRM_010_CreateCustomer_SpecialChars_ObserveXssHandling_2026-10-07_16-00-09.png
+
+
+  Passed TC_CRM_011_CreateCustomer_VietnameseDiacritics128Chars_ShouldSaveSuccessfully [21 s]
+  Passed Cleanup_DeleteAllTestCustomers [3 s]
+  Passed TC_CRM_012_UpdateCustomer_ChangeName_ShouldDisplayNewName [7 s]
+  Passed TC_CRM_013_SearchCustomer_ByFullName_ShouldReturnExactMatch [8 s]
+  Passed TC_CRM_014_SearchCustomer_ByPartialName_ShouldReturnMatchingResults [8 s]
+  Passed TC_CRM_015_SearchCustomer_NonExistentName_ShouldReturnNoResults [5 s]
+  Passed TC_CRM_016_DeleteCustomer_ShouldRemoveFromList [7 s]
+  Passed TC_DB_001_VerifyDatabaseConnection [82 ms]
+  Passed TC_DB_002_VerifyCustomerDataIntegrity [61 ms]
+  Passed TC_DB_003_VerifyInvoiceDataIntegrity [32 ms]
+  Passed TC_DB_004_VerifyStockMovementIntegrity [30 ms]
+  Passed TC_SAL_001_CreateDraftProposal_ShouldSucceed [6 s]
+  Passed TC_SAL_002_AddProductLine_ShouldCalculateCorrectTotal [7 s]
+  Passed TC_SAL_003_AddMultipleProducts_ShouldCalculateCumulativeTotal [10 s]
+  Passed TC_SAL_004_ValidateProposal_ShouldChangeStatusToOpen [23 s]
+  Passed TC_SAL_005_CloseProposalAsSigned_ShouldUpdateStatus [23 s]
+  Passed TC_SAL_006_CreateInvoiceFromSignedProposal_ShouldInheritTotal [26 s]
+  Passed TC_SAL_007_ValidateInvoice_ShouldChangeStatusToUnpaid [26 s]
+  Passed TC_SAL_008_ValidateInvoice_ShouldDecreaseProductStock [34 s]
+  Passed SMOKE_01_LoginAdmin_ValidCredentials_ShouldNavigateToDashboard [11 s]
+  Passed SMOKE_02_LoginAdmin_WrongPassword_ShouldShowError [4 s]
+
+Test Run Failed.
+Total tests: 31
+     Passed: 30
+     Failed: 1
+ Total time: 5.6229 Minutes
+================================================================

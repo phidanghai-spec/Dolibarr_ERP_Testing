@@ -4,19 +4,26 @@ using Microsoft.VisualStudio.TestTools.UnitTesting;
 using OpenQA.Selenium;
 using OpenQA.Selenium.Support.UI;
 using System.Globalization;
+using System.Runtime.ExceptionServices;
 using System.Text.RegularExpressions;
 
 namespace DolibarrTests.Tests;
 
 /// <summary>
-/// Test Suite thực thi tự động 8 kịch bản cho:
+/// Kịch bản kiểm thử tham khảo (Reference Scripts) cho 8 trường hợp Manual:
 /// - Sales & Invoicing: Hóa đơn đặc biệt (TC_SAL_009..012)
 /// - Stock: Điều chỉnh kho & Cảnh báo tồn kho (TC_STK_001..004)
-/// Tự động chụp ảnh minh chứng vào evidence/manual/ và cập nhật Excel qua ExcelResultUpdater.
+/// 
+/// LƯU Ý TUÂN THỦ QUY TẮC AGENTS.md (Quy tắc 1):
+/// Các ca kiểm thử này thuộc phân hệ Manual. Kịch bản này CHỈ DÙNG THAM KHẢO KỸ THUẬT,
+/// TUYỆT ĐỐI KHÔNG tự động cập nhật kết quả (Pass/Fail) vào file Excel báo cáo.
+/// Kết quả chính thức phải do người thực hiện kiểm thử thủ công và nghiệm thu.
+/// Suite này được gắn [TestCategory("Reference")] để loại khỏi CI và bộ chạy hồi quy mặc định.
 /// </summary>
 [TestClass]
 [DoNotParallelize]
-public class SpecialInvoiceAndStockTests : BaseTest
+[TestCategory("Reference")]
+public class ReferenceManualScriptsTests : BaseTest
 {
     private LoginPage _loginPage = null!;
     private DashboardPage _dashboardPage = null!;
@@ -57,9 +64,9 @@ public class SpecialInvoiceAndStockTests : BaseTest
     }
 
     [TestMethod]
-    [TestCategory("Manual_Automation_Run")]
+    [TestCategory("Reference")]
     [Description("TC_SAL_009: Hủy hóa đơn bán hàng ở trạng thái Unpaid (Abandon/Cancel)")]
-    public void TC_SAL_009_CancelInvoice_ShouldUpdateStatusToAbandoned()
+    public void Reference_TC_SAL_009_CancelInvoice_ShouldUpdateStatusToAbandoned()
     {
         string invoiceUrl = CreateAndValidateInvoiceViaProposal();
         TestContext.WriteLine($"[TC_SAL_009] Hóa đơn Unpaid tại: {invoiceUrl}");
@@ -123,15 +130,14 @@ public class SpecialInvoiceAndStockTests : BaseTest
 
         Assert.IsTrue(isCanceled, $"Hóa đơn phải chuyển sang trạng thái Canceled/Abandoned. Thực tế: '{statusText}'");
 
-        // Ghi vào Excel
-        ExcelResultUpdater.UpdateResult(TestConfig.ExcelPath, "TC_SAL_009", "Pass",
-            $"Hóa đơn chuyển sang trạng thái {statusText}. Nút thanh toán bị vô hiệu hóa.", evidenceRelPath);
+        // Tham khảo kỹ thuật - Không tự tiện ghi kết quả Manual vào Excel
+        TestContext.WriteLine($"[Reference_TC_SAL_009] Hóa đơn chuyển trạng thái: '{statusText}'. Không ghi Excel (tuân thủ quy tắc Manual).");
     }
 
     [TestMethod]
-    [TestCategory("Manual_Automation_Run")]
+    [TestCategory("Reference")]
     [Description("TC_SAL_010: Tạo hóa đơn hoàn tiền / điều chỉnh (Credit note AV...) từ hóa đơn gốc")]
-    public void TC_SAL_010_CreateCreditNote_ShouldGenerateRefAV()
+    public void Reference_TC_SAL_010_CreateCreditNote_ShouldGenerateRefAV()
     {
         string invoiceUrl = CreateAndValidateInvoiceViaProposal();
         TestContext.WriteLine($"[TC_SAL_010] Hóa đơn gốc tại: {invoiceUrl}");
@@ -191,8 +197,7 @@ public class SpecialInvoiceAndStockTests : BaseTest
         Assert.IsFalse(statusText.Contains("Draft", StringComparison.OrdinalIgnoreCase),
             "Credit note phải được xác thực (không còn Draft).");
 
-        ExcelResultUpdater.UpdateResult(TestConfig.ExcelPath, "TC_SAL_010", "Pass",
-            $"Hóa đơn hoàn tiền {creditRef} tạo thành công từ hóa đơn gốc và đã xác thực.", evidenceRelPath);
+        TestContext.WriteLine($"[Reference_TC_SAL_010] Credit note đã tạo: '{creditRef}'. Không ghi Excel (tuân thủ quy tắc Manual).");
     }
 
     /// <summary>Helper ghi nhận thanh toán cho hóa đơn (2 bước chuẩn của Dolibarr)</summary>
@@ -293,9 +298,9 @@ public class SpecialInvoiceAndStockTests : BaseTest
 
     [TestMethod]
     [DoNotParallelize]
-    [TestCategory("Manual_Automation_Run")]
+    [TestCategory("Reference")]
     [Description("TC_SAL_011: Thanh toán từng phần (Partial Payment đợt 1: 50,000 / 110,000 VND)")]
-    public void TC_SAL_011_PartialPayment_ShouldShowRemainingBalance()
+    public void Reference_TC_SAL_011_PartialPayment_ShouldShowRemainingBalance()
     {
         string invoiceUrl = CreateAndValidateInvoiceViaProposal();
         TestContext.WriteLine($"[TC_SAL_011] Hóa đơn Unpaid tại: {invoiceUrl}");
@@ -324,15 +329,14 @@ public class SpecialInvoiceAndStockTests : BaseTest
 
         Assert.IsTrue(isPartiallyPaid, $"Hóa đơn phải chuyển sang Started/Partially paid. Thực tế: '{statusText}'");
 
-        ExcelResultUpdater.UpdateResult(TestConfig.ExcelPath, "TC_SAL_011", "Pass",
-            $"Thanh toán đợt 1 thành công (50,000.00 €). Trạng thái hóa đơn chuyển thành {statusText}, hiển thị dư nợ còn lại.", evidenceRelPath);
+        TestContext.WriteLine($"[Reference_TC_SAL_011] Đã thanh toán đợt 1, trạng thái: '{statusText}'. Không ghi Excel (tuân thủ quy tắc Manual).");
     }
 
     [TestMethod]
     [DoNotParallelize]
-    [TestCategory("Manual_Automation_Run")]
+    [TestCategory("Reference")]
     [Description("TC_SAL_012: Thanh toán hoàn tất nợ (Full Payment đợt 2: trả nốt và chuyển Paid)")]
-    public void TC_SAL_012_FullPayment_ShouldCloseInvoiceAsPaid()
+    public void Reference_TC_SAL_012_FullPayment_ShouldCloseInvoiceAsPaid()
     {
         string invoiceUrl = CreateAndValidateInvoiceViaProposal();
         TestContext.WriteLine($"[TC_SAL_012] Hóa đơn Unpaid tại: {invoiceUrl}");
@@ -363,8 +367,7 @@ public class SpecialInvoiceAndStockTests : BaseTest
 
         Assert.IsTrue(isPaid, $"Hóa đơn phải chuyển sang trạng thái Paid (không còn Not paid). Thực tế: '{statusText}'");
 
-        ExcelResultUpdater.UpdateResult(TestConfig.ExcelPath, "TC_SAL_012", "Pass",
-            $"Thanh toán hoàn tất toàn bộ nợ. Hóa đơn chuyển trạng thái {statusText}, công nợ về 0.", evidenceRelPath);
+        TestContext.WriteLine($"[Reference_TC_SAL_012] Đã thanh toán toàn bộ, trạng thái: '{statusText}'. Không ghi Excel (tuân thủ quy tắc Manual).");
     }
 
     /// <summary>Helper điều chỉnh tồn kho thủ công cho sản phẩm (sử dụng locator thật Dolibarr 22.0.4)</summary>
@@ -412,9 +415,9 @@ public class SpecialInvoiceAndStockTests : BaseTest
     }
 
     [TestMethod]
-    [TestCategory("Manual_Automation_Run")]
+    [TestCategory("Reference")]
     [Description("TC_STK_001: Điều chỉnh tăng tồn kho thủ công (+10 cho PR002)")]
-    public void TC_STK_001_CorrectStock_IncreaseStock_ShouldUpdateMovement()
+    public void Reference_TC_STK_001_CorrectStock_IncreaseStock_ShouldUpdateMovement()
     {
         const string targetProduct = "PR002";
         var stockPage = new WarehouseStockPage(Driver);
@@ -432,14 +435,13 @@ public class SpecialInvoiceAndStockTests : BaseTest
         Assert.AreEqual(initialStock + 10, newStock,
             $"Tồn kho {targetProduct} phải tăng đúng 10 đơn vị. Trước: {initialStock}, Sau: {newStock}");
 
-        ExcelResultUpdater.UpdateResult(TestConfig.ExcelPath, "TC_STK_001", "Pass",
-            $"Tồn kho {targetProduct} tăng 10 đơn vị ({initialStock} -> {newStock}). Ghi nhận biến động +10 thành công.", evidenceRelPath);
+        TestContext.WriteLine($"[Reference_TC_STK_001] Tồn kho {targetProduct} tăng 10 ({initialStock} -> {newStock}). Không ghi Excel (tuân thủ quy tắc Manual).");
     }
 
     [TestMethod]
-    [TestCategory("Manual_Automation_Run")]
+    [TestCategory("Reference")]
     [Description("TC_STK_002: Điều chỉnh giảm tồn kho thủ công do hỏng (-5 cho PR002)")]
-    public void TC_STK_002_CorrectStock_DecreaseStock_ShouldUpdateMovement()
+    public void Reference_TC_STK_002_CorrectStock_DecreaseStock_ShouldUpdateMovement()
     {
         const string targetProduct = "PR002";
         var stockPage = new WarehouseStockPage(Driver);
@@ -457,14 +459,13 @@ public class SpecialInvoiceAndStockTests : BaseTest
         Assert.AreEqual(initialStock - 5, newStock,
             $"Tồn kho {targetProduct} phải giảm đúng 5 đơn vị. Trước: {initialStock}, Sau: {newStock}");
 
-        ExcelResultUpdater.UpdateResult(TestConfig.ExcelPath, "TC_STK_002", "Pass",
-            $"Tồn kho {targetProduct} giảm 5 đơn vị ({initialStock} -> {newStock}). Ghi nhận biến động -5 thành công.", evidenceRelPath);
+        TestContext.WriteLine($"[Reference_TC_STK_002] Tồn kho {targetProduct} giảm 5 ({initialStock} -> {newStock}). Không ghi Excel (tuân thủ quy tắc Manual).");
     }
 
     [TestMethod]
-    [TestCategory("Manual_Automation_Run")]
+    [TestCategory("Reference")]
     [Description("TC_STK_003: Khảo sát xuất quá số lượng tồn (PR004 xuất 100 cái)")]
-    public void TC_STK_003_NegativeStockExploration()
+    public void Reference_TC_STK_003_NegativeStockExploration()
     {
         const string targetProduct = "PR004";
         var stockPage = new WarehouseStockPage(Driver);
@@ -487,32 +488,33 @@ public class SpecialInvoiceAndStockTests : BaseTest
 
         Assert.IsTrue(hasErrorOrWarning, "Hệ thống phải xử lý rõ ràng (báo lỗi chặn hoặc cho phép tồn âm kèm cảnh báo).");
 
-        ExcelResultUpdater.UpdateResult(TestConfig.ExcelPath, "TC_STK_003", "Pass",
-            $"Khảo sát hoàn tất. Tồn sau xuất: {stockAfter}. Hệ thống xử lý theo rule cấu hình tồn âm của Dolibarr 22.0.4.", evidenceRelPath);
+        TestContext.WriteLine($"[Reference_TC_STK_003] Tồn sau thử xuất quá: {stockAfter}. Không ghi Excel (tuân thủ quy tắc Manual).");
     }
 
     [TestMethod]
-    [TestCategory("Manual_Automation_Run")]
+    [TestCategory("Reference")]
     [Description("TC_STK_004: Kiểm tra cảnh báo chạm ngưỡng tồn tối thiểu (Replenishment Alert PR003) — Phủ giá trị biên BVA (11 vs 10)")]
-    public async Task TC_STK_004_StockLimitAlert()
+    public async Task Reference_TC_STK_004_StockLimitAlert()
     {
         const string targetProduct = "PR003";
+        const string targetWarehouse = "KHO001";
         const int alertLimit = 10;
         string evidenceRelPath = "evidence/manual/TC_STK_004_limit_alert.png";
         var stockPage = new WarehouseStockPage(Driver);
 
-        // PRECONDITION: Đọc tồn vật lý hiện tại của PR003 qua UI và đối chiếu DB
+        // PRECONDITION: Đọc tồn vật lý hiện tại của PR003 qua UI và đối chiếu DB (cả global stock lẫn kho KHO001)
         int initialStock = stockPage.GetProductPhysicalStock(targetProduct);
-        decimal initialDbStock = await DbHelper.GetProductStockByRefAsync(targetProduct);
-        TestContext.WriteLine($"[TC_STK_004 Precondition] Tồn kho UI: {initialStock}, Tồn kho DB (llx_product): {initialDbStock}");
+        decimal initialDbGlobalStock = await DbHelper.GetProductStockByRefAsync(targetProduct);
+        decimal initialDbWarehouseStock = await DbHelper.GetWarehouseStockByRefAsync(targetProduct, targetWarehouse);
+        TestContext.WriteLine($"[TC_STK_004 Precondition] Tồn UI: {initialStock}, Tồn DB Global (llx_product.stock): {initialDbGlobalStock}, Tồn DB Kho (llx_product_stock.reel {targetWarehouse}): {initialDbWarehouseStock}");
 
         Assert.IsTrue(initialStock > alertLimit + 1,
-            $"Precondition không thỏa: Tồn kho của {targetProduct} trước khi test phải > {alertLimit + 1} để kiểm tra giá trị biên. Thực tế UI: {initialStock}, DB: {initialDbStock}");
-        Assert.AreEqual((decimal)initialStock, initialDbStock, "Tồn kho UI và DB ban đầu phải khớp tuyệt đối.");
+            $"Precondition không thỏa: Tồn kho của {targetProduct} trước khi test phải > {alertLimit + 1} để kiểm tra giá trị biên. Thực tế UI: {initialStock}, DB: {initialDbWarehouseStock}");
+        Assert.AreEqual((decimal)initialStock, initialDbWarehouseStock, $"Tồn kho UI và DB ({targetWarehouse}) ban đầu phải khớp tuyệt đối.");
 
         string finalOutcome = "Fail";
         string finalDetail = string.Empty;
-        Exception? executionException = null;
+        ExceptionDispatchInfo? capturedException = null;
 
         try
         {
@@ -545,27 +547,27 @@ public class SpecialInvoiceAndStockTests : BaseTest
             PerformStockCorrection(targetProduct, -deltaToBoundary10, $"[BVA 1] Ha ton {targetProduct} tu {initialStock} xuong moc bang nguong {boundaryNoAlert}");
 
             int stockAt10 = stockPage.GetProductPhysicalStock(targetProduct);
-            decimal dbStockAt10 = await DbHelper.GetProductStockByRefAsync(targetProduct);
-            TestContext.WriteLine($"[TC_STK_004 BVA Biên 10] Tồn UI: {stockAt10}, Tồn DB: {dbStockAt10}");
+            decimal dbWarehouseStockAt10 = await DbHelper.GetWarehouseStockByRefAsync(targetProduct, targetWarehouse);
+            TestContext.WriteLine($"[TC_STK_004 BVA Biên 10] Tồn UI: {stockAt10}, Tồn DB ({targetWarehouse}): {dbWarehouseStockAt10}");
             Assert.AreEqual(boundaryNoAlert, stockAt10, $"Tồn kho UI phải bằng đúng mức {boundaryNoAlert}.");
-            Assert.AreEqual((decimal)boundaryNoAlert, dbStockAt10, $"Tồn kho DB phải bằng đúng mức {boundaryNoAlert}.");
+            Assert.AreEqual((decimal)boundaryNoAlert, dbWarehouseStockAt10, $"Tồn kho DB ({targetWarehouse}) phải bằng đúng mức {boundaryNoAlert}.");
 
             // Assert Biên 10 trên Thẻ kho: KHÔNG có icon pictowarning (vì chưa thấp hơn ngưỡng)
             Driver.Navigate().GoToUrl($"{TestConfig.BaseUrl}/product/stock/product.php?ref={targetProduct}");
             WaitHelper.WaitVisible(Driver, By.CssSelector("div.fiche"), 15);
             var warningIconsAt10 = Driver.FindElements(By.CssSelector(".pictowarning, span[title*='Stock lower than alert limit']"));
             Assert.AreEqual(0, warningIconsAt10.Count,
-                $"[BVA Biên 10] Khi tồn kho ({stockAt10}) = ngưỡng ({alertLimit}), Thẻ kho KHÔNG được hiển thị icon cảnh báo (rule: Stock < Limit).");
+                $"[BVA Biên 10] Khi tồn kho ({stockAt10}) = ngưỡng ({alertLimit}), Thẻ kho KHÔNG được hiển thị icon cảnh báo (rule Dolibarr 22.0.4: Stock < Limit).");
 
             // BƯỚC 3 (BVA BIÊN KÍCH HOẠT CẢNH BÁO): Hạ tiếp 1 đơn vị từ 10 xuống đúng 9 (9 < 10 -> BẮT BUỘC KÍCH HOẠT CẢNH BÁO)
             const int boundaryTrigger = 9;
             PerformStockCorrection(targetProduct, -1, $"[BVA 2] Ha ton {targetProduct} tu 10 xuong moc duoi nguong {boundaryTrigger} (<10)");
 
             int stockAt9 = stockPage.GetProductPhysicalStock(targetProduct);
-            decimal dbStockAt9 = await DbHelper.GetProductStockByRefAsync(targetProduct);
-            TestContext.WriteLine($"[TC_STK_004 BVA Biên 9] Tồn UI: {stockAt9}, Tồn DB: {dbStockAt9}");
+            decimal dbWarehouseStockAt9 = await DbHelper.GetWarehouseStockByRefAsync(targetProduct, targetWarehouse);
+            TestContext.WriteLine($"[TC_STK_004 BVA Biên 9] Tồn UI: {stockAt9}, Tồn DB ({targetWarehouse}): {dbWarehouseStockAt9}");
             Assert.AreEqual(boundaryTrigger, stockAt9, $"Tồn kho UI phải bằng đúng mức dưới ngưỡng {boundaryTrigger}.");
-            Assert.AreEqual((decimal)boundaryTrigger, dbStockAt9, $"Tồn kho DB phải bằng đúng mức dưới ngưỡng {boundaryTrigger}.");
+            Assert.AreEqual((decimal)boundaryTrigger, dbWarehouseStockAt9, $"Tồn kho DB ({targetWarehouse}) phải bằng đúng mức dưới ngưỡng {boundaryTrigger}.");
 
             // Assert Biên 9 trên Thẻ kho: CÓ icon tam giác cảnh báo (pictowarning)
             Driver.Navigate().GoToUrl($"{TestConfig.BaseUrl}/product/stock/product.php?ref={targetProduct}");
@@ -596,11 +598,11 @@ public class SpecialInvoiceAndStockTests : BaseTest
             Assert.AreEqual(boundaryTrigger.ToString(), physicalStockCol, $"Cột 'Physical Stock' phải đúng bằng {boundaryTrigger}.");
 
             finalOutcome = "Pass";
-            finalDetail = $"Kiểm thử BVA hoàn tất theo rule Dolibarr (Stock < Limit): Biên 10 (=ngưỡng) không cảnh báo (UI & DB=10). Biên 9 (<ngưỡng) kích hoạt cảnh báo '{warningTitle}' và dòng Replenish (Limit=10, Stock=9, DB=9).";
+            finalDetail = $"Kiểm thử BVA hoàn tất theo rule Dolibarr (Stock < Limit): Biên 10 (=ngưỡng) không cảnh báo (UI & DB KHO001=10). Biên 9 (<ngưỡng) kích hoạt cảnh báo '{warningTitle}' và dòng Replenish (Limit=10, Stock=9, DB KHO001=9).";
         }
         catch (Exception ex)
         {
-            executionException = ex;
+            capturedException = ExceptionDispatchInfo.Capture(ex);
             finalOutcome = "Fail";
             finalDetail = $"Lỗi kiểm thử cảnh báo tồn kho: {ex.Message}";
             ScreenshotHelper.CaptureToPath(Driver, evidenceRelPath);
@@ -618,12 +620,12 @@ public class SpecialInvoiceAndStockTests : BaseTest
                 }
 
                 int verifiedRestoredStock = stockPage.GetProductPhysicalStock(targetProduct);
-                decimal verifiedRestoredDbStock = await DbHelper.GetProductStockByRefAsync(targetProduct);
-                TestContext.WriteLine($"[TC_STK_004 Cleanup] Sau hoàn trả: UI={verifiedRestoredStock}, DB={verifiedRestoredDbStock} (Mốc ban đầu: {initialStock})");
+                decimal verifiedRestoredDbWarehouseStock = await DbHelper.GetWarehouseStockByRefAsync(targetProduct, targetWarehouse);
+                TestContext.WriteLine($"[TC_STK_004 Cleanup] Sau hoàn trả: UI={verifiedRestoredStock}, DB {targetWarehouse}={verifiedRestoredDbWarehouseStock} (Mốc ban đầu: {initialStock})");
 
-                if (verifiedRestoredStock != initialStock || verifiedRestoredDbStock != (decimal)initialStock)
+                if (verifiedRestoredStock != initialStock || verifiedRestoredDbWarehouseStock != (decimal)initialStock)
                 {
-                    string cleanupErrMsg = $"Cleanup lệch mốc: Ban đầu {initialStock}, sau hoàn trả UI={verifiedRestoredStock}, DB={verifiedRestoredDbStock}.";
+                    string cleanupErrMsg = $"Cleanup lệch mốc: Ban đầu {initialStock}, sau hoàn trả UI={verifiedRestoredStock}, DB={verifiedRestoredDbWarehouseStock}.";
                     TestContext.WriteLine($"[TC_STK_004 Cleanup LỖI] {cleanupErrMsg}");
                     if (finalOutcome == "Pass")
                     {
@@ -642,14 +644,11 @@ public class SpecialInvoiceAndStockTests : BaseTest
                 }
             }
 
-            // GHI EXCEL DUY NHẤT 1 LẦN Ở ĐIỂM CUỐI CÙNG (SINGLE POINT OF UPDATE)
-            ExcelResultUpdater.UpdateResult(TestConfig.ExcelPath, "TC_STK_004", finalOutcome, finalDetail, evidenceRelPath);
+            // TUÂN THỦ AGENTS.md (Quy tắc 1): Không tự động ghi Excel cho test Manual TC_STK_004
+            TestContext.WriteLine($"[Reference_TC_STK_004] Kết quả tham khảo: {finalOutcome} - {finalDetail}. Không ghi Excel (tuân thủ quy tắc Manual).");
 
-            // Ném lại Exception nếu test thất bại để MSTest Runner ghi nhận kết quả chính xác
-            if (executionException != null)
-            {
-                throw executionException;
-            }
+            // Ném lại Exception nguyên vẹn (bảo toàn stack trace) nếu test thất bại để MSTest Runner ghi nhận
+            capturedException?.Throw();
         }
     }
 }

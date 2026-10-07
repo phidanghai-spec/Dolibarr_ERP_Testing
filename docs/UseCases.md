@@ -164,9 +164,19 @@ Quản lý số lượng tồn kho thực tế của sản phẩm tại từng k
    - Tự động trừ số lượng sản phẩm: $\text{Tồn mới} = \text{Tồn cũ} - \text{Số lượng bán}$.
    - Ví dụ: Sản phẩm `PR003` có tồn ban đầu 40, bán 5 cái qua hóa đơn hợp lệ $\rightarrow$ tồn kho hiển thị cập nhật còn 35.
    - Trong lịch sử biến động kho (*Stock movements*), hệ thống tự sinh bản ghi có nhãn nguồn tham chiếu tới mã hóa đơn `IN...` tương ứng.
-4. **Cảnh báo mức tồn tối thiểu (Stock Limit & Alert):**
-   - Định cấu hình *Alert stock limit* (Mức cảnh báo tồn tối thiểu) cho sản phẩm (ví dụ: 10 đơn vị).
-   - Khi tồn thực tế giảm xuống dưới ngưỡng cảnh báo, hệ thống hiển thị biểu tượng cảnh báo màu đỏ/vàng trên bảng điều khiển Dashboard và danh sách sản phẩm.
+4. **Cảnh báo mức tồn tối thiểu (Stock Limit & Alert Threshold):**
+   - Định cấu hình *Alert stock limit* (Mức cảnh báo tồn tối thiểu) cho sản phẩm (ví dụ: `seuil_stock_alerte = 10` đơn vị).
+   - **Quy tắc nghiệp vụ của Dolibarr 22.0.4 (Đính chính kỹ thuật từ mã nguồn SUT):**
+     - Theo logic mã nguồn chuẩn của Dolibarr 22.0.4 (bản cài đặt `DoliWamp-22.0.4.exe`, SHA256: `8564F832C0EAA63E46CB96E6B26AD3C88A742AB69E9DD8039F802CF01307CD3F`), hệ thống áp dụng toán tử so sánh **nghiêm ngặt nhỏ hơn (`<`)**, không áp dụng nhỏ hơn hoặc bằng (`<=`):
+       - `htdocs/product/stock/replenish.php` (dòng 917 & 921): `if ($alertstock && ($stock < $alertstock))`
+       - `htdocs/product/stock/product.php` (dòng 810): `if ($object->seuil_stock_alerte != '' && ($object->stock_reel < $object->seuil_stock_alerte))`
+       - `htdocs/product/reassort.php` (dòng 597): `if ($objp->seuil_stock_alerte != '' && ($objp->stock_physique < $objp->seuil_stock_alerte))`
+       - `htdocs/core/boxes/box_produits_alerte_stock.php` (dòng 105): `HAVING SUM(s.reel) < p.seuil_stock_alerte`
+     - **Phân tích giá trị biên (BVA) kiểm thử:**
+       - **Biên 1 (Tồn = 10):** Tồn bằng ngưỡng ($10 < 10$ là `False`) $\rightarrow$ Hệ thống đánh giá tồn vẫn đủ, **KHÔNG kích hoạt biểu tượng cảnh báo** (No Warning Icon).
+       - **Biên 2 (Tồn = 9):** Tồn dưới ngưỡng ($9 < 10$ là `True`) $\rightarrow$ Hệ thống **KÍCH HOẠT biểu tượng cảnh báo tam giác vàng** (`Stock lower than alert limit (10)`) và đưa sản phẩm vào bảng Bổ sung kho (*Replenishment*).
+   - *Ghi chú Test Data*: Tồn kho ban đầu của `PR003` là 40; sau khi thực thi hóa đơn bán hàng `IN2609-0002` (bán 5 chiếc ngày 18/09/2026), tồn thực tế tự nhiên còn 35. Mốc dữ liệu sạch chuẩn này được sao lưu trong `db/dolibarr_baseline.sql`. Các kịch bản test kho (`TC_STK_004`) sử dụng cơ chế Dynamic Baseline: đọc tồn thực tế $S_0$, hạ tồn kiểm tra biên và khôi phục đối xứng về đúng $S_0$ sau khi test hoàn tất.
 
 #### 5. Hậu điều kiện (Postconditions)
-- Bảng cơ sở dữ liệu `llx_product_stock` và `llx_stock_mvt` ghi nhận chính xác số tồn và từng giao dịch chuyển dịch kho kèm thời gian, người thực hiện và mã chứng từ liên kết.
+- Bảng cơ sở dữ liệu `llx_product_stock` (cột `reel` theo kho `KHO001`) và `llx_product` (cột `stock`) ghi nhận chính xác số tồn và từng giao dịch chuyển dịch kho kèm thời gian, người thực hiện và mã chứng từ liên kết.
+

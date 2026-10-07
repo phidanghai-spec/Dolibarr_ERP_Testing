@@ -5,7 +5,7 @@
 - **Đề tài:** Kiểm thử tự động và thủ công hệ thống Dolibarr ERP & CRM 22.0.4 (DoliWamp)
 - **Repo GitHub:** https://github.com/phidanghai-spec/Dolibarr_ERP_Testing
 - **Nhánh làm việc:** `feature/sales-automation`
-- **Thời gian hoàn thiện tài liệu:** 06/10/2026
+- **Thời gian hoàn thiện tài liệu:** 07/10/2026
 - **Hạn nộp đồ án:** Đầu tháng 12/2026
 
 ---
@@ -67,20 +67,24 @@ graph TD
 | `TC_SAL_006` | Auto | Sales | Chuyển báo giá đã ký thành Hóa đơn bán hàng nháp | **Pass** |
 | `TC_SAL_007` | Auto | Sales | Xác thực hóa đơn bán hàng (Draft $\rightarrow$ Unpaid) | **Pass** |
 | `TC_SAL_008` | Auto | Sales/Stock | Xác minh quy tắc ERP tự động giảm trừ tồn kho sản phẩm | **Pass** |
-| `TC_SAL_009` | Manual | Sales | Hủy hóa đơn bán hàng ở trạng thái Unpaid (Classify Abandoned) | **Pass** |
-| `TC_SAL_010` | Manual | Sales | Tạo hóa đơn hoàn tiền / điều chỉnh (Credit note ref AV...) | **Pass** |
-| `TC_SAL_011` | Manual | Sales | Ghi nhận thanh toán một phần (Partial payment đợt 1) | **Pass** |
-| `TC_SAL_012` | Manual | Sales | Ghi nhận thanh toán hoàn tất toàn bộ nợ (Full payment $\rightarrow$ Paid) | **Pass** |
-| `TC_STK_001` | Manual | Stock | Điều chỉnh tăng tồn kho thủ công (+10 đơn vị cho PR002) | **Pass** |
-| `TC_STK_002` | Manual | Stock | Điều chỉnh giảm tồn kho thủ công (-5 đơn vị cho PR002) | **Pass** |
-| `TC_STK_003` | Manual | Stock | Khảo sát hành vi khi xuất kho vượt quá số lượng tồn hiện có | **Pass** |
-| `TC_STK_004` | Manual | Stock | Cấu hình ngưỡng tồn tối thiểu và hiển thị cảnh báo thiếu hàng | **Pass** |
+| `TC_SAL_009` | Manual | Sales | Hủy hóa đơn bán hàng ở trạng thái Unpaid (Classify Abandoned) | **Not Run** |
+| `TC_SAL_010` | Manual | Sales | Tạo hóa đơn hoàn tiền / điều chỉnh (Credit note ref AV...) | **Not Run** |
+| `TC_SAL_011` | Manual | Sales | Ghi nhận thanh toán một phần (Partial payment đợt 1) | **Not Run** |
+| `TC_SAL_012` | Manual | Sales | Ghi nhận thanh toán hoàn tất toàn bộ nợ (Full payment $\rightarrow$ Paid) | **Not Run** |
+| `TC_STK_001` | Manual | Stock | Điều chỉnh tăng tồn kho thủ công (+10 đơn vị cho PR002) | **Not Run** |
+| `TC_STK_002` | Manual | Stock | Điều chỉnh giảm tồn kho thủ công (-5 đơn vị cho PR002) | **Not Run** |
+| `TC_STK_003` | Manual | Stock | Khảo sát hành vi khi xuất kho vượt quá số lượng tồn hiện có | **Not Run** |
+| `TC_STK_004` | Manual | Stock | Cấu hình ngưỡng tồn tối thiểu và hiển thị cảnh báo thiếu hàng | **Not Run** |
 
 ---
 
 ## PHẦN 3. BẢNG KÊ CHI TIẾT LỊCH SỬ THỰC HIỆN: ĐÃ LÀM, ĐÃ SỬA, ĐÃ XÓA, ĐÃ CẬP NHẬT
 
 ### 3.1 Những gì ĐÃ LÀM (New Features / Assets Created)
+1. **Thiết lập Mốc sạch Chuẩn thuần khiết (Clean Baseline) & Script Khôi phục An toàn:**
+   - Xây dựng bản dump mốc sạch nguyên bản db/dolibarr_clean_baseline.sql (705,175 bytes, SHA-256: D1F61E3B3A5E5ECD8B0A724BABEFFE7EBEB21F341F07C2B8CDCF99E5A0B1254C) trực tiếp từ Dolibarr Fresh Install Wizard (276 bảng, AUTO_INCREMENT = 1 chuẩn mực).
+   - Nạp dữ liệu nền native sạch: Kho KHO001, 2 khách hàng Cong ty ABC & Cong ty BCD, 4 sản phẩm PR001..PR004, 4 chuyển dịch kho khởi tạo (tổng 209 cái).
+   - Phát triển script khôi phục tự động hoàn toàn an toàn 	ools/restore-db.ps1: sử dụng tệp cấu hình tạm --defaults-extra-file (UTF-8 không BOM), tuyệt đối không để lộ mật khẩu ra CLI hay log.
 1. **Kiến trúc Automation Selenium POM C# .NET 9:**
    - Xây dựng 9 Page Objects chuyên biệt: `LoginPage`, `DashboardPage`, `CustomerCreatePage`, `CustomerDetailPage`, `CustomerListPage`, `ProposalCreatePage`, `ProposalDetailPage`, `InvoiceDetailPage`, `WarehouseStockPage`.
    - Xây dựng 8 Helpers cốt lõi: `DriverFactory`, `WaitHelper`, `ScreenshotHelper`, `ExcelDataReader`, `ExcelResultUpdater`, `TestConfig`, `ExtentReportManager`, `DbHelper`.
@@ -118,6 +122,9 @@ graph TD
 5. **Cơ chế Whitelist dọn dẹp dữ liệu (Cleanup Script) (03/10/2026):**
    - *Trước:* Kịch bản xóa khách hàng có nguy cơ xóa nhầm dữ liệu khách hàng nền.
    - *Sau:* Áp dụng tiền tố whitelist `AUTO_`, bảo vệ tuyệt đối khách hàng nền `socid=1, socid=2`, kích hoạt mặc định chế độ DRY-RUN và guard chống lặp vô hạn.
+6. **Xử lý triệt để Race Condition khi chạy kiểm thử đồng thời (07/10/2026):**
+   - *Trước:* Cấu hình MSTest đa luồng (`Workers: 4`) gây tranh chấp tài nguyên Apache/MariaDB giữa các class test, khiến thao tác Ajax chọn sản phẩm trong `TC_SAL_006` bị trễ nhịp trước khi click Add, dẫn tới báo giá trống không có nút Validate và gây timeout giả.
+   - *Sau:* Chuyển đổi sang `[assembly: DoNotParallelize]` trong `MSTestSettings.cs`. Toàn bộ test suite UI/Selenium chạy tuần tự an toàn, thời gian hoàn thành rút ngắn từ 6.31 phút xuống 5.62 phút do máy local không bị nghẽn I/O.
 
 ---
 
@@ -133,7 +140,7 @@ graph TD
    - **Sheet `Summary`:** Chuyển đổi 100% sang công thức Excel động (`COUNTIF`, `COUNTIFS`, `SUM`, tỷ lệ Pass tự động).
    - **Sheet `Traceability`:** Ma trận truy vết 2 chiều từ Use Case $\rightarrow$ Function ID $\rightarrow$ Scenario $\rightarrow$ Test Case ID.
    - **Sheet `Bug Report`:** Đăng ký lỗi `BUG_001` kèm phân tích nguyên nhân mã nguồn PHP.
-   - **Sheet `AI Log`:** Ghi nhận 12 mục lịch sử tương tác AI đầy đủ, trung thực, phản ánh tư duy phản biện của tester.
+   - **Sheet `AI Log`:** Ghi nhận 16 mục lịch sử tương tác AI đầy đủ, trung thực, phản ánh tư duy phản biện của tester.
 2. **File `docs/CHANGELOG_fix.md`:** Cập nhật trọn vẹn cả 5 vòng đánh giá và khắc phục.
 
 ---
@@ -174,3 +181,15 @@ dotnet test --filter "FullyQualifiedName~SalesProposalTests" --logger "console;v
 ### 4.6 Xem Báo Cáo ExtentReports Dashboard
 Mở trình duyệt truy cập file:  
 `d:\Projects\DoAnThucTap_Dolibarr\TestResults\ExtentReports\Dolibarr_TestReport.html`
+
+### 4.7 Chạy Nghiệm thu Toàn bộ Test Suite Tuần tự trên Mốc sạch
+```powershell
+dotnet test automation\DolibarrTests\DolibarrTests.csproj --filter "TestCategory!=Reference" --logger "console;verbosity=normal"
+```
+*Kỳ vọng:* `30 Passed, 1 Failed` (Duy nhất `TC_CRM_010` bắt lỗi `BUG_001`), thời gian ~5.6 phút.
+
+Sau khi test xong, khôi phục database về mốc sạch ban đầu:
+```powershell
+pwsh tools\restore-db.ps1
+```
+*Kỳ vọng:* Báo cáo nạp thành công `db\dolibarr_clean_baseline.sql`, kiểm tra `llx_stock_mouvement` trả về đúng 4 bút toán và 209 sản phẩm.
