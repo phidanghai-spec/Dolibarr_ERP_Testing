@@ -72,12 +72,14 @@ Mô tả quy trình nghiệp vụ xuyên suốt từ khi lập báo giá thươn
    - Hệ thống tự động phát sinh bản ghi biến động kho: giảm trừ số lượng sản phẩm `PR001` tại kho `KHO001`.
 
 #### 5. Luồng sự kiện thay thế (Alternative Flows)
-- **A1 — Báo giá bị từ chối (Refused):** Ở bước 4, nếu khách hàng từ chối, chọn trạng thái *Refused*. Luồng kết thúc, không được phép sinh hóa đơn từ báo giá này.
+- **A1 — Báo giá bị từ chối (Refused Proposal - TC_SAL_014):** Ở bước 4, nếu khách hàng từ chối báo giá, người dùng chọn trạng thái *Refused (Đóng - Từ chối)*. Hệ thống đóng báo giá, cập nhật trạng thái *Refused (Closed)* và không cho phép hiển thị nút *Create invoice* để ngăn chặn việc sinh hóa đơn từ báo giá bị từ chối.
 - **A2 — Sửa đổi báo giá:** Khi ở trạng thái *Draft*, người dùng có thể thêm/bớt dòng sản phẩm, sửa đơn giá, số lượng. Hệ thống tự động cập nhật lại tổng tiền.
+- **A3 — Báo giá có chiết khấu dòng sản phẩm (% Discount - TC_SAL_013):** Khi thêm sản phẩm vào báo giá nháp, người dùng nhập tỷ lệ chiết khấu (ví dụ: 10% cho `PR001` số lượng 2). Hệ thống tự động áp dụng công thức: $\text{Total HT} = (\text{Đơn giá} \times \text{SL}) \times (1 - \text{Discount}\%)$, tính lại tiền thuế VAT và tổng thanh toán Total TTC tương ứng.
+- **A4 — Thanh toán toàn bộ hóa đơn (Full Payment 100% - TC_SAL_015):** Sau khi hóa đơn đã được xác thực ở trạng thái *Unpaid*, kế toán thực hiện thanh toán trọn gói 100% qua nút *Enter payment*, chọn ngày, phương thức thanh toán và xác nhận. Hệ thống cập nhật trạng thái hóa đơn sang *Paid* (Đã thanh toán), số tiền còn lại phải trả trở về `0.00 €`.
 
 #### 6. Hậu điều kiện (Postconditions)
-- Báo giá mang trạng thái *Billed (Đã lập hóa đơn)*.
-- Hóa đơn mang trạng thái *Unpaid* với mã tham chiếu chính thức `IN...`.
+- Báo giá mang trạng thái *Billed (Đã lập hóa đơn)* hoặc *Refused (Bị từ chối)*.
+- Hóa đơn mang trạng thái *Unpaid* hoặc *Paid* sau khi hoàn tất thanh toán.
 - Tồn kho thực tế của các mặt hàng trong hóa đơn giảm chính xác bằng số lượng đã bán.
 
 ---

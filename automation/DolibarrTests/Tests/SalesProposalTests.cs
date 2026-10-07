@@ -394,6 +394,131 @@ public class SalesProposalTests : BaseTest
             TestContext.WriteLine($"[Screenshot] {screenshotPath}");
     }
 
+    // ════════════════════════════════════════════════════════════════════════════
+    // TC_SAL_013 — Báo giá có chiết khấu theo dòng (% Discount)
+    // ════════════════════════════════════════════════════════════════════════════
+    [TestMethod]
+    [TestCategory("Sales")]
+    [Description("TC_SAL_013 — Thêm sản phẩm PR001 (SL=2) với chiết khấu 10%, assert Total HT, VAT và Total TTC sau chiết khấu")]
+    public void TC_SAL_013_AddProductWithDiscount_ShouldCalculateCorrectTotal()
+    {
+        Login();
+        var createPage = new ProposalCreatePage(Driver);
+        createPage.GoTo();
+        createPage.SelectCustomerByName("Cong ty ABC");
+        createPage.SetProposalDateNow();
+        createPage.ClickCreateDraft();
+
+        var detailPage = new ProposalDetailPage(Driver);
+        // PR001: Đơn giá 100€, VAT 10%. SL = 2, Giảm 10% -> HT = 180€, VAT = 18€, TTC = 198€
+        detailPage.AddPredefinedProduct("PR001", 2, discountPercent: 10m);
+
+        decimal totalHT = detailPage.GetAmountExclTax();
+        decimal totalVAT = detailPage.GetAmountTax();
+        decimal totalTTC = detailPage.GetAmountIncTax();
+
+        TestContext.WriteLine($"[TC_SAL_013] Sau chiết khấu 10%: Total HT={totalHT} €, VAT={totalVAT} €, Total TTC={totalTTC} €");
+
+        Assert.AreEqual(180.00m, totalHT, "[TC_SAL_013] Total HT sau chiết khấu 10% phải là 180.00 €");
+        Assert.AreEqual(18.00m, totalVAT, "[TC_SAL_013] VAT 10% trên 180.00 € phải là 18.00 €");
+        Assert.AreEqual(198.00m, totalTTC, "[TC_SAL_013] Total TTC sau chiết khấu 10% phải là 198.00 €");
+
+        var screenshot = ScreenshotHelper.Capture(Driver, TestContext.TestName ?? "TC_SAL_013");
+        if (screenshot != null) TestContext.WriteLine($"[Screenshot] {screenshot}");
+    }
+
+    // ════════════════════════════════════════════════════════════════════════════
+    // TC_SAL_014 — Đóng báo giá trạng thái Từ chối (Refused Proposal)
+    // ════════════════════════════════════════════════════════════════════════════
+    [TestMethod]
+    [TestCategory("Sales")]
+    [Description("TC_SAL_014 — Đóng báo giá trạng thái Refused, assert trạng thái cập nhật và không cho phép tạo hóa đơn")]
+    public void TC_SAL_014_CloseProposalAsRefused_ShouldNotAllowInvoiceCreation()
+    {
+        Login();
+        var createPage = new ProposalCreatePage(Driver);
+        createPage.GoTo();
+        createPage.SelectCustomerByName("Cong ty ABC");
+        createPage.SetProposalDateNow();
+        createPage.ClickCreateDraft();
+
+        var detailPage = new ProposalDetailPage(Driver);
+        detailPage.AddPredefinedProduct("PR001", 1);
+        detailPage.ValidateProposal();
+
+        // Đóng báo giá với trạng thái Refused
+        detailPage.CloseAsRefused();
+
+        string statusText = detailPage.GetStatusText();
+        bool hasCreateInvoiceBtn = detailPage.HasCreateInvoiceButton();
+
+        TestContext.WriteLine($"[TC_SAL_014] Trạng thái sau khi đóng Refused: '{statusText}', HasCreateInvoiceButton: {hasCreateInvoiceBtn}");
+
+        Assert.IsTrue(statusText.Contains("Refused", StringComparison.OrdinalIgnoreCase) ||
+                      statusText.Contains("Closed", StringComparison.OrdinalIgnoreCase),
+            $"[TC_SAL_014] Trạng thái báo giá phải là Refused/Closed. Thực tế: '{statusText}'");
+        Assert.IsFalse(hasCreateInvoiceBtn,
+            "[TC_SAL_014] Báo giá bị từ chối không được phép hiển thị nút Create invoice.");
+
+        var screenshot = ScreenshotHelper.Capture(Driver, TestContext.TestName ?? "TC_SAL_014");
+        if (screenshot != null) TestContext.WriteLine($"[Screenshot] {screenshot}");
+    }
+
+    // ════════════════════════════════════════════════════════════════════════════
+    // TC_SAL_015 — Ghi nhận Thanh toán toàn bộ hóa đơn (Full Payment 100%)
+    // ════════════════════════════════════════════════════════════════════════════
+    [TestMethod]
+    [TestCategory("Sales")]
+    [Description("TC_SAL_015 — Thanh toán 100% hóa đơn bán hàng, assert trạng thái chuyển sang Paid và số tiền còn lại bằng 0")]
+    public void TC_SAL_015_PayInvoiceInFull_ShouldChangeStatusToPaid()
+    {
+        Login();
+        var createPage = new ProposalCreatePage(Driver);
+        createPage.GoTo();
+        createPage.SelectCustomerByName("Cong ty ABC");
+        createPage.SetProposalDateNow();
+        createPage.ClickCreateDraft();
+
+        var propalDetailPage = new ProposalDetailPage(Driver);
+        propalDetailPage.AddPredefinedProduct("PR001", 1);
+        propalDetailPage.ValidateProposal();
+        propalDetailPage.CloseAsSigned();
+        propalDetailPage.ClickCreateInvoice();
+
+        var invoiceDetailPage = new InvoiceDetailPage(Driver);
+        invoiceDetailPage.SubmitCreateInvoiceDraft();
+        invoiceDetailPage.ValidateInvoice();
+
+        string unpaidStatus = invoiceDetailPage.GetStatusText();
+        TestContext.WriteLine($"[TC_SAL_015] Trạng thái hóa đơn trước khi thanh toán: '{unpaidStatus}'");
+
+        // Ghi nhận thanh toán toàn bộ 100%
+        string invoiceCardUrl = Driver.Url;
+        invoiceDetailPage.EnterPayment(0m);
+
+        // Quay lại trang chi tiết hóa đơn nếu chưa redirect
+        if (!Driver.Url.Contains("facture/card.php"))
+        {
+            Driver.Navigate().GoToUrl(invoiceCardUrl);
+            WaitHelper.WaitVisible(Driver, By.CssSelector("div.fiche"), 10);
+        }
+
+        string paidStatus = invoiceDetailPage.GetStatusText();
+        decimal remaining = invoiceDetailPage.GetRemainingAmount();
+        TestContext.WriteLine($"[TC_SAL_015] Trạng thái sau thanh toán 100%: '{paidStatus}', Remains to pay: {remaining} €");
+
+        bool isPaid = !paidStatus.Contains("Not", StringComparison.OrdinalIgnoreCase) &&
+                      paidStatus.Contains("Paid", StringComparison.OrdinalIgnoreCase);
+
+        Assert.IsTrue(isPaid,
+            $"[TC_SAL_015] Hóa đơn phải chuyển sang trạng thái Paid (không còn Not paid). Thực tế: '{paidStatus}'");
+        Assert.AreEqual(0.00m, remaining,
+            $"[TC_SAL_015] Số tiền còn lại phải trả sau thanh toán 100% phải là 0.00 €. Thực tế: {remaining} €");
+
+        var screenshot = ScreenshotHelper.Capture(Driver, TestContext.TestName ?? "TC_SAL_015");
+        if (screenshot != null) TestContext.WriteLine($"[Screenshot] {screenshot}");
+    }
+
     // ── Helper dùng chung ───────────────────────────────────────────────────────
     private static void detailPage_AddProduct(ProposalDetailPage detailPage, string productCode, int qty)
     {

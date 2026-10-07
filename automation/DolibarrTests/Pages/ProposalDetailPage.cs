@@ -28,6 +28,7 @@ public class ProposalDetailPage
     private static readonly By StatusBadge = By.CssSelector("span.badge-status, .statusref, div.statusref");
     private static readonly By ProductSelect = By.CssSelector("select#idprod, select[name='idprod']");
     private static readonly By QtyInput = By.CssSelector("input#qty, input[name='qty']");
+    private static readonly By DiscountInput = By.CssSelector("input#remise_percent, input[name='remise_percent'], input[name='remise']");
     private static readonly By AddLineButton = By.CssSelector("input[type='submit'][name='addline'], input[type='submit'].button-add");
     private static readonly By ValidateButton = By.CssSelector("a.butAction[href*='action=valid'], a.butAction:not(.butActionRefused)");
     private static readonly By CloseButton = By.CssSelector("a.butAction[href*='action=close'], a.butAction[href*='action=statut']");
@@ -133,9 +134,9 @@ public class ProposalDetailPage
     }
 
     /// <summary>
-    /// Thêm dòng sản phẩm định sẵn (Predefined Product) vào báo giá.
+    /// Thêm dòng sản phẩm định sẵn (Predefined Product) vào báo giá, hỗ trợ chiết khấu phần trăm.
     /// </summary>
-    public void AddPredefinedProduct(string productCode, int quantity)
+    public void AddPredefinedProduct(string productCode, int quantity, decimal discountPercent = 0)
     {
         var js = (IJavaScriptExecutor)_driver;
 
@@ -194,6 +195,18 @@ public class ProposalDetailPage
         var qtyElem = WaitHelper.WaitPresent(_driver, QtyInput, timeoutSeconds: 5);
         qtyElem.Clear();
         qtyElem.SendKeys(quantity.ToString());
+
+        // 3.1 Nhập chiết khấu nếu có
+        if (discountPercent > 0)
+        {
+            try
+            {
+                var discElem = WaitHelper.WaitPresent(_driver, DiscountInput, timeoutSeconds: 5);
+                discElem.Clear();
+                discElem.SendKeys(discountPercent.ToString("0", CultureInfo.InvariantCulture));
+            }
+            catch { }
+        }
 
         // 4. Nhấn Add
         var addBtn = WaitHelper.WaitClickable(_driver, AddLineButton, timeoutSeconds: 5);
@@ -259,6 +272,45 @@ public class ProposalDetailPage
         // Chờ trạng thái cập nhật Signed
         var wait = new WebDriverWait(_driver, TimeSpan.FromSeconds(10));
         wait.Until(d => GetStatusText().Contains("Signed", StringComparison.OrdinalIgnoreCase));
+    }
+
+    /// <summary>
+    /// Đóng báo giá với trạng thái Từ chối (Refused).
+    /// </summary>
+    public void CloseAsRefused()
+    {
+        var closeBtn = WaitHelper.WaitClickable(_driver, By.XPath("//a[contains(@class, 'butAction') and (contains(text(), 'Close') or contains(@href, 'action=close') or contains(@href, 'action=statut'))]"), timeoutSeconds: 10);
+        closeBtn.Click();
+
+        var js = (IJavaScriptExecutor)_driver;
+        js.ExecuteScript(@"
+            var select = document.querySelector('select[name=""statut""]');
+            if (select) {
+                for (var i = 0; i < select.options.length; i++) {
+                    var txt = select.options[i].text.toLowerCase();
+                    if (txt.indexOf('refused') !== -1 || txt.indexOf('not signed') !== -1 || select.options[i].value == '3') {
+                        select.selectedIndex = i;
+                        $(select).trigger('change');
+                        break;
+                    }
+                }
+            }
+        ");
+
+        ConfirmDialog();
+
+        var wait = new WebDriverWait(_driver, TimeSpan.FromSeconds(10));
+        wait.Until(d => GetStatusText().Contains("Refused", StringComparison.OrdinalIgnoreCase) ||
+                       GetStatusText().Contains("Closed", StringComparison.OrdinalIgnoreCase));
+    }
+
+    /// <summary>
+    /// Kiểm tra xem nút Create Invoice có hiển thị trên giao diện hay không.
+    /// </summary>
+    public bool HasCreateInvoiceButton()
+    {
+        var btns = _driver.FindElements(By.XPath("//a[contains(@class, 'butAction') and (contains(text(), 'Create invoice') or contains(@href, 'origin=propal'))]"));
+        return btns.Any(b => b.Displayed);
     }
 
     /// <summary>

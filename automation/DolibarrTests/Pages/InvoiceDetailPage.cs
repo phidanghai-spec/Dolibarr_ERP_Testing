@@ -151,6 +151,116 @@ public class InvoiceDetailPage
         wait.Until(d => !GetStatusText().Contains("Draft", StringComparison.OrdinalIgnoreCase));
     }
 
+    /// <summary>
+    /// Ghi nhận thanh toán cho hóa đơn (Enter payment). Mặc định payAmount = 0 sẽ tự động thanh toán 100% (AutoFill).
+    /// </summary>
+    public void EnterPayment(decimal payAmount = 0)
+    {
+        var matchFacId = Regex.Match(_driver.Url, @"facid=(\d+)");
+        string facId = matchFacId.Success ? matchFacId.Groups[1].Value : string.Empty;
+
+        var payBtn = WaitHelper.WaitClickable(_driver, By.XPath("//a[contains(@class, 'butAction') and (contains(text(), 'ENTER PAYMENT') or contains(text(), 'Enter payment') or contains(@href, 'compta/paiement.php'))]"), 10);
+        payBtn.Click();
+
+        WaitHelper.WaitVisible(_driver, By.CssSelector("form#payment_form, form[action*='paiement.php'], div.fiche"), 15);
+
+        var js = (IJavaScriptExecutor)_driver;
+        js.ExecuteScript(@"
+            // Chọn ngày thanh toán hiện tại
+            var nowBtn = document.querySelector('#reButtonNow, button.datenowlink');
+            if (nowBtn) {
+                nowBtn.click();
+            } else {
+                var dInput = document.querySelector('#re, input[name=""re""]');
+                if (dInput) {
+                    var now = new Date();
+                    var dd = String(now.getDate()).padStart(2, '0');
+                    var mm = String(now.getMonth() + 1).padStart(2, '0');
+                    var yyyy = now.getFullYear();
+                    dInput.value = mm + '/' + dd + '/' + yyyy;
+                    $(dInput).trigger('change');
+                }
+            }
+
+            // Chọn Payment mode: Cash (LIQ) hoặc bất kỳ phương thức nào có sẵn
+            var pSelect = document.querySelector('#selectpaiementcode, select[name=""paiementcode""]');
+            if (pSelect && pSelect.options.length > 1) {
+                pSelect.value = 'LIQ';
+                if (!pSelect.value) pSelect.selectedIndex = 1;
+                $(pSelect).trigger('change');
+            }
+        ");
+
+        js.ExecuteScript(@"
+            var targetFacId = arguments[0];
+            var amountToPay = arguments[1];
+
+            if (targetFacId) {
+                if (amountToPay <= 0) {
+                    var autoBtn = document.querySelector('button[data-rowname=""amount_' + targetFacId + '""]');
+                    if (autoBtn) autoBtn.click();
+                } else {
+                    var inp = document.querySelector('input[name=""amount_' + targetFacId + '""]');
+                    if (inp) {
+                        inp.value = amountToPay;
+                        $(inp).trigger('change');
+                    }
+                }
+            } else {
+                var autoBtns = document.querySelectorAll('button.AutoFillAmount');
+                if (amountToPay <= 0 && autoBtns.length > 0) {
+                    autoBtns[autoBtns.length - 1].click();
+                } else {
+                    var inps = document.querySelectorAll('input.amount');
+                    if (inps.length > 0) {
+                        var targetInp = inps[inps.length - 1];
+                        if (amountToPay > 0) targetInp.value = amountToPay;
+                        $(targetInp).trigger('change');
+                    }
+                }
+            }
+        ", facId, payAmount > 0 ? payAmount.ToString(CultureInfo.InvariantCulture) : 0);
+
+        var savePayBtn = WaitHelper.WaitClickable(_driver, By.CssSelector("form#payment_form input[type='submit'][value='Pay'], input[type='submit'].reposition"), 10);
+        savePayBtn.Click();
+
+        WaitHelper.WaitVisible(_driver, By.CssSelector("input.confirmvalidatebutton, input[type='submit'][value='Validate'], form[action*='paiement']"), 10);
+
+        var validateBtn = WaitHelper.WaitClickable(_driver, By.CssSelector("input.confirmvalidatebutton, input[type='submit'][value='Validate']"), 5);
+        validateBtn.Click();
+
+        new WebDriverWait(_driver, TimeSpan.FromSeconds(10)).Until(d =>
+            !d.Url.Contains("confirm_paiement", StringComparison.OrdinalIgnoreCase));
+    }
+
+    /// <summary>
+    /// Đọc số tiền còn lại phải trả (Remains to pay). Trả về 0 nếu đã trả hết hoặc không còn nợ.
+    /// </summary>
+    public decimal GetRemainingAmount()
+    {
+        try
+        {
+            var row = _driver.FindElement(By.XPath("//tr[contains(., 'Remains to pay') or contains(., 'Remaining unpaid') or contains(., 'Reste à payer')]"));
+            var cells = row.FindElements(By.TagName("td"));
+            string text = cells.Count > 0 ? cells[^1].Text : row.Text;
+
+            var match = Regex.Match(text, @"([\d\s,.]+)\s*€?");
+            if (match.Success)
+            {
+                string clean = match.Groups[1].Value.Replace(" ", "").Replace("€", "").Trim();
+                if (clean.Contains(',') && !clean.Contains('.'))
+                    clean = clean.Replace(',', '.');
+                else if (clean.Contains(',') && clean.Contains('.'))
+                    clean = clean.Replace(".", "").Replace(',', '.');
+
+                if (decimal.TryParse(clean, NumberStyles.Any, CultureInfo.InvariantCulture, out decimal val))
+                    return val;
+            }
+        }
+        catch (NoSuchElementException) { }
+        return 0m;
+    }
+
     private void ConfirmDialog()
     {
         try
