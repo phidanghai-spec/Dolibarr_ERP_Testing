@@ -168,7 +168,7 @@ gantt
 | **Cycle 7** | Mở rộng đợt 3 chạm mốc 100 TC (39 TC: CRM Vendor/Inactive/Code, Sales Decimal/Clone/Terms/VAT, Stock Transfer/PMP/Alert) | 39 | 0 | 0 | 0 | 0.0% | **Đã thiết kế chuẩn BVA/EP/ST** |
 | **TỔNG HỢP** | **Toàn bộ bộ kiểm thử dự án (Core 100 TC + Kỹ thuật 8 TC)** | **108** | **33** | **1** | **0** | **30.6%** | **33 Pass, 1 Fail, 74 Not Run** |
 | **TRONG ĐÓ** | **100 Ca kiểm thử nghiệp vụ (Core Test Cases trong Excel)** | **100** | **25** | **1** | **0** | **25.0%** | **25 Pass, 1 Fail, 74 Not Run** |
-| **TRONG ĐÓ** | **34 Ca kiểm thử tự động đã nghiệm thu (.NET 9 Suite)** | **34** | **33** | **1** | **0** | **97.1%** | **Vượt tiêu chí $\ge 95\%$** |
+| **TRONG ĐÓ** | **37 Ca kiểm thử tự động đã nghiệm thu (.NET 9 Suite)** | **37** | **36** | **1** | **0** | **97.3%** | **Vượt tiêu chí $\ge 95\%$** |
 
 ---
 

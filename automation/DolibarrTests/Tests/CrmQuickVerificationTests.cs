@@ -95,20 +95,19 @@ public class CrmQuickVerificationTests : BaseTest
             createPage.ClickSave();
 
             bool redirected = detailPage.WaitForRedirectAfterSave(timeoutSeconds: 10);
-            if (redirected)
-            {
-                _createdCustomerUrl = Driver.Url;
-                string pageSource = Driver.PageSource;
-                bool phoneFound = pageSource.Contains("09ABCD5678");
-                TestContext.WriteLine($"[TC_CRM_020 ACTUAL] Dolibarr KHÔNG chặn ký tự chữ: Lưu thành công URL={_createdCustomerUrl}, SĐT '09ABCD5678' hiển thị={phoneFound}");
-                // Kết luận: Dolibarr lưu nguyên văn, trường Phone là free-text (thiếu format validation)
-                Assert.IsTrue(redirected, "Dolibarr mặc định cho phép lưu SĐT free-text.");
-            }
-            else
-            {
-                string errMsg = createPage.GetErrorMessage();
-                TestContext.WriteLine($"[TC_CRM_020 ACTUAL] Dolibarr CÓ validation và chặn lại: Lỗi='{errMsg}'");
-            }
+            _createdCustomerUrl = Driver.Url;
+
+            // Kỳ vọng theo thiết kế: Dolibarr mặc định xem phone là free-text nên phải lưu thành công và chuyển trang
+            Assert.IsTrue(redirected,
+                $"[TC_CRM_020] Dolibarr phải lưu thành công và redirect về trang chi tiết (do trường phone là free-text). Lỗi nếu có: '{createPage.GetErrorMessage()}', URL={_createdCustomerUrl}");
+
+            string pageSource = Driver.PageSource;
+            bool phoneFound = pageSource.Contains("09ABCD5678");
+            TestContext.WriteLine($"[TC_CRM_020 ACTUAL] Dolibarr KHÔNG chặn ký tự chữ: Lưu thành công URL={_createdCustomerUrl}, SĐT '09ABCD5678' hiển thị={phoneFound}");
+
+            // Assert giá trị cụ thể: chuỗi ký tự chữ phải được lưu và hiển thị nguyên vẹn trên trang chi tiết
+            Assert.IsTrue(phoneFound,
+                "[TC_CRM_020] Chuỗi SĐT '09ABCD5678' phải được lưu và hiển thị nguyên vẹn trên trang chi tiết (chứng minh trường phone thiếu validation).");
         }
         finally
         {
@@ -134,18 +133,18 @@ public class CrmQuickVerificationTests : BaseTest
             createPage.ClickSave();
 
             bool redirected = detailPage.WaitForRedirectAfterSave(timeoutSeconds: 10);
-            if (redirected)
-            {
-                _createdCustomerUrl = Driver.Url;
-                string newSocId = detailPage.GetSocId();
-                TestContext.WriteLine($"[TC_CRM_022 ACTUAL] Dolibarr KHÔNG ràng buộc UNIQUE tên: Tạo thành công bản ghi trùng tên với ID mới = {newSocId}, URL={_createdCustomerUrl}");
-                Assert.IsTrue(redirected, "Dolibarr mặc định cho phép tạo nhiều khách hàng cùng tên.");
-            }
-            else
-            {
-                string errMsg = createPage.GetErrorMessage();
-                TestContext.WriteLine($"[TC_CRM_022 ACTUAL] Dolibarr CHẶN trùng tên: Lỗi='{errMsg}'");
-            }
+            _createdCustomerUrl = Driver.Url;
+
+            // Kỳ vọng theo thiết kế: Dolibarr mặc định không có ràng buộc UNIQUE tên, nên phải lưu thành công
+            Assert.IsTrue(redirected,
+                $"[TC_CRM_022] Dolibarr phải cho phép tạo đối tác trùng tên (không ràng buộc UNIQUE trên name). Lỗi nếu có: '{createPage.GetErrorMessage()}', URL={_createdCustomerUrl}");
+
+            string newSocId = detailPage.GetSocId();
+            TestContext.WriteLine($"[TC_CRM_022 ACTUAL] Dolibarr KHÔNG ràng buộc UNIQUE tên: Tạo thành công bản ghi trùng tên với ID mới = {newSocId}, URL={_createdCustomerUrl}");
+
+            // Assert giá trị cụ thể: ID mới phải hợp lệ và lớn hơn 0 (bản ghi riêng biệt)
+            Assert.IsTrue(int.TryParse(newSocId, out int id) && id > 0,
+                $"[TC_CRM_022] Đối tác mới phải được tạo với Customer ID hợp lệ (> 0). Thực tế socid='{newSocId}'");
         }
         finally
         {
