@@ -22,6 +22,9 @@ public class CustomerCreatePage
     /// <summary>Ô nhập tên — maxlength="128" theo card.php dòng ~1460.</summary>
     private static readonly By NameInput = By.Id("name");
 
+    /// <summary>Ô nhập SĐT (phone) — name="phone" hoặc id="phone".</summary>
+    private static readonly By PhoneInput = By.CssSelector("input[name='phone'], input#phone");
+
     /// <summary>
     /// Checkbox "Khách hàng".
     /// card.php dòng 1486: input id="customerinput" name="customer" value="1" type="checkbox"
@@ -61,6 +64,16 @@ public class CustomerCreatePage
         var el = WaitHelper.WaitVisible(_driver, NameInput);
         el.Clear();
         el.SendKeys(name);
+    }
+
+    /// <summary>
+    /// Nhập SĐT vào ô phone. Clear trước.
+    /// </summary>
+    public void EnterPhone(string phone)
+    {
+        var el = WaitHelper.WaitVisible(_driver, PhoneInput);
+        el.Clear();
+        el.SendKeys(phone);
     }
 
     /// <summary>

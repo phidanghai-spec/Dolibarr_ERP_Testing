@@ -164,10 +164,10 @@ gantt
 | **Cycle 3** | CRM hoàn thiện: Update, Search, Delete & Review gia cố Cleanup | 5 | 5 | 0 | 0 | 100% | **Hoàn thành** |
 | **Cycle 4** | Automation Sales & Invoicing: Proposal $\rightarrow$ Invoice $\rightarrow$ Trừ kho + Mở rộng (Chiết khấu, Refused, Thanh toán 100%) | 11 | 11 | 0 | 0 | 100% | **Hoàn thành (8 gốc + 3 mở rộng)** |
 | **Cycle 5** | Manual Testing (Hóa đơn đặc biệt, Kho, Security, Concurrency) + Mở rộng (8 TC: 4 DB + 4 REST API) | 34 | 8 | 0 | 0 | 23.5% | **Mở rộng Đạt, 26 Manual Not Run** |
-| **Cycle 6** | Mở rộng đợt 2 (25 TC: BVA, EP, Negative validation, SQLi, Race condition, Performance) | 25 | 0 | 0 | 0 | 0.0% | **Đã thiết kế chuẩn BVA/EP/ST** |
+| **Cycle 6** | Mở rộng đợt 2 (25 TC: BVA, EP, Negative validation, SQLi, Race condition, Performance) | 25 | 3 | 0 | 0 | 12.0% | **3 TC xác thực trực tiếp trên SUT, 22 Not Run** |
 | **Cycle 7** | Mở rộng đợt 3 chạm mốc 100 TC (39 TC: CRM Vendor/Inactive/Code, Sales Decimal/Clone/Terms/VAT, Stock Transfer/PMP/Alert) | 39 | 0 | 0 | 0 | 0.0% | **Đã thiết kế chuẩn BVA/EP/ST** |
-| **TỔNG HỢP** | **Toàn bộ bộ kiểm thử dự án (Core 100 TC + Kỹ thuật 8 TC)** | **108** | **30** | **1** | **0** | **28.7%** | **30 Pass, 1 Fail, 77 Not Run** |
-| **TRONG ĐÓ** | **100 Ca kiểm thử nghiệp vụ (Core Test Cases trong Excel)** | **100** | **22** | **1** | **0** | **23.0%** | **22 Pass, 1 Fail, 77 Not Run** |
+| **TỔNG HỢP** | **Toàn bộ bộ kiểm thử dự án (Core 100 TC + Kỹ thuật 8 TC)** | **108** | **33** | **1** | **0** | **30.6%** | **33 Pass, 1 Fail, 74 Not Run** |
+| **TRONG ĐÓ** | **100 Ca kiểm thử nghiệp vụ (Core Test Cases trong Excel)** | **100** | **25** | **1** | **0** | **25.0%** | **25 Pass, 1 Fail, 74 Not Run** |
 | **TRONG ĐÓ** | **34 Ca kiểm thử tự động đã nghiệm thu (.NET 9 Suite)** | **34** | **33** | **1** | **0** | **97.1%** | **Vượt tiêu chí $\ge 95\%$** |
 
 ---
