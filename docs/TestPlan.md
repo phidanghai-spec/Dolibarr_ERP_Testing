@@ -163,9 +163,9 @@ gantt
 | **Cycle 2** | Kiểm thử CRM BVA (128/129 ký tự), Negative & Unicode (Phát hiện BUG_001) | 7 | 6 | 1 | 0 | 85.7% | **Hoàn thành (Ghi nhận BUG_001)** |
 | **Cycle 3** | CRM hoàn thiện: Update, Search, Delete & Review gia cố Cleanup | 5 | 5 | 0 | 0 | 100% | **Hoàn thành** |
 | **Cycle 4** | Automation Sales & Invoicing: Proposal $\rightarrow$ Invoice $\rightarrow$ Trừ kho + Mở rộng (Chiết khấu, Refused, Thanh toán 100%) | 11 | 11 | 0 | 0 | 100% | **Hoàn thành (8 gốc + 3 mở rộng)** |
-| **Cycle 5** | Manual Testing (8 TC: Hóa đơn đặc biệt & Kho - Chưa chạy tay) + Mở rộng (8 TC: 4 DB + 4 REST API) | 16 | 8 | 0 | 0 | 50.0% | **Mở rộng Đạt, 8 Manual Not Run** |
-| **TỔNG HỢP** | **Toàn bộ bộ kiểm thử (Core 31 TC + Kỹ thuật 8 TC)** | **39** | **30** | **1** | **0** | **76.9%** | **30 Pass, 1 Fail, 8 Not Run** |
-| **TRONG ĐÓ** | **31 Ca kiểm thử nghiệp vụ (Core Test Cases trong Excel)** | **31** | **22** | **1** | **0** | **71.0%** | **22 Pass, 1 Fail, 8 Not Run** |
+| **Cycle 5** | Manual Testing (13 TC: Hóa đơn đặc biệt & Kho - Chưa chạy tay) + Mở rộng (8 TC: 4 DB + 4 REST API) | 21 | 8 | 0 | 0 | 38.1% | **Mở rộng Đạt, 13 Manual Not Run** |
+| **TỔNG HỢP** | **Toàn bộ bộ kiểm thử (Core 36 TC + Kỹ thuật 8 TC)** | **44** | **30** | **1** | **0** | **68.2%** | **30 Pass, 1 Fail, 13 Not Run** |
+| **TRONG ĐÓ** | **36 Ca kiểm thử nghiệp vụ (Core Test Cases trong Excel)** | **36** | **22** | **1** | **0** | **61.1%** | **22 Pass, 1 Fail, 13 Not Run** |
 | **TRONG ĐÓ** | **34 Ca kiểm thử tự động (Automation Test Suite .NET 9)** | **34** | **33** | **1** | **0** | **97.1%** | **Vượt tiêu chí $\ge 95\%$** |
 
 ---
