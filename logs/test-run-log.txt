@@ -1,0 +1,489 @@
+  Determining projects to restore...
+  All projects are up-to-date for restore.
+  DolibarrTests -> D:\Projects\DoAnThucTap_Dolibarr\automation\DolibarrTests\bin\Debug\net9.0\DolibarrTests.dll
+Test run for D:\Projects\DoAnThucTap_Dolibarr\automation\DolibarrTests\bin\Debug\net9.0\DolibarrTests.dll (.NETCoreApp,Version=v9.0)
+VSTest version 17.14.1 (x64)
+
+Starting test execution, please wait...
+A total of 1 test files matched the specified pattern.
+D:\Projects\DoAnThucTap_Dolibarr\automation\DolibarrTests\bin\Debug\net9.0\DolibarrTests.dll
+  Passed TC_API_001_GetApiStatus [6 s]
+  Standard Output Messages:
+ 
+ 
+ TestContext Messages:
+ [TC_API_001] Status code: 200 OK
+
+
+  Passed TC_API_002_GetThirdParties [536 ms]
+  Standard Output Messages:
+ 
+ 
+ TestContext Messages:
+ [TC_API_002] Status code: 200
+
+
+  Passed TC_API_003_GetInvoices [421 ms]
+  Standard Output Messages:
+ 
+ 
+ TestContext Messages:
+ [TC_API_003] Status code: 200
+
+
+  Passed TC_API_004_GetProductStock [399 ms]
+  Standard Output Messages:
+ 
+ 
+ TestContext Messages:
+ [TC_API_004] Status code: 200
+ [TC_API_004] Tồn kho thực tế (stock_reel) của Product ID 1 qua API: 50
+
+
+  Passed TC_CRM_005_CreateCustomer_NameExactly128Chars_ShouldSaveSuccessfully [25 s]
+  Standard Output Messages:
+ 
+ 
+ TestContext Messages:
+ [TC_CRM_005 PASS] Tên 128 ký tự lưu thành công. URL: http://localhost/dolibarr/societe/card.php?id=__ID__&socid=3
+ [Screenshot] D:\Projects\DoAnThucTap_Dolibarr\automation\DolibarrTests\bin\Debug\net9.0\TestResults\Screenshots\TC_CRM_005_CreateCustomer_NameExactly128Chars_ShouldSaveSuccessfully_2026-10-09_11-13-21.png
+ [Cleanup] Đã xóa KH: http://localhost/dolibarr/societe/card.php?socid=3
+
+
+  Passed TC_CRM_006_CreateCustomer_Name129Chars_BrowserShouldTruncateTo128 [24 s]
+  Standard Output Messages:
+ 
+ 
+ TestContext Messages:
+ [TC_CRM_006 PASS] Browser cắt còn 128 ký tự. Lưu thành công. URL: http://localhost/dolibarr/societe/card.php?id=__ID__&socid=4
+ [Screenshot] D:\Projects\DoAnThucTap_Dolibarr\automation\DolibarrTests\bin\Debug\net9.0\TestResults\Screenshots\TC_CRM_006_CreateCustomer_Name129Chars_BrowserShouldTruncateTo128_2026-10-09_11-13-46.png
+ [Cleanup] Đã xóa KH: http://localhost/dolibarr/societe/card.php?socid=4
+
+
+  Passed TC_CRM_007_CreateCustomer_EmptyName_ShouldBeBlocked [10 s]
+  Standard Output Messages:
+ 
+ 
+ TestContext Messages:
+ [TC_CRM_007] required attribute: False (expected=False)
+ [TC_CRM_007] Redirected=False (expected=False)
+ [TC_CRM_007] ErrorMessage='Field 'Third-party name' is required'
+ [TC_CRM_007 PASS] Server chan dung. ErrorMessage='Field 'Third-party name' is required'
+ [Screenshot] D:\Projects\DoAnThucTap_Dolibarr\automation\DolibarrTests\bin\Debug\net9.0\TestResults\Screenshots\TC_CRM_007_CreateCustomer_EmptyName_ShouldBeBlocked_2026-10-09_11-13-59.png
+
+
+  Passed TC_CRM_008_CreateCustomer_SingleChar_ShouldSaveSuccessfully [23 s]
+  Standard Output Messages:
+ 
+ 
+ TestContext Messages:
+ [TC_CRM_008 PASS] Lưu thành công KH tên 1 ký tự 'A'. URL: http://localhost/dolibarr/societe/card.php?id=__ID__&socid=5
+ [Screenshot] D:\Projects\DoAnThucTap_Dolibarr\automation\DolibarrTests\bin\Debug\net9.0\TestResults\Screenshots\TC_CRM_008_CreateCustomer_SingleChar_ShouldSaveSuccessfully_2026-10-09_11-14-20.png
+ [Cleanup] Đã xóa KH: http://localhost/dolibarr/societe/card.php?socid=5
+
+
+  Passed TC_CRM_009_CreateCustomer_WhitespaceOnly_ShouldBeBlocked [12 s]
+  Standard Output Messages:
+ 
+ 
+ TestContext Messages:
+ [TC_CRM_009] Input trước submit: length=10
+ [TC_CRM_009] Redirected=False (expected=False)
+ [TC_CRM_009] ErrorMessage='Field 'Third-party name' is required' (expected chua 'required')
+ [TC_CRM_009 PASS] Dolibarr chan dung ten chi gom khoang trang. ErrorMessage='Field 'Third-party name' is required'
+ [Screenshot] D:\Projects\DoAnThucTap_Dolibarr\automation\DolibarrTests\bin\Debug\net9.0\TestResults\Screenshots\TC_CRM_009_CreateCustomer_WhitespaceOnly_ShouldBeBlocked_2026-10-09_11-14-35.png
+
+
+  Failed TC_CRM_010_CreateCustomer_SpecialChars_ObserveXssHandling [9 s]
+  Error Message:
+   Assert.IsFalse failed. [TC_CRM_010] [BUG_001] URL thô chứa placeholder '__ID__': http://localhost/dolibarr/societe/card.php?id=__ID__&socid=6. Expected theo UC-02 §4: URL hợp lệ dạng 'societe/card.php?socid={id}' không chứa '__ID__'.
+  Stack Trace:
+     at DolibarrTests.Tests.CrmCustomerTests.TC_CRM_010_CreateCustomer_SpecialChars_ObserveXssHandling() in D:\Projects\DoAnThucTap_Dolibarr\automation\DolibarrTests\Tests\CrmCustomerTests.cs:line 528
+   at System.RuntimeMethodHandle.InvokeMethod(Object target, Void** arguments, Signature sig, Boolean isConstructor)
+   at System.Reflection.MethodBaseInvoker.InvokeWithNoArgs(Object obj, BindingFlags invokeAttr)
+
+  Standard Output Messages:
+ 
+ 
+ TestContext Messages:
+ [Cleanup] Đã xóa KH: http://localhost/dolibarr/societe/card.php?socid=6
+ [Screenshot khi Fail] D:\Projects\DoAnThucTap_Dolibarr\automation\DolibarrTests\bin\Debug\net9.0\TestResults\Screenshots\TC_CRM_010_CreateCustomer_SpecialChars_ObserveXssHandling_2026-10-09_11-14-44.png
+
+
+  Passed TC_CRM_011_CreateCustomer_VietnameseDiacritics128Chars_ShouldSaveSuccessfully [22 s]
+  Standard Output Messages:
+ 
+ 
+ TestContext Messages:
+ [TC_CRM_011] Đã đọc chuỗi tiếng Việt 128 ký tự từ Excel: 'Công ty TNHH Kiểm Thử Dữ Liệu Tiếng Việt Có Dấu Số Nguyễn Văn Ất Ổn Ệ Ố Ắ Nguyễn Văn Ất Ổn Ệ Ố Ắ Nguyễn Văn Ất Ổn Ệ Ố Ắ Nguyễn V'
+ [TC_CRM_011] Số ký tự non-ASCII (>127): 32
+ [TC_CRM_011 PASS] Tên tiếng Việt 128 ký tự lưu và hiển thị hoàn hảo. URL: http://localhost/dolibarr/societe/card.php?id=__ID__&socid=7
+ [Screenshot] D:\Projects\DoAnThucTap_Dolibarr\automation\DolibarrTests\bin\Debug\net9.0\TestResults\Screenshots\TC_CRM_011_CreateCustomer_VietnameseDiacritics128Chars_ShouldSaveSuccessfully_2026-10-09_11-15-06.png
+ [Cleanup] Đã xóa KH: http://localhost/dolibarr/societe/card.php?socid=7
+
+
+  Passed Cleanup_DeleteAllTestCustomers [5 s]
+  Standard Output Messages:
+ 
+ 
+ TestContext Messages:
+ [Cleanup] CHE DO DRY-RUN: chi liet ke, KHONG XOA. De xoa that: dat CLEANUP_DRY_RUN=false.
+ [Cleanup DRY-RUN DONE] Danh sach tren la nhung KH SE BI XOA khi chay voi CLEANUP_DRY_RUN=false.
+ DUNG LAI — xac nhan voi nguoi dung truoc khi xoa that.
+
+
+  Passed TC_CRM_012_UpdateCustomer_ChangeName_ShouldDisplayNewName [11 s]
+  Standard Output Messages:
+ 
+ 
+ TestContext Messages:
+ [TC_CRM_012] Da tao KH: 'AUTO_Edit_Orig_FC1B3112'. URL: http://localhost/dolibarr/societe/card.php?id=__ID__&socid=8
+ [TC_CRM_012] Da vao che do Edit. URL: http://localhost/dolibarr/societe/card.php?socid=8&action=edit&token=381b2176686239dba5dc5b94c498a828
+ [TC_CRM_012 PASS] Sua ten thanh cong: 'AUTO_Edit_Orig_FC1B3112' -> 'AUTO_Edit_New_FC1B3112'. URL: http://localhost/dolibarr/societe/card.php?id=8
+ [Screenshot] D:\Projects\DoAnThucTap_Dolibarr\automation\DolibarrTests\bin\Debug\net9.0\TestResults\Screenshots\TC_CRM_012_UpdateCustomer_ChangeName_ShouldDisplayNewName_2026-10-09_11-15-22.png
+ [Cleanup] Đã xóa KH: http://localhost/dolibarr/societe/card.php?id=8
+
+
+  Passed TC_CRM_013_SearchCustomer_ByFullName_ShouldReturnExactMatch [10 s]
+  Standard Output Messages:
+ 
+ 
+ TestContext Messages:
+ [TC_CRM_013] Da tao KH: 'AUTO_SearchFull_6219344D'
+ [TC_CRM_013] Da tim kiem: 'AUTO_SearchFull_6219344D'. URL: http://localhost/dolibarr/societe/list.php
+ [TC_CRM_013] Count=1, Ket qua=AUTO_SearchFull_6219344D
+ [TC_CRM_013 PASS] Tim kiem theo ten day du thanh cong. Count=1
+ [Screenshot] D:\Projects\DoAnThucTap_Dolibarr\automation\DolibarrTests\bin\Debug\net9.0\TestResults\Screenshots\TC_CRM_013_SearchCustomer_ByFullName_ShouldReturnExactMatch_2026-10-09_11-15-33.png
+ [Cleanup] Đã xóa KH: http://localhost/dolibarr/societe/card.php?socid=9
+
+
+  Passed TC_CRM_014_SearchCustomer_ByPartialName_ShouldReturnMatchingResults [10 s]
+  Standard Output Messages:
+ 
+ 
+ TestContext Messages:
+ [TC_CRM_014] Da tao KH: 'AUTO_SearchPart_618C8F03'. Tim kiem theo: '618C8F03'
+ [TC_CRM_014] Da tim kiem: '618C8F03'
+ [TC_CRM_014] Count=1, Tim kiem theo='618C8F03'
+ [TC_CRM_014] Ket qua: AUTO_SearchPart_618C8F03
+ [TC_CRM_014 PASS] Tim kiem mot phan ten thanh cong. Count=1
+ [Screenshot] D:\Projects\DoAnThucTap_Dolibarr\automation\DolibarrTests\bin\Debug\net9.0\TestResults\Screenshots\TC_CRM_014_SearchCustomer_ByPartialName_ShouldReturnMatchingResults_2026-10-09_11-15-43.png
+ [Cleanup] Đã xóa KH: http://localhost/dolibarr/societe/card.php?socid=10
+
+
+  Passed TC_CRM_015_SearchCustomer_NonExistentName_ShouldReturnNoResults [6 s]
+  Standard Output Messages:
+ 
+ 
+ TestContext Messages:
+ [TC_CRM_015] Da tim kiem: 'NOTEXIST_A699BF95FD3C_ZZZZZ'
+ [TC_CRM_015] Count=0, HasNoResultMessage=True
+ [TC_CRM_015 PASS] Tim kiem ten khong ton tai tra ve rong. Count=0
+ [Screenshot] D:\Projects\DoAnThucTap_Dolibarr\automation\DolibarrTests\bin\Debug\net9.0\TestResults\Screenshots\TC_CRM_015_SearchCustomer_NonExistentName_ShouldReturnNoResults_2026-10-09_11-15-51.png
+
+
+  Passed TC_CRM_016_DeleteCustomer_ShouldRemoveFromList [9 s]
+  Standard Output Messages:
+ 
+ 
+ TestContext Messages:
+ [TC_CRM_016] Da tao KH: 'AUTO_Delete_647DEB28', URL=http://localhost/dolibarr/societe/card.php?id=__ID__&socid=11
+ [TC_CRM_016] Da thuc hien xoa KH thanh cong.
+ [TC_CRM_016] Count=0, HasNoResult=True sau khi xóa
+ [TC_CRM_016 PASS] Xoa KH thanh cong va xac minh khong con ton tai trong danh sach.
+ [Screenshot] D:\Projects\DoAnThucTap_Dolibarr\automation\DolibarrTests\bin\Debug\net9.0\TestResults\Screenshots\TC_CRM_016_DeleteCustomer_ShouldRemoveFromList_2026-10-09_11-16-01.png
+
+
+  Passed TC_CRM_019_VerifyPhone10Digits [8 s]
+  Standard Output Messages:
+ 
+ 
+ TestContext Messages:
+ [TC_CRM_019 ACTUAL] Lưu thành công: redirected=True, SĐT 0912345678 hiển thị=True, URL=http://localhost/dolibarr/societe/card.php?id=__ID__&socid=12
+
+
+  Passed TC_CRM_020_VerifyPhoneInvalidChars [20 s]
+  Standard Output Messages:
+ 
+ 
+ TestContext Messages:
+ [TC_CRM_020 ACTUAL] Dolibarr KHÔNG chặn ký tự chữ: Lưu thành công URL=http://localhost/dolibarr/societe/card.php?id=__ID__&socid=13, SĐT '09ABCD5678' hiển thị=True
+
+
+  Passed TC_CRM_022_VerifyDuplicateCustomerName [19 s]
+  Standard Output Messages:
+ 
+ 
+ TestContext Messages:
+ [TC_CRM_022 ACTUAL] Dolibarr KHÔNG ràng buộc UNIQUE tên: Tạo thành công bản ghi trùng tên với ID mới = 14, URL=http://localhost/dolibarr/societe/card.php?id=__ID__&socid=14
+
+
+  Passed TC_DB_001_VerifyDatabaseConnection [99 ms]
+  Standard Output Messages:
+ 
+ 
+ TestContext Messages:
+ [TC_DB_001] Kết nối DB: True, Server Version: 5.5.5-10.6.5-MariaDB
+
+
+  Passed TC_DB_002_VerifyCustomerDataIntegrity [82 ms]
+  Standard Output Messages:
+ 
+ 
+ TestContext Messages:
+ [TC_DB_002] Khách hàng DB: ID=1, Tên='Cong ty ABC', Code='CU2609-00001', ClientType=1, Status=1
+
+
+  Passed TC_DB_003_VerifyInvoiceDataIntegrity [38 ms]
+  Passed TC_DB_004_VerifyStockMovementIntegrity [31 ms]
+  Standard Output Messages:
+ 
+ 
+ TestContext Messages:
+ [TC_DB_004] Biến động gần nhất của PR001: Số lượng=50, Type=0, Lý do='Ton ban dau baseline KHO001 PR001', Ngày=2026-10-07 04:59:37
+
+
+  Passed TC_SAL_001_CreateDraftProposal_ShouldSucceed [7 s]
+  Standard Output Messages:
+ 
+ 
+ TestContext Messages:
+ [TC_SAL_001] Proposal Reference: 'PROV1'
+ [TC_SAL_001 PASS] Tạo báo giá nháp thành công cho 'Cong ty ABC'. URL: http://localhost/dolibarr/comm/propal/card.php?id=1
+ [Screenshot] D:\Projects\DoAnThucTap_Dolibarr\automation\DolibarrTests\bin\Debug\net9.0\TestResults\Screenshots\TC_SAL_001_CreateDraftProposal_ShouldSucceed_2026-10-09_11-16-57.png
+ [Cleanup info] Proposal URL created: http://localhost/dolibarr/comm/propal/card.php?id=1
+
+
+  Passed TC_SAL_002_AddProductLine_ShouldCalculateCorrectTotal [11 s]
+  Standard Output Messages:
+ 
+ 
+ TestContext Messages:
+ [TC_SAL_002] Tạo báo giá nháp thành công: PROV2
+ [TC_SAL_002] Kết quả tính tiền: Total HT = 200.00000 €, Total VAT = 20.00000 €, Total TTC = 220.00000 €
+ [Screenshot] D:\Projects\DoAnThucTap_Dolibarr\automation\DolibarrTests\bin\Debug\net9.0\TestResults\Screenshots\TC_SAL_002_AddProductLine_ShouldCalculateCorrectTotal_2026-10-09_11-17-09.png
+
+
+  Passed TC_SAL_003_AddMultipleProducts_ShouldCalculateCumulativeTotal [10 s]
+  Standard Output Messages:
+ 
+ 
+ TestContext Messages:
+ [TC_SAL_003] Tạo báo giá nháp thành công: PROV3
+ [TC_SAL_003] Kết quả lũy kế: Total HT = 310.00000 €, Total VAT = 31.00000 €, Total TTC = 341.00000 €
+ [Screenshot] D:\Projects\DoAnThucTap_Dolibarr\automation\DolibarrTests\bin\Debug\net9.0\TestResults\Screenshots\TC_SAL_003_AddMultipleProducts_ShouldCalculateCumulativeTotal_2026-10-09_11-17-20.png
+
+
+  Passed TC_SAL_004_ValidateProposal_ShouldChangeStatusToOpen [19 s]
+  Standard Output Messages:
+ 
+ 
+ TestContext Messages:
+ [TC_SAL_004] Báo giá nháp ban đầu: PROV4
+ [TC_SAL_004] Mã tham chiếu sau khi Validate: PR2610-0001
+ [TC_SAL_004] Trạng thái sau Validate: 'Validated (proposal is open)'
+ [Screenshot] D:\Projects\DoAnThucTap_Dolibarr\automation\DolibarrTests\bin\Debug\net9.0\TestResults\Screenshots\TC_SAL_004_ValidateProposal_ShouldChangeStatusToOpen_2026-10-09_11-17-38.png
+
+
+  Passed TC_SAL_005_CloseProposalAsSigned_ShouldUpdateStatus [27 s]
+  Standard Output Messages:
+ 
+ 
+ TestContext Messages:
+ [TC_SAL_005] Trạng thái sau khi Đóng: 'Signed (needs billing)'
+ [Screenshot] D:\Projects\DoAnThucTap_Dolibarr\automation\DolibarrTests\bin\Debug\net9.0\TestResults\Screenshots\TC_SAL_005_CloseProposalAsSigned_ShouldUpdateStatus_2026-10-09_11-18-07.png
+
+
+  Passed TC_SAL_006_CreateInvoiceFromSignedProposal_ShouldInheritTotal [26 s]
+  Standard Output Messages:
+ 
+ 
+ TestContext Messages:
+ [TC_SAL_006] Hóa đơn nháp: Ref='PROV1', Status='Draft (needs to be validated)', Total TTC=220.00000 €
+ [Screenshot] D:\Projects\DoAnThucTap_Dolibarr\automation\DolibarrTests\bin\Debug\net9.0\TestResults\Screenshots\TC_SAL_006_CreateInvoiceFromSignedProposal_ShouldInheritTotal_2026-10-09_11-18-34.png
+
+
+  Passed TC_SAL_007_ValidateInvoice_ShouldChangeStatusToUnpaid [27 s]
+  Standard Output Messages:
+ 
+ 
+ TestContext Messages:
+ [TC_SAL_007] Hóa đơn sau Validate: Ref='IN2610-0001', Status='Not paid'
+ [Screenshot] D:\Projects\DoAnThucTap_Dolibarr\automation\DolibarrTests\bin\Debug\net9.0\TestResults\Screenshots\TC_SAL_007_ValidateInvoice_ShouldChangeStatusToUnpaid_2026-10-09_11-19-01.png
+
+
+  Passed TC_SAL_008_ValidateInvoice_ShouldDecreaseProductStock [29 s]
+  Standard Output Messages:
+ [Stock Debug] URL after tab click: http://localhost/dolibarr/product/stock/product.php?id=1
+ [Stock Debug] Found stock row text: 'Physical Stock 49    Stocks at date'
+ [Stock Debug] URL after tab click: http://localhost/dolibarr/product/stock/product.php?id=1
+ [Stock Debug] Found stock row text: 'Physical Stock 47    Stocks at date'
+ 
+ 
+ TestContext Messages:
+ [TC_SAL_008] Tồn kho ban đầu của PR001: 49
+ [TC_SAL_008] Hóa đơn đã validate: IN2610-0002
+ [TC_SAL_008] Tồn kho của PR001 sau khi Validate hóa đơn: 47
+ [TC_SAL_008 PASS] Quy tắc tự động trừ kho hoạt động hoàn hảo: 49 -> 47 (-2)
+ [Screenshot] D:\Projects\DoAnThucTap_Dolibarr\automation\DolibarrTests\bin\Debug\net9.0\TestResults\Screenshots\TC_SAL_008_ValidateInvoice_ShouldDecreaseProductStock_2026-10-09_11-19-31.png
+
+
+  Passed TC_SAL_013_AddProductWithDiscount_ShouldCalculateCorrectTotal [9 s]
+  Standard Output Messages:
+ 
+ 
+ TestContext Messages:
+ [TC_SAL_013] Sau chiết khấu 10%: Total HT=180.00000 €, VAT=18.00000 €, Total TTC=198.00000 €
+ [Screenshot] D:\Projects\DoAnThucTap_Dolibarr\automation\DolibarrTests\bin\Debug\net9.0\TestResults\Screenshots\TC_SAL_013_AddProductWithDiscount_ShouldCalculateCorrectTotal_2026-10-09_11-19-40.png
+
+
+  Passed TC_SAL_014_CloseProposalAsRefused_ShouldNotAllowInvoiceCreation [24 s]
+  Standard Output Messages:
+ 
+ 
+ TestContext Messages:
+ [TC_SAL_014] Trạng thái sau khi đóng Refused: 'Not signed (closed)', HasCreateInvoiceButton: False
+ [Screenshot] D:\Projects\DoAnThucTap_Dolibarr\automation\DolibarrTests\bin\Debug\net9.0\TestResults\Screenshots\TC_SAL_014_CloseProposalAsRefused_ShouldNotAllowInvoiceCreation_2026-10-09_11-20-05.png
+
+
+  Passed TC_SAL_015_PayInvoiceInFull_ShouldChangeStatusToPaid [29 s]
+  Standard Output Messages:
+ 
+ 
+ TestContext Messages:
+ [TC_SAL_015] Trạng thái hóa đơn trước khi thanh toán: 'Not paid'
+ [TC_SAL_015] Trạng thái sau thanh toán 100%: 'Paid', Remains to pay: 0 €
+ [Screenshot] D:\Projects\DoAnThucTap_Dolibarr\automation\DolibarrTests\bin\Debug\net9.0\TestResults\Screenshots\TC_SAL_015_PayInvoiceInFull_ShouldChangeStatusToPaid_2026-10-09_11-20-35.png
+
+
+  Passed SMOKE_01_LoginAdmin_ValidCredentials_ShouldNavigateToDashboard [10 s]
+  Passed SMOKE_02_LoginAdmin_WrongPassword_ShouldShowError [4 s]
+  Standard Output Messages:
+ 
+ 
+ TestContext Messages:
+ [SMOKE_02] Thông báo lỗi: Bad value for login or password
+
+
+  Passed Reference_TC_SAL_009_CancelInvoice_ShouldUpdateStatusToAbandoned [28 s]
+  Standard Output Messages:
+ 
+ 
+ TestContext Messages:
+ [TC_SAL_009] Hóa đơn Unpaid tại: http://localhost/dolibarr/compta/facture/card.php?facid=5&action=confirm_valid&confirm=yes&token=3c43c89c65d8d4b20d485b32005f27a5&idwarehouse=1
+ [TC_SAL_009] Trạng thái sau khi hủy: 'Abandoned'
+ [Reference_TC_SAL_009] Hóa đơn chuyển trạng thái: 'Abandoned'. Không ghi Excel (tuân thủ quy tắc Manual).
+
+
+  Passed Reference_TC_SAL_010_CreateCreditNote_ShouldGenerateRefAV [32 s]
+  Standard Output Messages:
+ 
+ 
+ TestContext Messages:
+ [TC_SAL_010] Hóa đơn gốc tại: http://localhost/dolibarr/compta/facture/card.php?facid=6&action=confirm_valid&confirm=yes&token=b24fda6b7270373c06a35e6b5c25a512&idwarehouse=1
+ [TC_SAL_010] Credit note đã tạo: Ref='IC2610-0001', Status='Not paid'
+ [Reference_TC_SAL_010] Credit note đã tạo: 'IC2610-0001'. Không ghi Excel (tuân thủ quy tắc Manual).
+
+
+  Passed Reference_TC_SAL_011_PartialPayment_ShouldShowRemainingBalance [31 s]
+  Standard Output Messages:
+ 
+ 
+ TestContext Messages:
+ [TC_SAL_011] Hóa đơn Unpaid tại: http://localhost/dolibarr/compta/facture/card.php?facid=8&action=confirm_valid&confirm=yes&token=263e0fae5353beb33f8d273fadf2423d&idwarehouse=1
+ [TC_SAL_011] Trạng thái sau thanh toán đợt 1: 'Started'
+ [Reference_TC_SAL_011] Đã thanh toán đợt 1, trạng thái: 'Started'. Không ghi Excel (tuân thủ quy tắc Manual).
+
+
+  Passed Reference_TC_SAL_012_FullPayment_ShouldCloseInvoiceAsPaid [34 s]
+  Standard Output Messages:
+ 
+ 
+ TestContext Messages:
+ [TC_SAL_012] Hóa đơn Unpaid tại: http://localhost/dolibarr/compta/facture/card.php?facid=9&action=confirm_valid&confirm=yes&token=db5b0cf6c6bc97d642947a0d6fc4ad5c&idwarehouse=1
+ [TC_SAL_012] Trạng thái sau thanh toán toàn bộ: 'Paid'
+ [Reference_TC_SAL_012] Đã thanh toán toàn bộ, trạng thái: 'Paid'. Không ghi Excel (tuân thủ quy tắc Manual).
+
+
+  Passed Reference_TC_STK_001_CorrectStock_IncreaseStock_ShouldUpdateMovement [9 s]
+  Standard Output Messages:
+ [Stock Debug] URL after tab click: http://localhost/dolibarr/product/stock/product.php?id=2
+ [Stock Debug] Found stock row text: 'Physical Stock 30    Stocks at date'
+ [Stock Debug] URL after tab click: http://localhost/dolibarr/product/stock/product.php?id=2
+ [Stock Debug] Found stock row text: 'Physical Stock 40    Stocks at date'
+ 
+ 
+ TestContext Messages:
+ [TC_STK_001] Tồn ban đầu của PR002: 30
+ [TC_STK_001] Tồn sau khi tăng: 40
+ [Reference_TC_STK_001] Tồn kho PR002 tăng 10 (30 -> 40). Không ghi Excel (tuân thủ quy tắc Manual).
+
+
+  Passed Reference_TC_STK_002_CorrectStock_DecreaseStock_ShouldUpdateMovement [9 s]
+  Standard Output Messages:
+ [Stock Debug] URL after tab click: http://localhost/dolibarr/product/stock/product.php?id=2
+ [Stock Debug] Found stock row text: 'Physical Stock 40    Stocks at date'
+ [Stock Debug] URL after tab click: http://localhost/dolibarr/product/stock/product.php?id=2
+ [Stock Debug] Found stock row text: 'Physical Stock 35    Stocks at date'
+ 
+ 
+ TestContext Messages:
+ [TC_STK_002] Tồn ban đầu của PR002: 40
+ [TC_STK_002] Tồn sau khi giảm: 35
+ [Reference_TC_STK_002] Tồn kho PR002 giảm 5 (40 -> 35). Không ghi Excel (tuân thủ quy tắc Manual).
+
+
+  Passed Reference_TC_STK_003_NegativeStockExploration [9 s]
+  Standard Output Messages:
+ [Stock Debug] URL after tab click: http://localhost/dolibarr/product/stock/product.php?id=4
+ [Stock Debug] Found stock row text: 'Physical Stock 89    Stocks at date'
+ [Stock Debug] URL after tab click: http://localhost/dolibarr/product/stock/product.php?id=4
+ [Stock Debug] Found stock row text: 'Physical Stock 89    Stocks at date'
+ 
+ 
+ TestContext Messages:
+ [TC_STK_003] Tồn ban đầu của PR004: 89
+ [TC_STK_003] Tồn sau khi thử xuất quá: 89
+ [Reference_TC_STK_003] Tồn sau thử xuất quá: 89. Không ghi Excel (tuân thủ quy tắc Manual).
+
+
+  Failed Reference_TC_STK_004_StockLimitAlert [9 s]
+  Error Message:
+   Test method DolibarrTests.Tests.ReferenceManualScriptsTests.Reference_TC_STK_004_StockLimitAlert threw exception: 
+OpenQA.Selenium.UnknownErrorException: unknown error: unhandled inspector error: {"code":-32000,"message":"Node with given id does not belong to the document"}
+  (Session info: chrome=154.0.8037.98)
+  Stack Trace:
+      at OpenQA.Selenium.WebDriver.UnpackAndThrowOnError(Response errorResponse, String commandToExecute)
+   at OpenQA.Selenium.WebDriver.ExecuteAsync(String driverCommandToExecute, Dictionary`2 parameters)
+   at OpenQA.Selenium.WebDriver.Execute(String driverCommandToExecute, Dictionary`2 parameters)
+   at OpenQA.Selenium.WebElement.get_Displayed()
+   at DolibarrTests.Helpers.WaitHelper.<>c__DisplayClass1_0.<WaitVisible>b__0(IWebDriver d) in D:\Projects\DoAnThucTap_Dolibarr\automation\DolibarrTests\Helpers\WaitHelper.cs:line 26
+   at OpenQA.Selenium.Support.UI.DefaultWait`1.Until[TResult](Func`2 condition, CancellationToken token)
+   at OpenQA.Selenium.Support.UI.DefaultWait`1.Until[TResult](Func`2 condition)
+   at DolibarrTests.Helpers.WaitHelper.WaitVisible(IWebDriver driver, By locator, Nullable`1 timeoutSeconds) in D:\Projects\DoAnThucTap_Dolibarr\automation\DolibarrTests\Helpers\WaitHelper.cs:line 21
+   at DolibarrTests.Tests.ReferenceManualScriptsTests.Reference_TC_STK_004_StockLimitAlert() in D:\Projects\DoAnThucTap_Dolibarr\automation\DolibarrTests\Tests\SpecialInvoiceAndStockTests.cs:line 536
+   at DolibarrTests.Tests.ReferenceManualScriptsTests.Reference_TC_STK_004_StockLimitAlert() in D:\Projects\DoAnThucTap_Dolibarr\automation\DolibarrTests\Tests\SpecialInvoiceAndStockTests.cs:line 651
+
+  Standard Output Messages:
+ [Stock Debug] URL after tab click: http://localhost/dolibarr/product/stock/product.php?id=3
+ [Stock Debug] Found stock row text: 'Physical Stock 40    Stocks at date'
+ [Stock Debug] URL after tab click: http://localhost/dolibarr/product/stock/product.php?id=3
+ [Stock Debug] Found stock row text: 'Physical Stock 40    Stocks at date'
+ [Stock Debug] URL after tab click: http://localhost/dolibarr/product/stock/product.php?id=3
+ [Stock Debug] Found stock row text: 'Physical Stock 40    Stocks at date'
+ 
+ 
+ TestContext Messages:
+ [TC_STK_004 Precondition] Tồn UI: 40, Tồn DB Global (llx_product.stock): 40, Tồn DB Kho (llx_product_stock.reel KHO001): 40
+ [TC_STK_004 Cleanup] Sau hoàn trả: UI=40, DB KHO001=40 (Mốc ban đầu: 40)
+ [Reference_TC_STK_004] Kết quả tham khảo: Fail - Lỗi kiểm thử cảnh báo tồn kho: unknown error: unhandled inspector error: {"code":-32000,"message":"Node with given id does not belong to the document"}
+  (Session info: chrome=154.0.8037.98). Không ghi Excel (tuân thủ quy tắc Manual).
+ [Screenshot khi Fail] D:\Projects\DoAnThucTap_Dolibarr\automation\DolibarrTests\bin\Debug\net9.0\TestResults\Screenshots\Reference_TC_STK_004_StockLimitAlert_2026-10-09_11-23-35.png
+
+
+
+Total tests: 45
+     Passed: 43
+     Failed: 2
+Test Run Failed.
+ Total time: 10.7681 Minutes
