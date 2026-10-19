@@ -19,3 +19,4 @@ db/*.sql
 # OS
 Thumbs.db
 .DS_Store
+lệnh dolibarr test.txt

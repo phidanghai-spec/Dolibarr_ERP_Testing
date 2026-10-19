@@ -261,6 +261,130 @@ public class InvoiceDetailPage
         return 0m;
     }
 
+    /// <summary>
+    /// Đọc số tiền đã thanh toán (Already paid / Total paid / Déjà réglé).
+    /// </summary>
+    public decimal GetAlreadyPaidAmount()
+    {
+        try
+        {
+            var row = _driver.FindElement(By.XPath("//tr[contains(., 'Already paid') or contains(., 'Total paid') or contains(., 'Déjà réglé')]"));
+            var cells = row.FindElements(By.TagName("td"));
+            string text = cells.Count > 0 ? cells[^1].Text : row.Text;
+
+            var match = Regex.Match(text, @"([\d\s,.]+)\s*€?");
+            if (match.Success)
+            {
+                string clean = match.Groups[1].Value.Replace(" ", "").Replace("€", "").Trim();
+                if (clean.Contains(',') && !clean.Contains('.'))
+                    clean = clean.Replace(',', '.');
+                else if (clean.Contains(',') && clean.Contains('.'))
+                    clean = clean.Replace(".", "").Replace(',', '.');
+
+                if (decimal.TryParse(clean, NumberStyles.Any, CultureInfo.InvariantCulture, out decimal val))
+                    return val;
+            }
+        }
+        catch (NoSuchElementException) { }
+        return 0m;
+    }
+
+    /// <summary>
+    /// Đọc thông báo lỗi hiển thị trên trang hóa đơn hoặc form thanh toán.
+    /// </summary>
+    public string GetErrorMessage()
+    {
+        var selectors = new[]
+        {
+            By.CssSelector("div.jnotify-message"),
+            By.CssSelector("div.error"),
+            By.CssSelector(".fiche .error"),
+            By.CssSelector(".ui-dialog .error")
+        };
+
+        foreach (var sel in selectors)
+        {
+            try
+            {
+                var el = WaitHelper.WaitVisible(_driver, sel, timeoutSeconds: 3);
+                var text = el.Text.Trim();
+                if (!string.IsNullOrEmpty(text))
+                    return text;
+            }
+            catch (WebDriverTimeoutException) { }
+            catch (NoSuchElementException) { }
+        }
+
+        return string.Empty;
+    }
+
+    /// <summary>
+    /// Thử nhập thanh toán cho hóa đơn (hỗ trợ cả trường hợp số tiền 0 hoặc âm để kiểm tra validation).
+    /// Trả về chuỗi thông báo lỗi (nếu có).
+    /// </summary>
+    public string TryEnterPayment(decimal payAmount)
+    {
+        var matchFacId = Regex.Match(_driver.Url, @"(?:facid|id)=(\d+)");
+        string facId = matchFacId.Success ? matchFacId.Groups[1].Value : string.Empty;
+
+        var payBtn = WaitHelper.WaitClickable(_driver, By.XPath("//a[contains(@class, 'butAction') and (contains(text(), 'ENTER PAYMENT') or contains(@href, 'compta/paiement.php'))]"), 10);
+        payBtn.Click();
+
+        WaitHelper.WaitVisible(_driver, By.CssSelector("form#payment_form, form[action*='paiement.php'], div.fiche"), 15);
+
+        var js = (IJavaScriptExecutor)_driver;
+        js.ExecuteScript(@"
+            var nowBtn = document.querySelector('#reButtonNow, button.datenowlink');
+            if (nowBtn) {
+                nowBtn.click();
+            } else {
+                var dInput = document.querySelector('#re, input[name=""re""]');
+                if (dInput) {
+                    var now = new Date();
+                    var dd = String(now.getDate()).padStart(2, '0');
+                    var mm = String(now.getMonth() + 1).padStart(2, '0');
+                    var yyyy = now.getFullYear();
+                    dInput.value = mm + '/' + dd + '/' + yyyy;
+                    $(dInput).trigger('change');
+                }
+            }
+
+            var pSelect = document.querySelector('#selectpaiementcode, select[name=""paiementcode""]');
+            if (pSelect && pSelect.options.length > 1) {
+                pSelect.value = 'LIQ';
+                if (!pSelect.value) pSelect.selectedIndex = 1;
+                $(pSelect).trigger('change');
+            }
+        ");
+
+        js.ExecuteScript(@"
+            var targetFacId = arguments[0];
+            var amountToPay = arguments[1];
+
+            if (targetFacId) {
+                var inp = document.querySelector('input[name=""amount_' + targetFacId + '""]');
+                if (inp) {
+                    inp.value = amountToPay;
+                    $(inp).trigger('change');
+                }
+            } else {
+                var inps = document.querySelectorAll('input.amount');
+                if (inps.length > 0) {
+                    var targetInp = inps[inps.length - 1];
+                    targetInp.value = amountToPay;
+                    $(targetInp).trigger('change');
+                }
+            }
+        ", facId, payAmount.ToString("0.00", CultureInfo.InvariantCulture));
+
+        var savePayBtn = WaitHelper.WaitClickable(_driver, By.CssSelector("form#payment_form input[type='submit'][value='Pay'], input[type='submit'].reposition"), 10);
+        savePayBtn.Click();
+
+        // Kiểm tra xem có lỗi validation xuất hiện ngay không
+        string error = GetErrorMessage();
+        return error;
+    }
+
     private void ConfirmDialog()
     {
         try

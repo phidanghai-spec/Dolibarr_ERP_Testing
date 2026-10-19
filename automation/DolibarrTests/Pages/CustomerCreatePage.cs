@@ -25,6 +25,9 @@ public class CustomerCreatePage
     /// <summary>Ô nhập SĐT (phone) — name="phone" hoặc id="phone".</summary>
     private static readonly By PhoneInput = By.CssSelector("input[name='phone'], input#phone");
 
+    /// <summary>Ô nhập Email — name="email" hoặc id="email".</summary>
+    private static readonly By EmailInput = By.CssSelector("input[name='email'], input#email");
+
     /// <summary>
     /// Checkbox "Khách hàng".
     /// card.php dòng 1486: input id="customerinput" name="customer" value="1" type="checkbox"
@@ -77,13 +80,36 @@ public class CustomerCreatePage
     }
 
     /// <summary>
+    /// Nhập Email vào ô email. Clear trước.
+    /// </summary>
+    public void EnterEmail(string email)
+    {
+        var el = WaitHelper.WaitVisible(_driver, EmailInput);
+        el.Clear();
+        el.SendKeys(email);
+    }
+
+    /// <summary>
     /// Check checkbox "Khách hàng" (id="customerinput") nếu chưa được chọn.
+    /// Cuộn phần tử vào giữa màn hình để tránh bị thanh menu trên che khuất.
     /// </summary>
     public void SelectCustomerType()
     {
         var cb = WaitHelper.WaitVisible(_driver, CustomerCheckbox);
+        var js = (IJavaScriptExecutor)_driver;
+        js.ExecuteScript("arguments[0].scrollIntoView({block: 'center', inline: 'center'});", cb);
+
         if (!cb.Selected)
-            cb.Click();
+        {
+            try
+            {
+                cb.Click();
+            }
+            catch (ElementClickInterceptedException)
+            {
+                js.ExecuteScript("arguments[0].click();", cb);
+            }
+        }
     }
 
     /// <summary>Nhấn nút Lưu (button-save).</summary>

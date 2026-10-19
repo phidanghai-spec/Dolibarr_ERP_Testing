@@ -1,0 +1,110 @@
+  Determining projects to restore...
+  All projects are up-to-date for restore.
+  DolibarrTests -> D:\Projects\DoAnThucTap_Dolibarr\automation\DolibarrTests\bin\Debug\net9.0\DolibarrTests.dll
+Test run for D:\Projects\DoAnThucTap_Dolibarr\automation\DolibarrTests\bin\Debug\net9.0\DolibarrTests.dll (.NETCoreApp,Version=v9.0)
+VSTest version 17.14.1 (x64)
+
+Starting test execution, please wait...
+A total of 1 test files matched the specified pattern.
+D:\Projects\DoAnThucTap_Dolibarr\automation\DolibarrTests\bin\Debug\net9.0\DolibarrTests.dll
+  Passed TC_CRM_017_CreateCustomer_InvalidEmail_ShouldBeRejected [15 s]
+  Standard Output Messages:
+ 
+ 
+ TestContext Messages:
+ [TC_CRM_017 - ─Éß╗út 1 'abc@'] isSaved=False, URL=http://localhost/dolibarr/societe/card.php, Error='Email address abc@ is incorrect'
+ [TC_CRM_017 - ─Éß╗út 2 'abc.com'] isSaved=False, URL=http://localhost/dolibarr/societe/card.php, Error='Email address abc.com is incorrect'
+
+
+  Passed TC_CRM_018_CreateCustomer_ValidEmail_ShouldSaveSuccessfully [7 s]
+  Standard Output Messages:
+ 
+ 
+ TestContext Messages:
+ [TC_CRM_018 ACTUAL] Email nhß║¡p: 'tc018.valid@example.com', Email hiß╗ân thß╗ï tr├¬n trang chi tiß║┐t: 'tc018.valid@example.com'
+
+
+  Passed TC_CRM_021_DeleteCustomer_WithValidatedInvoice_ShouldBeBlocked [7 s]
+  Standard Output Messages:
+ 
+ 
+ TestContext Messages:
+ [TC_CRM_021 ACTUAL] Th├┤ng b├ío sau thao t├íc x├│a: Error='Object Cong ty ABC has at least one child of type Proposal
+ Failed to delete record since it has some child records.', URL=http://localhost/dolibarr/societe/card.php?socid=1&action=confirm_delete&confirm=yes&token=34b498cdb9efe555514769c92f789193
+ [TC_CRM_021 ACTUAL] T├¬n ─æß╗æi t├íc sau thao t├íc: 'Cong ty ABC'
+
+
+  Passed TC_CRM_023_SearchCustomer_CaseInsensitive_ShouldFindRecord [8 s]
+  Standard Output Messages:
+ 
+ 
+ TestContext Messages:
+ [TC_CRM_023 ACTUAL] T├¬n gß╗æc: 'AUTO_CiSearch_15CFEA', Tß╗½ kh├│a t├¼m: 'auto_cisearch_15cfea', Sß╗æ kß║┐t quß║ú: 1
+
+
+  Passed TC_SAL_020_EnterPayment_ZeroAmount_ShouldBeBlocked [39 s]
+  Standard Output Messages:
+ 
+ 
+ TestContext Messages:
+ [TC_SAL_020] H├│a ─æ╞ín Unpaid tß║íi: http://localhost/dolibarr/compta/facture/card.php?facid=34&action=confirm_valid&confirm=yes&token=f68225b6e212502c100f3890cfc7a16e&idwarehouse=1
+ [TC_SAL_020 ACTUAL] Th├┤ng b├ío lß╗ùi nhß║¡n ─æ╞░ß╗úc khi nhß║¡p 0.00 Γé¼: 'Field 'Payment amount' is required'
+ [TC_SAL_020 ACTUAL] Trß║íng th├íi sau thanh to├ín 0 Γé¼: 'Not paid', Already paid = 0 Γé¼
+
+
+  Passed TC_SAL_021_EnterPayment_NegativeAmount_ShouldBeBlocked [43 s]
+  Standard Output Messages:
+ 
+ 
+ TestContext Messages:
+ [TC_SAL_021] H├│a ─æ╞ín Unpaid tß║íi: http://localhost/dolibarr/compta/facture/card.php?facid=35&action=confirm_valid&confirm=yes&token=2ae881974d72a051e69f27e61f86cde4&idwarehouse=1
+ [TC_SAL_021 ACTUAL] Th├┤ng b├ío lß╗ùi nhß║¡n ─æ╞░ß╗úc khi nhß║¡p -50.00 Γé¼: ''
+ [TC_SAL_021 ACTUAL] Trß║íng th├íi sau thanh to├ín ├óm: 'Not paid', Already paid = 0 Γé¼
+
+
+  Passed TC_SAL_023_ValidateInvoice_EmptyLines_ShouldBeBlocked [7 s]
+  Standard Output Messages:
+ 
+ 
+ TestContext Messages:
+ [TC_SAL_023] H├│a ─æ╞ín Draft rß╗ùng vß╗½a tß║ío: Ref='PROV36', URL=http://localhost/dolibarr/compta/facture/card.php?facid=36
+ [TC_SAL_023 DB] Sß╗æ h├│a ─æ╞ín tr╞░ß╗¢c: 35, Sau khi tß║ío draft rß╗ùng: 36
+ [TC_SAL_023 ACTUAL] C├íc n├║t h├ánh ─æß╗Öng trong tabsAction: 'CLONEDELETE'
+ [TC_SAL_023 ACTUAL] N├║t Validate khß║ú dß╗Ñng tr├¬n UI: False. Refused Tooltip: ''. Phß║ún hß╗ôi Server: 'Object (PROV36) must have lines to be validated.'. Ref sau thao t├íc: 'PROV36'
+
+
+  Passed TC_STK_010_CorrectStock_ZeroQuantity_StockAndMovementsShouldNotChange [8 s]
+  Standard Output Messages:
+ [Stock Debug] URL after tab click: http://localhost/dolibarr/product/stock/product.php?id=2
+ [Stock Debug] Found stock row text: 'Physical Stock 39    Stocks at date'
+ [Stock Debug] URL after tab click: http://localhost/dolibarr/product/stock/product.php?id=2
+ [Stock Debug] Found stock row text: 'Physical Stock 39    Stocks at date'
+ 
+ 
+ TestContext Messages:
+ [TC_STK_010] Tr╞░ß╗¢c thao t├íc: Tß╗ôn kho PR002 = 39, Sß╗æ d├▓ng movements = 0
+ [TC_STK_010] Phß║ún hß╗ôi sau khi Record Quantity=0: Error='Field 'Number of units' is required'
+ [TC_STK_010 ACTUAL] Sau thao t├íc: Tß╗ôn kho = 39, Sß╗æ d├▓ng movements = 0
+
+
+  Skipped TC_STK_014_StockReplenishment_LoadTime_ShouldBeWithinThreshold [6 s]
+  Error Message:
+   Assert.Inconclusive failed. [TC_STK_014] Thiß║┐u precondition: Hiß╗çn chß╗ë c├│ 0/3 sß║ún phß║⌐m cß║ºn bß╗ò sung tr├¬n trang Replenishment. Kh├┤ng tß╗▒ sß╗¡a ng╞░ß╗íng baseline.
+  Stack Trace:
+     at DolibarrTests.Tests.Batch2ExtendedTests.TC_STK_014_StockReplenishment_LoadTime_ShouldBeWithinThreshold() in D:\Projects\DoAnThucTap_Dolibarr\automation\DolibarrTests\Tests\Batch2ExtendedTests.cs:line 527
+   at System.RuntimeMethodHandle.InvokeMethod(Object target, Void** arguments, Signature sig, Boolean isConstructor)
+   at System.Reflection.MethodBaseInvoker.InvokeWithNoArgs(Object obj, BindingFlags invokeAttr)
+
+  Standard Output Messages:
+ 
+ 
+ TestContext Messages:
+ [TC_STK_014 ACTUAL] Thß╗¥i gian tß║úi trang Replenishment: 918 ms, Sß╗æ sß║ún phß║⌐m hiß╗ân thß╗ï: 0
+
+
+
+Test Run Successful.
+Total tests: 9
+     Passed: 8
+    Skipped: 1
+ Total time: 2.4065 Minutes

@@ -261,5 +261,51 @@ public class CustomerDetailPage
     {
         return WaitHelper.WaitVisible(_driver, NameEditInput, timeoutSeconds: 5).GetAttribute("value") ?? string.Empty;
     }
+
+    /// <summary>
+    /// Đọc chuỗi email hiển thị trên trang chi tiết khách hàng.
+    /// </summary>
+    public string GetDisplayedEmail()
+    {
+        try
+        {
+            var el = _driver.FindElement(By.CssSelector("a[href^='mailto:']"));
+            return el.Text.Trim();
+        }
+        catch (NoSuchElementException)
+        {
+            var match = Regex.Match(_driver.PageSource, @"[a-zA-Z0-9._%+-]+@[a-zA-Z0-9.-]+\.[a-zA-Z]{2,}");
+            return match.Success ? match.Value : string.Empty;
+        }
+    }
+
+    /// <summary>
+    /// Đọc thông báo lỗi hiển thị trên trang (ví dụ khi xóa thất bại do ràng buộc khóa ngoại).
+    /// </summary>
+    public string GetErrorMessage()
+    {
+        var selectors = new[]
+        {
+            By.CssSelector("div.jnotify-message"),
+            By.CssSelector("div.error"),
+            By.CssSelector(".fiche .error"),
+            By.CssSelector(".ui-dialog .error")
+        };
+
+        foreach (var sel in selectors)
+        {
+            try
+            {
+                var el = WaitHelper.WaitVisible(_driver, sel, timeoutSeconds: 3);
+                var text = el.Text.Trim();
+                if (!string.IsNullOrEmpty(text))
+                    return text;
+            }
+            catch (WebDriverTimeoutException) { }
+            catch (NoSuchElementException) { }
+        }
+
+        return string.Empty;
+    }
 }
 
