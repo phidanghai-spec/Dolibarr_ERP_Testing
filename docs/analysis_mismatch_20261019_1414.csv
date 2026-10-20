@@ -1,0 +1,145 @@
+﻿Nhóm kiểm tra,TC_ID hoặc Bug ID,File/Sheet/Cột,Giá trị hiện tại,Giá trị mong đợi,Ghi chú
+A. Đối chiếu nguồn và bản trình bày,GLOBAL_FULL_FILE,Root / Dolibarr_TestCases_Full.xlsx,File không tồn tại trên máy local,File Dolibarr_TestCases_Full.xlsx hiện diện trong thư mục làm việc,"File gộp trình bày nằm trong môi trường chat sandbox của người dùng (/mnt/user-data/outputs/), chưa được đưa vào workspace repo."
+B. Chất lượng dữ liệu,TC_CRM_005,Test Cases / Ngôn ngữ,"title: Tao; steps: Luu, Chon, Mo, Nhap; expected: luu",Viết đầy đủ dấu tiếng Việt chuẩn,Phát hiện từ tiếng Việt không dấu trong mô tả/bước/kỳ vọng
+B. Chất lượng dữ liệu,TC_CRM_006,Test Cases / Ngôn ngữ,"title: Nhap; steps: nhap, Luu, Mo; expected: luu",Viết đầy đủ dấu tiếng Việt chuẩn,Phát hiện từ tiếng Việt không dấu trong mô tả/bước/kỳ vọng
+B. Chất lượng dữ liệu,TC_CRM_007,Test Cases / Ngôn ngữ,"title: nhap, Tao; steps: Luu, Chon, Mo; expected: tao",Viết đầy đủ dấu tiếng Việt chuẩn,Phát hiện từ tiếng Việt không dấu trong mô tả/bước/kỳ vọng
+B. Chất lượng dữ liệu,TC_CRM_008,Test Cases / Ngôn ngữ,"title: Tao; steps: Luu, Chon, Mo, Nhap; expected: Luu",Viết đầy đủ dấu tiếng Việt chuẩn,Phát hiện từ tiếng Việt không dấu trong mô tả/bước/kỳ vọng
+B. Chất lượng dữ liệu,TC_CRM_009,Test Cases / Ngôn ngữ,"title: Tao; steps: Luu, Chon, Mo, Nhap",Viết đầy đủ dấu tiếng Việt chuẩn,Phát hiện từ tiếng Việt không dấu trong mô tả/bước/kỳ vọng
+B. Chất lượng dữ liệu,TC_CRM_010,Test Cases / Ngôn ngữ,"title: Tao; steps: Luu, Chon, Mo, Nhap",Viết đầy đủ dấu tiếng Việt chuẩn,Phát hiện từ tiếng Việt không dấu trong mô tả/bước/kỳ vọng
+B. Chất lượng dữ liệu,TC_CRM_011,Test Cases / Ngôn ngữ,"title: Tao; steps: Luu, Chon, Mo, Nhap; expected: Luu",Viết đầy đủ dấu tiếng Việt chuẩn,Phát hiện từ tiếng Việt không dấu trong mô tả/bước/kỳ vọng
+B. Chất lượng dữ liệu,TC_CRM_012,Test Cases / Ngôn ngữ,"title: luu; steps: Luu, Kiem tra, Mo, Nhap; expected: luu, cap nhat",Viết đầy đủ dấu tiếng Việt chuẩn,Phát hiện từ tiếng Việt không dấu trong mô tả/bước/kỳ vọng
+B. Chất lượng dữ liệu,TC_CRM_013,Test Cases / Ngôn ngữ,"steps: Kiem tra, Mo, Nhap",Viết đầy đủ dấu tiếng Việt chuẩn,Phát hiện từ tiếng Việt không dấu trong mô tả/bước/kỳ vọng
+B. Chất lượng dữ liệu,TC_CRM_014,Test Cases / Ngôn ngữ,"steps: Kiem tra, Mo, Nhap",Viết đầy đủ dấu tiếng Việt chuẩn,Phát hiện từ tiếng Việt không dấu trong mô tả/bước/kỳ vọng
+B. Chất lượng dữ liệu,TC_CRM_015,Test Cases / Ngôn ngữ,"steps: Kiem tra, Mo, Nhap; expected: dong",Viết đầy đủ dấu tiếng Việt chuẩn,Phát hiện từ tiếng Việt không dấu trong mô tả/bước/kỳ vọng
+B. Chất lượng dữ liệu,TC_CRM_016,Test Cases / Ngôn ngữ,"title: Xoa; steps: xoa, Mo, Xoa; expected: xoa",Viết đầy đủ dấu tiếng Việt chuẩn,Phát hiện từ tiếng Việt không dấu trong mô tả/bước/kỳ vọng
+B. Chất lượng dữ liệu,TC_STK_005,Test Cases / Ngôn ngữ,steps: kiem tra,Viết đầy đủ dấu tiếng Việt chuẩn,Phát hiện từ tiếng Việt không dấu trong mô tả/bước/kỳ vọng
+B. Chất lượng dữ liệu,TC_CRM_025,Test Cases / Cột Loai (Auto),Loại = Auto nhưng không tìm thấy test method trong code C#,Có method [TestMethod] TC_CRM_025_... trong automation/DolibarrTests,Chưa được tự động hóa bằng code C#
+B. Chất lượng dữ liệu,TC_CRM_026,Test Cases / Cột Loai (Auto),Loại = Auto nhưng không tìm thấy test method trong code C#,Có method [TestMethod] TC_CRM_026_... trong automation/DolibarrTests,Chưa được tự động hóa bằng code C#
+B. Chất lượng dữ liệu,TC_CRM_028,Test Cases / Cột Loai (Auto),Loại = Auto nhưng không tìm thấy test method trong code C#,Có method [TestMethod] TC_CRM_028_... trong automation/DolibarrTests,Chưa được tự động hóa bằng code C#
+B. Chất lượng dữ liệu,TC_CRM_029,Test Cases / Cột Loai (Auto),Loại = Auto nhưng không tìm thấy test method trong code C#,Có method [TestMethod] TC_CRM_029_... trong automation/DolibarrTests,Chưa được tự động hóa bằng code C#
+B. Chất lượng dữ liệu,TC_CRM_030,Test Cases / Cột Loai (Auto),Loại = Auto nhưng không tìm thấy test method trong code C#,Có method [TestMethod] TC_CRM_030_... trong automation/DolibarrTests,Chưa được tự động hóa bằng code C#
+B. Chất lượng dữ liệu,TC_CRM_032,Test Cases / Cột Loai (Auto),Loại = Auto nhưng không tìm thấy test method trong code C#,Có method [TestMethod] TC_CRM_032_... trong automation/DolibarrTests,Chưa được tự động hóa bằng code C#
+B. Chất lượng dữ liệu,TC_CRM_033,Test Cases / Cột Loai (Auto),Loại = Auto nhưng không tìm thấy test method trong code C#,Có method [TestMethod] TC_CRM_033_... trong automation/DolibarrTests,Chưa được tự động hóa bằng code C#
+B. Chất lượng dữ liệu,TC_CRM_035,Test Cases / Cột Loai (Auto),Loại = Auto nhưng không tìm thấy test method trong code C#,Có method [TestMethod] TC_CRM_035_... trong automation/DolibarrTests,Chưa được tự động hóa bằng code C#
+B. Chất lượng dữ liệu,TC_SAL_028,Test Cases / Cột Loai (Auto),Loại = Auto nhưng không tìm thấy test method trong code C#,Có method [TestMethod] TC_SAL_028_... trong automation/DolibarrTests,Chưa được tự động hóa bằng code C#
+B. Chất lượng dữ liệu,TC_SAL_030,Test Cases / Cột Loai (Auto),Loại = Auto nhưng không tìm thấy test method trong code C#,Có method [TestMethod] TC_SAL_030_... trong automation/DolibarrTests,Chưa được tự động hóa bằng code C#
+B. Chất lượng dữ liệu,TC_SAL_031,Test Cases / Cột Loai (Auto),Loại = Auto nhưng không tìm thấy test method trong code C#,Có method [TestMethod] TC_SAL_031_... trong automation/DolibarrTests,Chưa được tự động hóa bằng code C#
+B. Chất lượng dữ liệu,TC_SAL_033,Test Cases / Cột Loai (Auto),Loại = Auto nhưng không tìm thấy test method trong code C#,Có method [TestMethod] TC_SAL_033_... trong automation/DolibarrTests,Chưa được tự động hóa bằng code C#
+B. Chất lượng dữ liệu,TC_SAL_034,Test Cases / Cột Loai (Auto),Loại = Auto nhưng không tìm thấy test method trong code C#,Có method [TestMethod] TC_SAL_034_... trong automation/DolibarrTests,Chưa được tự động hóa bằng code C#
+B. Chất lượng dữ liệu,TC_SAL_035,Test Cases / Cột Loai (Auto),Loại = Auto nhưng không tìm thấy test method trong code C#,Có method [TestMethod] TC_SAL_035_... trong automation/DolibarrTests,Chưa được tự động hóa bằng code C#
+B. Chất lượng dữ liệu,TC_SAL_036,Test Cases / Cột Loai (Auto),Loại = Auto nhưng không tìm thấy test method trong code C#,Có method [TestMethod] TC_SAL_036_... trong automation/DolibarrTests,Chưa được tự động hóa bằng code C#
+B. Chất lượng dữ liệu,TC_SAL_038,Test Cases / Cột Loai (Auto),Loại = Auto nhưng không tìm thấy test method trong code C#,Có method [TestMethod] TC_SAL_038_... trong automation/DolibarrTests,Chưa được tự động hóa bằng code C#
+B. Chất lượng dữ liệu,TC_STK_015,Test Cases / Cột Loai (Auto),Loại = Auto nhưng không tìm thấy test method trong code C#,Có method [TestMethod] TC_STK_015_... trong automation/DolibarrTests,Chưa được tự động hóa bằng code C#
+B. Chất lượng dữ liệu,TC_STK_016,Test Cases / Cột Loai (Auto),Loại = Auto nhưng không tìm thấy test method trong code C#,Có method [TestMethod] TC_STK_016_... trong automation/DolibarrTests,Chưa được tự động hóa bằng code C#
+B. Chất lượng dữ liệu,TC_STK_017,Test Cases / Cột Loai (Auto),Loại = Auto nhưng không tìm thấy test method trong code C#,Có method [TestMethod] TC_STK_017_... trong automation/DolibarrTests,Chưa được tự động hóa bằng code C#
+B. Chất lượng dữ liệu,TC_STK_019,Test Cases / Cột Loai (Auto),Loại = Auto nhưng không tìm thấy test method trong code C#,Có method [TestMethod] TC_STK_019_... trong automation/DolibarrTests,Chưa được tự động hóa bằng code C#
+B. Chất lượng dữ liệu,TC_STK_021,Test Cases / Cột Loai (Auto),Loại = Auto nhưng không tìm thấy test method trong code C#,Có method [TestMethod] TC_STK_021_... trong automation/DolibarrTests,Chưa được tự động hóa bằng code C#
+B. Chất lượng dữ liệu,TC_STK_023,Test Cases / Cột Loai (Auto),Loại = Auto nhưng không tìm thấy test method trong code C#,Có method [TestMethod] TC_STK_023_... trong automation/DolibarrTests,Chưa được tự động hóa bằng code C#
+C. Nhất quán Actual/Status,TC_CRM_017,Test Cases / Cột Actual (Chuỗi lỗi),Email address ... is incorrect,Xuất hiện trong docs/run_dot2_final_20261019_1326.log,Chưa xác minh chuỗi thông báo lỗi trong log đợt 2
+C. Nhất quán Actual/Status,TC_CRM_019,Test Cases / Cột Minh chung,automation/DolibarrTests/Tests/CrmQuickVerificationTests.cs (TC_CRM_019_VerifyPhone10Digits PASS),Đường dẫn file tồn tại trong repo,File minh chứng không tồn tại trên đĩa
+C. Nhất quán Actual/Status,TC_CRM_020,Test Cases / Cột Minh chung,automation/DolibarrTests/Tests/CrmQuickVerificationTests.cs (TC_CRM_020_VerifyPhoneInvalidChars PASS),Đường dẫn file tồn tại trong repo,File minh chứng không tồn tại trên đĩa
+C. Nhất quán Actual/Status,TC_CRM_022,Test Cases / Cột Minh chung,automation/DolibarrTests/Tests/CrmQuickVerificationTests.cs (TC_CRM_022_VerifyDuplicateCustomerName PASS),Đường dẫn file tồn tại trong repo,File minh chứng không tồn tại trên đĩa
+C. Nhất quán Actual/Status,TC_SAL_020,Test Cases / Cột Actual (Chuỗi lỗi),Field Payment amount is required,Xuất hiện trong docs/run_dot2_final_20261019_1326.log,Chưa xác minh chuỗi thông báo lỗi trong log đợt 2
+C. Nhất quán Actual/Status,TC_SAL_023,Test Cases / Cột Actual (Chuỗi lỗi),Object (PROV...) must have lines to be validated.,Xuất hiện trong docs/run_dot2_final_20261019_1326.log,Chưa xác minh chuỗi thông báo lỗi trong log đợt 2
+C. Nhất quán Actual/Status,TC_STK_010,Test Cases / Cột Actual (Chuỗi lỗi),Field Number of units is required,Xuất hiện trong docs/run_dot2_final_20261019_1326.log,Chưa xác minh chuỗi thông báo lỗi trong log đợt 2
+D. Bug Report & Traceability,BUG_001,Bug Report / TC lien quan,"Dolibarr 22.0.4, Windows, Chrome, MariaDB 10.6.5",Mã TC_... hợp lệ trong sheet Test Cases,Bug Report không trỏ tới Test Case hợp lệ
+D. Bug Report & Traceability,TC_CRM_028,Traceability / Cột Test ID,Không có trong sheet Traceability,Có dòng mapping tương ứng,Test Case chưa được đưa vào ma trận truy xuất
+D. Bug Report & Traceability,TC_SAL_040,Traceability / Cột Test ID,Không có trong sheet Traceability,Có dòng mapping tương ứng,Test Case chưa được đưa vào ma trận truy xuất
+D. Bug Report & Traceability,TC_STK_003,Traceability / Cột Test ID,Không có trong sheet Traceability,Có dòng mapping tương ứng,Test Case chưa được đưa vào ma trận truy xuất
+D. Bug Report & Traceability,TC_CRM_017,Traceability / Cột Test ID,Không có trong sheet Traceability,Có dòng mapping tương ứng,Test Case chưa được đưa vào ma trận truy xuất
+D. Bug Report & Traceability,TC_SAL_015,Traceability / Cột Test ID,Không có trong sheet Traceability,Có dòng mapping tương ứng,Test Case chưa được đưa vào ma trận truy xuất
+D. Bug Report & Traceability,TC_SAL_013,Traceability / Cột Test ID,Không có trong sheet Traceability,Có dòng mapping tương ứng,Test Case chưa được đưa vào ma trận truy xuất
+D. Bug Report & Traceability,TC_CRM_023,Traceability / Cột Test ID,Không có trong sheet Traceability,Có dòng mapping tương ứng,Test Case chưa được đưa vào ma trận truy xuất
+D. Bug Report & Traceability,TC_STK_020,Traceability / Cột Test ID,Không có trong sheet Traceability,Có dòng mapping tương ứng,Test Case chưa được đưa vào ma trận truy xuất
+D. Bug Report & Traceability,TC_CRM_007,Traceability / Cột Test ID,Không có trong sheet Traceability,Có dòng mapping tương ứng,Test Case chưa được đưa vào ma trận truy xuất
+D. Bug Report & Traceability,TC_CRM_018,Traceability / Cột Test ID,Không có trong sheet Traceability,Có dòng mapping tương ứng,Test Case chưa được đưa vào ma trận truy xuất
+D. Bug Report & Traceability,TC_STK_021,Traceability / Cột Test ID,Không có trong sheet Traceability,Có dòng mapping tương ứng,Test Case chưa được đưa vào ma trận truy xuất
+D. Bug Report & Traceability,TC_STK_009,Traceability / Cột Test ID,Không có trong sheet Traceability,Có dòng mapping tương ứng,Test Case chưa được đưa vào ma trận truy xuất
+D. Bug Report & Traceability,TC_SAL_004,Traceability / Cột Test ID,Không có trong sheet Traceability,Có dòng mapping tương ứng,Test Case chưa được đưa vào ma trận truy xuất
+D. Bug Report & Traceability,TC_CRM_035,Traceability / Cột Test ID,Không có trong sheet Traceability,Có dòng mapping tương ứng,Test Case chưa được đưa vào ma trận truy xuất
+D. Bug Report & Traceability,TC_CRM_031,Traceability / Cột Test ID,Không có trong sheet Traceability,Có dòng mapping tương ứng,Test Case chưa được đưa vào ma trận truy xuất
+D. Bug Report & Traceability,TC_CRM_024,Traceability / Cột Test ID,Không có trong sheet Traceability,Có dòng mapping tương ứng,Test Case chưa được đưa vào ma trận truy xuất
+D. Bug Report & Traceability,TC_STK_019,Traceability / Cột Test ID,Không có trong sheet Traceability,Có dòng mapping tương ứng,Test Case chưa được đưa vào ma trận truy xuất
+D. Bug Report & Traceability,TC_CRM_011,Traceability / Cột Test ID,Không có trong sheet Traceability,Có dòng mapping tương ứng,Test Case chưa được đưa vào ma trận truy xuất
+D. Bug Report & Traceability,TC_CRM_022,Traceability / Cột Test ID,Không có trong sheet Traceability,Có dòng mapping tương ứng,Test Case chưa được đưa vào ma trận truy xuất
+D. Bug Report & Traceability,TC_SAL_033,Traceability / Cột Test ID,Không có trong sheet Traceability,Có dòng mapping tương ứng,Test Case chưa được đưa vào ma trận truy xuất
+D. Bug Report & Traceability,TC_SAL_038,Traceability / Cột Test ID,Không có trong sheet Traceability,Có dòng mapping tương ứng,Test Case chưa được đưa vào ma trận truy xuất
+D. Bug Report & Traceability,TC_CRM_006,Traceability / Cột Test ID,Không có trong sheet Traceability,Có dòng mapping tương ứng,Test Case chưa được đưa vào ma trận truy xuất
+D. Bug Report & Traceability,TC_SAL_002,Traceability / Cột Test ID,Không có trong sheet Traceability,Có dòng mapping tương ứng,Test Case chưa được đưa vào ma trận truy xuất
+D. Bug Report & Traceability,TC_CRM_012,Traceability / Cột Test ID,Không có trong sheet Traceability,Có dòng mapping tương ứng,Test Case chưa được đưa vào ma trận truy xuất
+D. Bug Report & Traceability,TC_STK_015,Traceability / Cột Test ID,Không có trong sheet Traceability,Có dòng mapping tương ứng,Test Case chưa được đưa vào ma trận truy xuất
+D. Bug Report & Traceability,TC_CRM_009,Traceability / Cột Test ID,Không có trong sheet Traceability,Có dòng mapping tương ứng,Test Case chưa được đưa vào ma trận truy xuất
+D. Bug Report & Traceability,TC_CRM_014,Traceability / Cột Test ID,Không có trong sheet Traceability,Có dòng mapping tương ứng,Test Case chưa được đưa vào ma trận truy xuất
+D. Bug Report & Traceability,TC_STK_013,Traceability / Cột Test ID,Không có trong sheet Traceability,Có dòng mapping tương ứng,Test Case chưa được đưa vào ma trận truy xuất
+D. Bug Report & Traceability,TC_CRM_020,Traceability / Cột Test ID,Không có trong sheet Traceability,Có dòng mapping tương ứng,Test Case chưa được đưa vào ma trận truy xuất
+D. Bug Report & Traceability,TC_SAL_009,Traceability / Cột Test ID,Không có trong sheet Traceability,Có dòng mapping tương ứng,Test Case chưa được đưa vào ma trận truy xuất
+D. Bug Report & Traceability,TC_SAL_032,Traceability / Cột Test ID,Không có trong sheet Traceability,Có dòng mapping tương ứng,Test Case chưa được đưa vào ma trận truy xuất
+D. Bug Report & Traceability,TC_SAL_014,Traceability / Cột Test ID,Không có trong sheet Traceability,Có dòng mapping tương ứng,Test Case chưa được đưa vào ma trận truy xuất
+D. Bug Report & Traceability,TC_STK_024,Traceability / Cột Test ID,Không có trong sheet Traceability,Có dòng mapping tương ứng,Test Case chưa được đưa vào ma trận truy xuất
+D. Bug Report & Traceability,TC_SAL_017,Traceability / Cột Test ID,Không có trong sheet Traceability,Có dòng mapping tương ứng,Test Case chưa được đưa vào ma trận truy xuất
+D. Bug Report & Traceability,TC_CRM_019,Traceability / Cột Test ID,Không có trong sheet Traceability,Có dòng mapping tương ứng,Test Case chưa được đưa vào ma trận truy xuất
+D. Bug Report & Traceability,TC_CRM_021,Traceability / Cột Test ID,Không có trong sheet Traceability,Có dòng mapping tương ứng,Test Case chưa được đưa vào ma trận truy xuất
+D. Bug Report & Traceability,TC_CRM_030,Traceability / Cột Test ID,Không có trong sheet Traceability,Có dòng mapping tương ứng,Test Case chưa được đưa vào ma trận truy xuất
+D. Bug Report & Traceability,TC_STK_026,Traceability / Cột Test ID,Không có trong sheet Traceability,Có dòng mapping tương ứng,Test Case chưa được đưa vào ma trận truy xuất
+D. Bug Report & Traceability,TC_SAL_003,Traceability / Cột Test ID,Không có trong sheet Traceability,Có dòng mapping tương ứng,Test Case chưa được đưa vào ma trận truy xuất
+D. Bug Report & Traceability,TC_SAL_005,Traceability / Cột Test ID,Không có trong sheet Traceability,Có dòng mapping tương ứng,Test Case chưa được đưa vào ma trận truy xuất
+D. Bug Report & Traceability,TC_CRM_029,Traceability / Cột Test ID,Không có trong sheet Traceability,Có dòng mapping tương ứng,Test Case chưa được đưa vào ma trận truy xuất
+D. Bug Report & Traceability,TC_STK_014,Traceability / Cột Test ID,Không có trong sheet Traceability,Có dòng mapping tương ứng,Test Case chưa được đưa vào ma trận truy xuất
+D. Bug Report & Traceability,TC_CRM_010,Traceability / Cột Test ID,Không có trong sheet Traceability,Có dòng mapping tương ứng,Test Case chưa được đưa vào ma trận truy xuất
+D. Bug Report & Traceability,TC_SAL_010,Traceability / Cột Test ID,Không có trong sheet Traceability,Có dòng mapping tương ứng,Test Case chưa được đưa vào ma trận truy xuất
+D. Bug Report & Traceability,TC_CRM_034,Traceability / Cột Test ID,Không có trong sheet Traceability,Có dòng mapping tương ứng,Test Case chưa được đưa vào ma trận truy xuất
+D. Bug Report & Traceability,TC_STK_001,Traceability / Cột Test ID,Không có trong sheet Traceability,Có dòng mapping tương ứng,Test Case chưa được đưa vào ma trận truy xuất
+D. Bug Report & Traceability,TC_SAL_036,Traceability / Cột Test ID,Không có trong sheet Traceability,Có dòng mapping tương ứng,Test Case chưa được đưa vào ma trận truy xuất
+D. Bug Report & Traceability,TC_CRM_016,Traceability / Cột Test ID,Không có trong sheet Traceability,Có dòng mapping tương ứng,Test Case chưa được đưa vào ma trận truy xuất
+D. Bug Report & Traceability,TC_STK_012,Traceability / Cột Test ID,Không có trong sheet Traceability,Có dòng mapping tương ứng,Test Case chưa được đưa vào ma trận truy xuất
+D. Bug Report & Traceability,TC_STK_016,Traceability / Cột Test ID,Không có trong sheet Traceability,Có dòng mapping tương ứng,Test Case chưa được đưa vào ma trận truy xuất
+D. Bug Report & Traceability,TC_SAL_019,Traceability / Cột Test ID,Không có trong sheet Traceability,Có dòng mapping tương ứng,Test Case chưa được đưa vào ma trận truy xuất
+D. Bug Report & Traceability,TC_SAL_026,Traceability / Cột Test ID,Không có trong sheet Traceability,Có dòng mapping tương ứng,Test Case chưa được đưa vào ma trận truy xuất
+D. Bug Report & Traceability,TC_STK_002,Traceability / Cột Test ID,Không có trong sheet Traceability,Có dòng mapping tương ứng,Test Case chưa được đưa vào ma trận truy xuất
+D. Bug Report & Traceability,TC_SAL_022,Traceability / Cột Test ID,Không có trong sheet Traceability,Có dòng mapping tương ứng,Test Case chưa được đưa vào ma trận truy xuất
+D. Bug Report & Traceability,TC_SAL_035,Traceability / Cột Test ID,Không có trong sheet Traceability,Có dòng mapping tương ứng,Test Case chưa được đưa vào ma trận truy xuất
+D. Bug Report & Traceability,TC_CRM_027,Traceability / Cột Test ID,Không có trong sheet Traceability,Có dòng mapping tương ứng,Test Case chưa được đưa vào ma trận truy xuất
+D. Bug Report & Traceability,TC_STK_018,Traceability / Cột Test ID,Không có trong sheet Traceability,Có dòng mapping tương ứng,Test Case chưa được đưa vào ma trận truy xuất
+D. Bug Report & Traceability,TC_CRM_032,Traceability / Cột Test ID,Không có trong sheet Traceability,Có dòng mapping tương ứng,Test Case chưa được đưa vào ma trận truy xuất
+D. Bug Report & Traceability,TC_SAL_012,Traceability / Cột Test ID,Không có trong sheet Traceability,Có dòng mapping tương ứng,Test Case chưa được đưa vào ma trận truy xuất
+D. Bug Report & Traceability,TC_SAL_021,Traceability / Cột Test ID,Không có trong sheet Traceability,Có dòng mapping tương ứng,Test Case chưa được đưa vào ma trận truy xuất
+D. Bug Report & Traceability,TC_SAL_027,Traceability / Cột Test ID,Không có trong sheet Traceability,Có dòng mapping tương ứng,Test Case chưa được đưa vào ma trận truy xuất
+D. Bug Report & Traceability,TC_SAL_024,Traceability / Cột Test ID,Không có trong sheet Traceability,Có dòng mapping tương ứng,Test Case chưa được đưa vào ma trận truy xuất
+D. Bug Report & Traceability,TC_CRM_015,Traceability / Cột Test ID,Không có trong sheet Traceability,Có dòng mapping tương ứng,Test Case chưa được đưa vào ma trận truy xuất
+D. Bug Report & Traceability,TC_SAL_028,Traceability / Cột Test ID,Không có trong sheet Traceability,Có dòng mapping tương ứng,Test Case chưa được đưa vào ma trận truy xuất
+D. Bug Report & Traceability,TC_STK_008,Traceability / Cột Test ID,Không có trong sheet Traceability,Có dòng mapping tương ứng,Test Case chưa được đưa vào ma trận truy xuất
+D. Bug Report & Traceability,TC_SAL_039,Traceability / Cột Test ID,Không có trong sheet Traceability,Có dòng mapping tương ứng,Test Case chưa được đưa vào ma trận truy xuất
+D. Bug Report & Traceability,TC_STK_025,Traceability / Cột Test ID,Không có trong sheet Traceability,Có dòng mapping tương ứng,Test Case chưa được đưa vào ma trận truy xuất
+D. Bug Report & Traceability,TC_CRM_005,Traceability / Cột Test ID,Không có trong sheet Traceability,Có dòng mapping tương ứng,Test Case chưa được đưa vào ma trận truy xuất
+D. Bug Report & Traceability,TC_SAL_031,Traceability / Cột Test ID,Không có trong sheet Traceability,Có dòng mapping tương ứng,Test Case chưa được đưa vào ma trận truy xuất
+D. Bug Report & Traceability,TC_STK_017,Traceability / Cột Test ID,Không có trong sheet Traceability,Có dòng mapping tương ứng,Test Case chưa được đưa vào ma trận truy xuất
+D. Bug Report & Traceability,TC_SAL_008,Traceability / Cột Test ID,Không có trong sheet Traceability,Có dòng mapping tương ứng,Test Case chưa được đưa vào ma trận truy xuất
+D. Bug Report & Traceability,TC_CRM_036,Traceability / Cột Test ID,Không có trong sheet Traceability,Có dòng mapping tương ứng,Test Case chưa được đưa vào ma trận truy xuất
+D. Bug Report & Traceability,TC_SAL_011,Traceability / Cột Test ID,Không có trong sheet Traceability,Có dòng mapping tương ứng,Test Case chưa được đưa vào ma trận truy xuất
+D. Bug Report & Traceability,TC_SAL_037,Traceability / Cột Test ID,Không có trong sheet Traceability,Có dòng mapping tương ứng,Test Case chưa được đưa vào ma trận truy xuất
+D. Bug Report & Traceability,TC_CRM_008,Traceability / Cột Test ID,Không có trong sheet Traceability,Có dòng mapping tương ứng,Test Case chưa được đưa vào ma trận truy xuất
+D. Bug Report & Traceability,TC_STK_005,Traceability / Cột Test ID,Không có trong sheet Traceability,Có dòng mapping tương ứng,Test Case chưa được đưa vào ma trận truy xuất
+D. Bug Report & Traceability,TC_STK_023,Traceability / Cột Test ID,Không có trong sheet Traceability,Có dòng mapping tương ứng,Test Case chưa được đưa vào ma trận truy xuất
+D. Bug Report & Traceability,TC_SAL_029,Traceability / Cột Test ID,Không có trong sheet Traceability,Có dòng mapping tương ứng,Test Case chưa được đưa vào ma trận truy xuất
+D. Bug Report & Traceability,TC_STK_010,Traceability / Cột Test ID,Không có trong sheet Traceability,Có dòng mapping tương ứng,Test Case chưa được đưa vào ma trận truy xuất
+D. Bug Report & Traceability,TC_SAL_025,Traceability / Cột Test ID,Không có trong sheet Traceability,Có dòng mapping tương ứng,Test Case chưa được đưa vào ma trận truy xuất
+D. Bug Report & Traceability,TC_STK_004,Traceability / Cột Test ID,Không có trong sheet Traceability,Có dòng mapping tương ứng,Test Case chưa được đưa vào ma trận truy xuất
+D. Bug Report & Traceability,TC_SAL_020,Traceability / Cột Test ID,Không có trong sheet Traceability,Có dòng mapping tương ứng,Test Case chưa được đưa vào ma trận truy xuất
+D. Bug Report & Traceability,TC_SAL_006,Traceability / Cột Test ID,Không có trong sheet Traceability,Có dòng mapping tương ứng,Test Case chưa được đưa vào ma trận truy xuất
+D. Bug Report & Traceability,TC_STK_006,Traceability / Cột Test ID,Không có trong sheet Traceability,Có dòng mapping tương ứng,Test Case chưa được đưa vào ma trận truy xuất
+D. Bug Report & Traceability,TC_CRM_026,Traceability / Cột Test ID,Không có trong sheet Traceability,Có dòng mapping tương ứng,Test Case chưa được đưa vào ma trận truy xuất
+D. Bug Report & Traceability,TC_CRM_013,Traceability / Cột Test ID,Không có trong sheet Traceability,Có dòng mapping tương ứng,Test Case chưa được đưa vào ma trận truy xuất
+D. Bug Report & Traceability,TC_SAL_041,Traceability / Cột Test ID,Không có trong sheet Traceability,Có dòng mapping tương ứng,Test Case chưa được đưa vào ma trận truy xuất
+D. Bug Report & Traceability,TC_SAL_030,Traceability / Cột Test ID,Không có trong sheet Traceability,Có dòng mapping tương ứng,Test Case chưa được đưa vào ma trận truy xuất
+D. Bug Report & Traceability,TC_CRM_033,Traceability / Cột Test ID,Không có trong sheet Traceability,Có dòng mapping tương ứng,Test Case chưa được đưa vào ma trận truy xuất
+D. Bug Report & Traceability,TC_SAL_001,Traceability / Cột Test ID,Không có trong sheet Traceability,Có dòng mapping tương ứng,Test Case chưa được đưa vào ma trận truy xuất
+D. Bug Report & Traceability,TC_STK_022,Traceability / Cột Test ID,Không có trong sheet Traceability,Có dòng mapping tương ứng,Test Case chưa được đưa vào ma trận truy xuất
+D. Bug Report & Traceability,TC_SAL_018,Traceability / Cột Test ID,Không có trong sheet Traceability,Có dòng mapping tương ứng,Test Case chưa được đưa vào ma trận truy xuất
+D. Bug Report & Traceability,TC_SAL_034,Traceability / Cột Test ID,Không có trong sheet Traceability,Có dòng mapping tương ứng,Test Case chưa được đưa vào ma trận truy xuất
+D. Bug Report & Traceability,TC_CRM_025,Traceability / Cột Test ID,Không có trong sheet Traceability,Có dòng mapping tương ứng,Test Case chưa được đưa vào ma trận truy xuất
+D. Bug Report & Traceability,TC_SAL_023,Traceability / Cột Test ID,Không có trong sheet Traceability,Có dòng mapping tương ứng,Test Case chưa được đưa vào ma trận truy xuất
+D. Bug Report & Traceability,TC_STK_007,Traceability / Cột Test ID,Không có trong sheet Traceability,Có dòng mapping tương ứng,Test Case chưa được đưa vào ma trận truy xuất
+D. Bug Report & Traceability,TC_SAL_007,Traceability / Cột Test ID,Không có trong sheet Traceability,Có dòng mapping tương ứng,Test Case chưa được đưa vào ma trận truy xuất
+D. Bug Report & Traceability,TC_SAL_042,Traceability / Cột Test ID,Không có trong sheet Traceability,Có dòng mapping tương ứng,Test Case chưa được đưa vào ma trận truy xuất
+D. Bug Report & Traceability,TC_STK_011,Traceability / Cột Test ID,Không có trong sheet Traceability,Có dòng mapping tương ứng,Test Case chưa được đưa vào ma trận truy xuất
+D. Bug Report & Traceability,TC_SAL_016,Traceability / Cột Test ID,Không có trong sheet Traceability,Có dòng mapping tương ứng,Test Case chưa được đưa vào ma trận truy xuất
